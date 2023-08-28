@@ -1,12 +1,11 @@
 {
   "basics": {
-    "name": "Albert Einstein",
-    "label": "Scientist",
+    "name": "Nitin Nilesh",
     "image": "",
-    "email": "albert@einstein.de",
-    "phone": "(912) 123-4567",
-    "url": "https://alshedivat.github.io/al-folio/",
-    "summary": "A German-born theoretical physicist, widely ranked among the greatest and most influential scientists of all time",
+    "email": "nitinnilesh49@gmail.com",
+    "phone": "+91-8981677732",
+    "webpage": "https://pi-rasp.github.io",
+    "summary": "Camera Modelling Research Engineer - Multimedia Systems Team, Qualcomm India | Research Scholar at IIIT Hyderabad | Computer Vision | Deep Learning | Machine Learning | Machine Learning on IoT",
     "location": {
       "address": "2712 Broadway St",
       "postalCode": "CA 94115",
@@ -24,14 +23,26 @@
   },
   "work": [
     {
-      "name": "Institute for Advanced Study, Princeton University",
-      "position": "Professor of Theoretical Physics",
-      "url": "https://example.com",
-      "startDate": "1933-01-01",
-      "endDate": "1955-01-01",
-      "summary": "Teaching at Palmer Physical Laboratory (now 302 Frist Campus Center). While not a professor at Princeton, I associated with the physics professors and continued to give lectures on campus.",
+      "image": "qcom_logo.png",
+      "name": "Qualcomm Research",
+      "position": "Camera Modelling Research Engineer",
+      "startDate": "2021-09-27",
+      "endDate": "-",
+      "summary": "At Qualcomm, my role entails overseeing the entire imaging pipeline, which spans from the initial sensor input to the production of the final image. This involves the implementation and management of crucial camera techniques like filtering, sharpening, denoising, compression, and other essential processes to enhance the overall image quality and optimize the imaging experience for end-users.",
       "highlights": [
-        "Relativity"
+        "Image Signal Processor (ISP), Computational Photography, Camera Pipeline"
+      ]
+    },
+
+    {
+      "image": "qcom_logo.png",
+      "name": "Amazon",
+      "position": "Applied Scientist Intern",
+      "startDate": "2020-08-27",
+      "endDate": "2021-01-20",
+      "summary": "1. Worked on Graph based convolution networks (GCN, GAT) to detect fraudulence on both customer and order level.\\ 2. Used attention based models on Heterogeneous Graphs across different edge types to perform node based classification.",
+      "highlights": [
+        "Image Signal Processor (ISP), Computational Photography, Camera Pipeline"
       ]
     }
   ],
