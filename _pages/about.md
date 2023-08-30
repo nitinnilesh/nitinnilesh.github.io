@@ -7,7 +7,7 @@ subtitle: <strong>Camera Modeling Engineer</strong> @ <a href='https://www.qualc
 
 profile:
   align: right
-  image: IMG_0784.png
+  image: IMG_0784.jpg
   image_circular: false # crops the image to make it circular
   address: 
 
