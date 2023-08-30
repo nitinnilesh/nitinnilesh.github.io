@@ -3,7 +3,7 @@ layout: about
 title: About
 permalink: /
 subtitle: <strong>Camera Modeling Engineer</strong> @ <a href='https://www.qualcomm.com/research'>Qualcomm Research</a> | Previously - <strong>Research Scholar</strong> @ <a href='https://iiit.ac.in'> IIIT Hyderabad. </a> 
-  Reach me at my <strong><a href='mailto:nitinnilesh49@gmail.com'>Email</a></strong>. You can also message me on <strong><a href='https://linkedin.com/in/nitinnilesh'>LinkedIn</a></strong>. Here is my <strong><a href="assets/pdf/example_pdf.pdf">Resume</a></strong>.
+  Reach me at my <strong><a href='mailto:nitinnilesh49@gmail.com'>Email</a></strong>. You can also message me on <strong><a href='https://linkedin.com/in/nitinnilesh'>LinkedIn</a></strong>. Here is my <strong><a href="assets/pdf/Nitin_Nilesh_CV.pdf">Resume</a></strong>.
 
 profile:
   align: right
