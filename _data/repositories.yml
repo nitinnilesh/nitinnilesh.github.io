@@ -1,9 +1,8 @@
 github_users:
-  - torvalds
-  - alshedivat
+  - pi-rasp
 
 github_repos:
-  - alshedivat/al-folio
+  - omi-kron/IoT-based-AQI-Estimation-using-Image-Processing-and-Learning-Methods
   - twbs/bootstrap
   - jekyll/jekyll
   - jquery/jquery
