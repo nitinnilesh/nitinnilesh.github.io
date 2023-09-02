@@ -25,4 +25,4 @@ My research interests encompass various domains, including Computer Vision, [Com
 
 Aside from my research endeavors, I have a passion for education and mentoring. I actively served as a mentor at **[TalentSprint](https://talentsprint.com)**, where I contributed to the [AI/ML foundations course](https://talentsprint.com/course/ai-machine-learning-iiit-hyderabad) offered in collaboration between IIIT Hyderabad and Talent Sprint. In this role, I delivered lectures on fundamental concepts in Machine Learning and Deep Learning to industry professionals, guiding them through their project work.
 
-Apart from this, I am an enthusiast of sports, particularly **Badminton** and **Chess**. Additionally, I enjoy engaging in cycling and running as part of my recreational pursuits.
+Apart from this, I am an enthusiast of sports, particularly **Badminton** and **[Chess](https://lichess.org/@/dead_knight)**. Additionally, I enjoy engaging in cycling and running as part of my recreational pursuits.

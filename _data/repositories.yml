@@ -3,9 +3,4 @@ github_users:
 
 github_repos:
   - omi-kron/IoT-based-AQI-Estimation-using-Image-Processing-and-Learning-Methods
-  - twbs/bootstrap
-  - jekyll/jekyll
-  - jquery/jquery
-  - FortAwesome/Font-Awesome
-  - jpswalsh/academicons
-  - mathjax/MathJax
+  - ranok92/ml_collab/tree/master/word2vec
