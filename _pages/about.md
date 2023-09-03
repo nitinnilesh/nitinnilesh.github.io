@@ -14,10 +14,11 @@ profile:
 news: true  # includes a list of news items
 latest_posts: true  # includes a list of the newest posts
 selected_papers: true # includes a list of papers marked as "selected={true}"
+featured_media: true # includes a grid of media links
 social: true  # includes social icons at the bottom of the page
 ---
 
-👋 Hey, I am Nitin Nilesh, currently employed as a **Camera Modeling Engineer** at **[Qualcomm](https://www.qualcomm.com/research)**, where my primary focus is on the development and enhancement of Image Signal Processor pipelines. My educational background includes a **[Master of Science by Research degree](https://www.iiit.ac.in/academics/postgraduate/ms/cse/)** from the **International Institute of Information Technology, Hyderabad (IIIT Hyderabad)**. During my time at IIIT Hyderabad, I conducted research at the intersection of Computer Vision, Machine Learning, Deep Learning, and IoT, under the guidance of **Prof. [Sachin Chaudhari](https://faculty.iiit.ac.in/~sachin.c/)** and **Prof. [C.V. Jawahar](https://faculty.iiit.ac.in/~jawahar/)**.
+👋 Hey, I am Nitin Nilesh, currently employed as a **Camera Modeling Engineer** at **[Qualcomm](https://www.qualcomm.com/research)**, where my primary focus is on the development and enhancement of [Image Signal Processor](https://en.wikipedia.org/wiki/Image_processor) pipelines. My educational background includes a **[Master of Science by Research degree](https://www.iiit.ac.in/academics/postgraduate/ms/cse/)** from the **International Institute of Information Technology, Hyderabad (IIIT Hyderabad)**. During my time at IIIT Hyderabad, I conducted research at the intersection of Computer Vision, Machine Learning, Deep Learning, and IoT, under the guidance of **Prof. [Sachin Chaudhari](https://faculty.iiit.ac.in/~sachin.c/)** and **Prof. [C.V. Jawahar](https://faculty.iiit.ac.in/~jawahar/)**.
 
 Prior to my role at Qualcomm, I had the privilege of interning with the **[Amazon India Machine Learning team](https://www.amazon.jobs/en/teams/machine-learning)**. During this internship, I had the opportunity to collaborate with exceptional individuals and worked on projects involving [Graph Neural Networks](https://en.wikipedia.org/wiki/Graph_neural_network).
 

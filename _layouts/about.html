@@ -59,6 +59,11 @@ layout: default
             {%- include latest_posts.html %}
           {%- endif %}
 
+          <!-- Featured media -->
+          {% if page.featured_media -%}
+          {%- include featured_media.html %}
+          {%- endif %}
+
 
           <!-- Social -->
           {%- if page.social %}

@@ -149,6 +149,13 @@ blockquote {
   }
 }
 
+.text-limit {
+  -webkit-line-clamp: 3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 // Citation
 
 .citation,

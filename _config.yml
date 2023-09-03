@@ -175,6 +175,11 @@ collections:
   projects:
     output: true
     permalink: /projects/:path/
+  featured_media:
+    output: true
+    permalink: /featured_media/:path/
+
+featured_media_limit: 16
 
 announcements:
   enabled: true
