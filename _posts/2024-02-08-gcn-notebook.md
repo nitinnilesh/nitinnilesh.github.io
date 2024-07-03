@@ -11,7 +11,11 @@ related_posts: false
 
 This blog is the implementation of the paper [Semi-Supervised Classification With Graph Convolutional Networks](https://arxiv.org/abs/1609.02907) by Kipf et al., ICLR 2017. 
 
-<iframe width="100%" height="400px" src="http://www.youtube.com/embed/1SBhgQ5HMOw" frameborder="0" allowfullscreen></iframe>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include video.html path="https://www.youtube.com/embed/1SBhgQ5HMOw" width="100%" height="400px" %}
+    </div>
+</div>
 <div class="caption">
     I have made a video based upon this notebook titled "The spelled-out intro to Graph Convolutional Network (GCN)". Watch the video here.
 </div>
