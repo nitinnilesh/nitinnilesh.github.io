@@ -11,6 +11,11 @@ related_posts: false
 
 This blog is the implementation of the paper [Semi-Supervised Classification With Graph Convolutional Networks](https://arxiv.org/abs/1609.02907) by Kipf et al., ICLR 2017. 
 
+<iframe width="100%" height="400px" src="http://www.youtube.com/embed/1SBhgQ5HMOw" frameborder="0" allowfullscreen></iframe>
+<div class="caption">
+    I have made a video based upon this notebook titled "The spelled-out intro to Graph Convolutional Network (GCN)". Watch the video here.
+</div>
+
 I've aimed to create a notebook that's easy to understand. It begins with a simple graph, explaining the GCN formula step by step. I implemented the GCN model using [PyTorch](https://pytorch.org) (without relying on specific graph libraries like [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/), [DGL](https://www.dgl.ai), etc.) on the Cora dataset. Additionally, I replicated a section of the paper called "Node Embeddings With Random Weights" using the Zachary Karate Club dataset. The goal was to demonstrate how GCN can be a powerful tool for extracting features from nodes in a graph.
 
 Going ahead, I have also implemented all the variants of the GCN mentioned in the paper which are:
