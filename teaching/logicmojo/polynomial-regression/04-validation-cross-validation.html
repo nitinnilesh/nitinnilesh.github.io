@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Validation and Cross Validation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Polynomial Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-introduction.html">Intro</a>
+        <a href="02-simulation-generalization.html">Simulation</a>
+        <a href="03-bias-variance.html">Bias-Variance</a>
+        <a class="active" href="04-validation-cross-validation.html">Validation</a>
+        <a href="05-regularization.html">Regularization</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 4</div>
+    <h1>Validation in model training</h1>
+    <p class="lead">Validation is the habit that protects us from being fooled by training error. It gives a practical way to choose polynomial degree, lambda, and model settings.</p>
+
+    <section class="section">
+      <h2>Why validation?</h2>
+      <p>Training error tells us how well the model fits known data. Validation error estimates how well the model may perform on unseen data.</p>
+      <div class="formula">\[\text{choose model using validation error, not training error}\]</div>
+      <div class="activity">
+        <h3>Model choice</h3>
+        <p class="prompt">If degree 10 has lower training error than degree 3, but degree 3 has lower validation error, which model should we prefer?</p>
+        <p>Prefer degree 3, because the goal is generalization.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Train, validation, and test split</h2>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 300" role="img" aria-label="Train validation test split">
+          <rect x="70" y="104" width="460" height="80" rx="8" fill="#eef5ff" stroke="#1f6feb" stroke-width="3"></rect>
+          <rect x="540" y="104" width="170" height="80" rx="8" fill="#fff6e8" stroke="#b85c00" stroke-width="3"></rect>
+          <rect x="720" y="104" width="110" height="80" rx="8" fill="#ecfdf5" stroke="#11875d" stroke-width="3"></rect>
+          <text x="264" y="148" class="axis-label">train</text>
+          <text x="592" y="148" class="axis-label">validation</text>
+          <text x="758" y="148" class="axis-label">test</text>
+          <text x="196" y="220" class="axis-label">fit coefficients</text>
+          <text x="554" y="220" class="axis-label">select degree/lambda</text>
+          <text x="730" y="220" class="axis-label">final unbiased check</text>
+        </svg>
+        <p class="caption">The test set should be touched only after model choices are finalized.</p>
+      </div>
+      <table>
+        <thead><tr><th>Split</th><th>Used for</th><th>Do we learn from it?</th></tr></thead>
+        <tbody>
+          <tr><td>Training set</td><td>Fit model coefficients.</td><td>Yes</td></tr>
+          <tr><td>Validation set</td><td>Choose degree, lambda, features, and hyperparameters.</td><td>Indirectly</td></tr>
+          <tr><td>Test set</td><td>Estimate final performance after decisions are complete.</td><td>No</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Which polynomial degrees should we experiment with?</h2>
+      <p>Polynomial degree is a hyperparameter. The model learns coefficients such as \(\beta_0,\beta_1,\beta_2\), but we decide which degrees are worth trying.</p>
+      <div class="formula">\[
+d \in \{1,2,3,4,5\}
+\]</div>
+      <p>A good practical approach is to start simple, increase complexity gradually, and let validation performance decide when extra flexibility stops helping.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Start with the story of the data</h3>
+          <p>If the relationship bends once, try degree 2. If it may bend more than once, try degree 3 or 4. Avoid jumping directly to degree 20.</p>
+        </div>
+        <div class="card">
+          <h3>Respect data size and noise</h3>
+          <p>Small or noisy datasets should use a smaller search range. High-degree polynomials can memorize random fluctuations.</p>
+        </div>
+        <div class="card">
+          <h3>Use validation to decide</h3>
+          <p>The final choice should come from validation or cross-validation error, not from training error.</p>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Problem</th><th>Reasonable degrees to try</th><th>Why this range?</th></tr></thead>
+        <tbody>
+          <tr><td>Study hours vs marks</td><td>\(\{1,2,3\}\)</td><td>Scores may rise quickly first and then saturate. A low-degree curve is usually enough.</td></tr>
+          <tr><td>Experience vs salary</td><td>\(\{1,2,3,4\}\)</td><td>Salary growth may accelerate early and flatten later, but very high degrees are hard to explain.</td></tr>
+          <tr><td>House size vs price</td><td>\(\{1,2,3\}\)</td><td>There may be diminishing returns for very large houses. Extrapolation risk is high.</td></tr>
+          <tr><td>Ad spend vs sales</td><td>\(\{1,2,3,4,5\}\)</td><td>Sales can rise, flatten, or show diminishing returns. Validation should choose the useful complexity.</td></tr>
+          <tr><td>Very small dataset</td><td>\(\{1,2\}\)</td><td>Few points cannot reliably support a highly flexible curve.</td></tr>
+        </tbody>
+      </table>
+      <div class="note">A useful default for many classroom examples is \(d \in \{1,2,3,4,5\}\). If degree 5 is best and validation error is still decreasing, expand carefully. If validation error starts increasing, stop.</div>
+      <div class="activity">
+        <h3>Search range decision</h3>
+        <p class="prompt">For 20 noisy data points, would you try degrees 1 to 5 or degrees 1 to 25 first?</p>
+        <p>Start with 1 to 5. A degree-25 polynomial has too much freedom for such a small noisy dataset.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Solid example: choosing degree by validation error</h2>
+      <p>Suppose we try several polynomial degrees for ad spend vs sales. Training error keeps improving as degree increases, but validation error tells a different story.</p>
+      <table>
+        <thead><tr><th>Degree</th><th>Training RMSE</th><th>Validation RMSE</th><th>Decision</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>8.2</td><td>8.6</td><td>Too simple. Likely underfitting.</td></tr>
+          <tr><td>2</td><td>5.9</td><td>6.2</td><td>Much better. Captures curvature.</td></tr>
+          <tr><td>3</td><td>5.4</td><td>5.8</td><td>Best validation score.</td></tr>
+          <tr><td>4</td><td>5.1</td><td>6.1</td><td>Training improves, validation worsens.</td></tr>
+          <tr><td>5</td><td>4.7</td><td>7.4</td><td>Overfitting risk is increasing.</td></tr>
+        </tbody>
+      </table>
+      <div class="formula">\[
+\text{selected degree}=3
+\]</div>
+      <p>The lesson: degree 5 looks best on training data, but degree 3 is better for future data because it has the lowest validation error.</p>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 320" role="img" aria-label="Choosing polynomial degree using validation error">
+          <line x1="76" y1="250" x2="820" y2="250" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="76" y1="250" x2="76" y2="48" stroke="#5e6875" stroke-width="2"></line>
+          <polyline points="112,94 250,152 388,172 526,182 664,198" fill="none" stroke="#1f6feb" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          <polyline points="112,84 250,144 388,166 526,148 664,94" fill="none" stroke="#11875d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          <g fill="#1f6feb">
+            <circle cx="112" cy="94" r="7"></circle><circle cx="250" cy="152" r="7"></circle><circle cx="388" cy="172" r="7"></circle><circle cx="526" cy="182" r="7"></circle><circle cx="664" cy="198" r="7"></circle>
+          </g>
+          <g fill="#11875d">
+            <circle cx="112" cy="84" r="7"></circle><circle cx="250" cy="144" r="7"></circle><circle cx="388" cy="166" r="7"></circle><circle cx="526" cy="148" r="7"></circle><circle cx="664" cy="94" r="7"></circle>
+          </g>
+          <line x1="388" y1="250" x2="388" y2="166" stroke="#c3342f" stroke-width="3" stroke-dasharray="7 6"></line>
+          <text x="354" y="284" class="axis-label">degree 3</text>
+          <text x="96" y="284" class="axis-label">1</text>
+          <text x="238" y="284" class="axis-label">2</text>
+          <text x="514" y="284" class="axis-label">4</text>
+          <text x="652" y="284" class="axis-label">5</text>
+          <text x="362" y="142" class="axis-label">lowest validation error</text>
+          <circle cx="618" cy="34" r="6" fill="#1f6feb"></circle>
+          <text x="632" y="38" class="axis-label">training RMSE</text>
+          <circle cx="618" cy="58" r="6" fill="#11875d"></circle>
+          <text x="632" y="62" class="axis-label">validation RMSE</text>
+          <text x="352" y="306" class="axis-label">polynomial degree</text>
+          <text x="28" y="58" class="axis-label">error</text>
+        </svg>
+        <p class="caption">Degree 3 is selected because the validation RMSE reaches its lowest point there, even though training RMSE keeps improving at higher degrees.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Validation curve</h2>
+      <p>A validation curve compares model complexity with training and validation error.</p>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Validation curve">
+          <line x1="50" y1="250" x2="374" y2="250" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="50" y1="250" x2="50" y2="42" stroke="#5e6875" stroke-width="2"></line>
+          <path d="M64 86 C128 132, 226 180, 356 222" fill="none" stroke="#1f6feb" stroke-width="4"></path>
+          <path d="M64 82 C128 144, 190 196, 236 198 C292 196, 326 144, 356 88" fill="none" stroke="#11875d" stroke-width="5"></path>
+          <line x1="236" y1="250" x2="236" y2="198" stroke="#c3342f" stroke-width="3" stroke-dasharray="7 6"></line>
+          <circle cx="236" cy="198" r="6" fill="#c3342f"></circle>
+          <text x="136" y="280" class="axis-label">polynomial degree</text>
+          <text x="14" y="54" class="axis-label">error</text>
+          <circle cx="210" cy="28" r="5" fill="#1f6feb"></circle>
+          <text x="222" y="32" class="axis-label">training error decreases</text>
+          <circle cx="210" cy="50" r="5" fill="#11875d"></circle>
+          <text x="222" y="54" class="axis-label">validation error is U-shaped</text>
+          <text x="250" y="198" class="axis-label">best degree</text>
+        </svg>
+        <p class="caption">Training error may keep falling, but validation error usually reveals the overfitting point.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Cross-validation</h2>
+      <p>Cross-validation makes validation more reliable by rotating which part of the data is used for validation.</p>
+      <div class="formula">\[\text{CV score}=\frac{1}{K}\sum_{k=1}^{K}\text{ValidationError}_k\]</div>
+      <p>Instead of trusting one validation split, K-fold cross-validation averages performance across \(K\) different validation folds.</p>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 360" role="img" aria-label="K fold cross validation">
+          <g transform="translate(70,42)">
+            <text x="0" y="-16" class="axis-label">Fold 1</text>
+            <rect x="0" y="0" width="130" height="42" fill="#fff6e8" stroke="#b85c00"></rect>
+            <rect x="130" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="260" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="390" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="520" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <text x="42" y="27" class="axis-label">val</text>
+          </g>
+          <g transform="translate(70,100)">
+            <text x="0" y="-16" class="axis-label">Fold 2</text>
+            <rect x="0" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="130" y="0" width="130" height="42" fill="#fff6e8" stroke="#b85c00"></rect>
+            <rect x="260" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="390" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="520" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <text x="172" y="27" class="axis-label">val</text>
+          </g>
+          <g transform="translate(70,158)">
+            <text x="0" y="-16" class="axis-label">Fold 3</text>
+            <rect x="0" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="130" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="260" y="0" width="130" height="42" fill="#fff6e8" stroke="#b85c00"></rect>
+            <rect x="390" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="520" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <text x="302" y="27" class="axis-label">val</text>
+          </g>
+          <g transform="translate(70,216)">
+            <text x="0" y="-16" class="axis-label">Fold 4</text>
+            <rect x="0" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="130" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="260" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="390" y="0" width="130" height="42" fill="#fff6e8" stroke="#b85c00"></rect>
+            <rect x="520" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <text x="432" y="27" class="axis-label">val</text>
+          </g>
+          <g transform="translate(70,274)">
+            <text x="0" y="-16" class="axis-label">Fold 5</text>
+            <rect x="0" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="130" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="260" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="390" y="0" width="130" height="42" fill="#eef5ff" stroke="#1f6feb"></rect>
+            <rect x="520" y="0" width="130" height="42" fill="#fff6e8" stroke="#b85c00"></rect>
+            <text x="562" y="27" class="axis-label">val</text>
+          </g>
+        </svg>
+        <p class="caption">Each fold gets a turn as validation data. The final CV score averages the validation errors.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Implementation idea for K-fold cross-validation</h2>
+      <p>The practical algorithm is simple:</p>
+      <div class="mini-flow">
+        <span>Split data into K folds</span>
+        <span>Hold out one fold</span>
+        <span>Train on remaining folds</span>
+        <span>Measure validation error</span>
+        <span>Average all errors</span>
+      </div>
+      <div class="formula">\[
+\text{for degree in } \{1,2,3,\ldots\}: \quad
+\text{score degree using K-fold CV}
+\]</div>
+      <div class="formula">\[
+\text{selected degree}=\arg\min_d \text{CVError}(d)
+\]</div>
+      <div class="note">Use cross-validation for model selection. Keep a final test set separate if you need a final trustworthy performance number.</div>
+      <div class="activity">
+        <h3>Data leakage check</h3>
+        <p class="prompt">Should polynomial feature creation and scaling be fit before or inside each cross-validation fold?</p>
+        <p>They should be fit inside each fold using only the training part. Pipelines help avoid leakage.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>What cross-validation helps us choose</h2>
+      <p>Polynomial regression has choices that are not learned directly as coefficients. These choices are called hyperparameters.</p>
+      <table>
+        <thead><tr><th>Hyperparameter</th><th>Controls</th><th>If too low</th><th>If too high</th></tr></thead>
+        <tbody>
+          <tr><td>Polynomial degree</td><td>Curve flexibility</td><td>Underfitting, high bias</td><td>Overfitting, high variance</td></tr>
+          <tr><td>Ridge/Lasso lambda</td><td>Regularization strength</td><td>Weak control of overfitting</td><td>Too much shrinkage, underfitting</td></tr>
+        </tbody>
+      </table>
+      <div class="formula">\[
+\text{choose hyperparameters by validation performance, then refit the final model}
+\]</div>
+      <p>After choosing the degree and lambda, a common workflow is to refit the selected model on the available training data, then use the untouched test set once for the final performance estimate.</p>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="03-bias-variance.html">Previous: Bias-Variance</a>
+      <a class="button primary" href="05-regularization.html">Next: Regularization</a>
+    </div>
+  </main>
+</body>
+</html>

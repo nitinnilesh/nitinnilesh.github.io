@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>When Accuracy Lies — Model Evaluation</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar"><nav class="nav">
+    <a class="brand" href="index.html">When Accuracy Lies</a>
+    <div class="navlinks"><a class="active" href="index.html">Overview</a><a href="01-accuracy-trap.html">Accuracy Trap</a><a href="02-confusion-matrix.html">Confusion Matrix</a><a href="03-precision-recall-f1.html">P/R/F1</a><a href="04-threshold-roc.html">ROC-AUC</a><a href="05-pr-auc.html">PR-AUC</a><a href="05-regression-r2.html">R²</a><a href="06-demo-guide.html">Demo Guide</a></div>
+  </nav><div class="progress"><span style="width:8%"></span></div></header>
+
+  <main class="page">
+    <section class="hero hero-grid">
+      <div>
+        <div class="eyebrow">45–60 minute interactive session</div>
+        <h1>When accuracy lies.</h1>
+        <p class="lead">How do we know whether a machine-learning model is actually good? We will move from raw predictions to business-aware evaluation—one mistake at a time.</p>
+        <p><a class="button primary" href="01-accuracy-trap.html">Start with the puzzle →</a> <a class="button" href="06-demo-guide.html">Teaching guide</a></p>
+      </div>
+      <div class="visual dark">
+        <p class="muted" style="color:#c7d2e3">A fraud model reports:</p>
+        <div style="font-size:68px;font-weight:900;line-height:1;color:#76aaff">99%</div>
+        <p class="kicker">accuracy</p>
+        <hr style="border:0;border-top:1px solid #3d4a60;margin:22px 0">
+        <p style="margin:0;color:#eef3fb">Would you deploy it?</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>The one question behind every metric</h2>
+      <p class="kicker">“What kind of mistake can we afford?”</p>
+      <p class="section-intro">Metrics are not just formulas. Each metric expresses a preference about which errors matter. By the end, learners should be able to select—not merely calculate—the right metric.</p>
+      <div class="mini-flow"><span>Prediction</span><span>Mistake types</span><span>Confusion matrix</span><span>Precision & recall</span><span>ROC & PR curves</span><span>Decision</span></div>
+    </section>
+
+    <section class="section">
+      <h2>Learning journey</h2>
+      <div class="grid">
+        <a class="card" href="01-accuracy-trap.html"><span class="num">1</span><h3>Break the accuracy instinct</h3><p>Use a 1%-fraud puzzle to discover why “mostly correct” can still be useless.</p></a>
+        <a class="card" href="02-confusion-matrix.html"><span class="num">2</span><h3>Name every outcome</h3><p>Build the confusion matrix from real decisions and calculate accuracy interactively.</p></a>
+        <a class="card" href="03-precision-recall-f1.html"><span class="num">3</span><h3>Choose the costly mistake</h3><p>Derive precision, recall, and F1 directly from questions—not memorized formulas.</p></a>
+        <a class="card" href="04-threshold-roc.html"><span class="num">4</span><h3>Move the decision threshold</h3><p>Watch every metric change, then connect thresholds to ROC and AUC.</p></a>
+        <a class="card" href="05-pr-auc.html"><span class="num">5</span><h3>Focus on rare positives</h3><p>Use the precision–recall curve and PR-AUC when alert quality matters.</p></a>
+        <a class="card" href="05-regression-r2.html"><span class="num">6</span><h3>Switch to regression</h3><p>Understand R² as improvement over the simplest baseline: predicting the mean.</p></a>
+        <a class="card" href="06-demo-guide.html"><span class="num">7</span><h3>Run the live session</h3><p>A minute-by-minute instructor route, audience prompts, recap, and backup plan.</p></a>
+      </div>
+    </section>
+
+    <section class="section two-col">
+      <div>
+        <h2>Learning outcomes</h2>
+        <p>By the end, learners will be able to:</p>
+        <ul><li>explain why accuracy fails on imbalanced data;</li><li>construct and interpret a confusion matrix;</li><li>calculate precision, recall, and F1;</li><li>describe how a threshold changes model behaviour;</li><li>interpret ROC-AUC as ranking quality;</li><li>choose PR-AUC for rare positive classes;</li><li>explain R² relative to a mean baseline.</li></ul>
+      </div>
+      <div class="activity">
+        <h3>Opening audience poll</h3>
+        <p class="prompt">“A fraud model is 99% accurate. Good model or bad model?”</p>
+        <p>Ask for a show of hands. Do not resolve it immediately—let the first page reveal the missing information.</p>
+      </div>
+    </section>
+
+    <div class="pager"><span></span><a class="button primary" href="01-accuracy-trap.html">Begin: The accuracy trap →</a></div>
+    <p class="footer-note">Designed for a beginner-friendly, first-principles demo class.</p>
+  </main>
+</body></html>

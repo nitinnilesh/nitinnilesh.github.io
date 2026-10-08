@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Decision Trees for Regression</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-tree-intuition.html">Intuition</a><a class="" href="02-entropy-gini.html">Impurity</a><a class="" href="03-information-gain.html">Gain</a><a class="" href="04-mixed-splits.html">Mixed Data</a><a class="" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="active" href="07-regression-trees.html">Regression</a><a class="" href="08-evaluation-tuning.html">Evaluation</a><a class="" href="09-practical-guide.html">Practice</a><a class="" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Part 7</div>
+    <h1>A regression tree asks threshold questions and predicts a number in each leaf.</h1>
+    <p class="lead">The structure is unchanged from classification. What changes is the definition of impurity and the value stored at a leaf.</p>
+
+    <section class="section">
+      <h2>From class purity to numeric compactness</h2>
+      <div class="activity"><h3>Regression question</h3><p class="prompt">If a node contains house prices rather than class labels, what should “pure” mean?</p></div>
+      <p>A useful regression node contains target values that are close together. Squared error measures how spread out they are around the node mean.</p>
+      <div class="formula">\[
+      \hat y_m=\frac{1}{N_m}\sum_{i\in Q_m}y_i
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> every house reaching leaf \(m\) receives the average training price of houses in that leaf.</p>
+    </section>
+
+    <section class="section">
+      <h2>Why the mean appears</h2>
+      <p>The constant \(c\) minimizing squared error inside a leaf is the mean:</p>
+      <div class="formula">\[
+      c^*=\arg\min_c\sum_{i\in Q_m}(y_i-c)^2=\bar y_m
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> if one number must represent every target in a group and large misses are penalized quadratically, the balancing point is their mean.</p>
+    </section>
+
+    <section class="section">
+      <h2>A small house-price dataset</h2>
+      <div class="activity"><h3>Split question</h3><p class="prompt">Where would you split house area so that prices within each side are as similar as possible?</p></div>
+      <div class="table-wrap"><table><thead><tr><th>Area (sq ft)</th><td>600</td><td>700</td><td>800</td><td>900</td><td>1100</td><td>1300</td><td>1500</td><td>1700</td></tr></thead><tbody>
+        <tr><th>Price (₹L)</th><td>30</td><td>34</td><td>38</td><td>43</td><td>55</td><td>65</td><td>72</td><td>82</td></tr>
+      </tbody></table></div>
+      <p>The parent mean is:</p>
+      <div class="formula">\[
+      \bar y=\frac{30+34+38+43+55+65+72+82}{8}=52.375
+      \]</div>
+    </section>
+
+    <section class="section">
+      <h2>Parent squared error</h2>
+      <div class="formula">\[
+      SSE(Q)=\sum_{i\in Q}(y_i-\bar y_Q)^2
+      \]</div>
+      <div class="formula">\[
+      SSE(parent)=2561.875
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> this is the total squared miss if one number, ₹52.375L, predicts every house before any split.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Try Area ≤ 1000</h2>
+        <table><thead><tr><th>Child</th><th>Prices</th><th>Mean</th><th>SSE</th></tr></thead><tbody>
+          <tr><td>Left</td><td>30, 34, 38, 43</td><td>36.25</td><td>92.75</td></tr>
+          <tr><td>Right</td><td>55, 65, 72, 82</td><td>68.50</td><td>389.00</td></tr>
+        </tbody></table>
+        <div class="formula">\[
+        SSE_{after}=92.75+389.00=481.75
+        \]</div>
+        <div class="formula">\[
+        \Delta SSE=2561.875-481.75=2080.125
+        \]</div>
+        <p class="intuition"><strong>Intuition:</strong> two local averages represent the data far better than one global average.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 440 320" role="img" aria-label="Regression stump for house prices">
+          <line x1="58" y1="260" x2="394" y2="260" stroke="#5e6875"/><line x1="58" y1="260" x2="58" y2="40" stroke="#5e6875"/>
+          <circle cx="86" cy="226" r="7" fill="#1f6feb"/><circle cx="126" cy="214" r="7" fill="#1f6feb"/><circle cx="166" cy="202" r="7" fill="#1f6feb"/><circle cx="206" cy="186" r="7" fill="#1f6feb"/>
+          <circle cx="256" cy="150" r="7" fill="#1f6feb"/><circle cx="304" cy="120" r="7" fill="#1f6feb"/><circle cx="344" cy="99" r="7" fill="#1f6feb"/><circle cx="382" cy="69" r="7" fill="#1f6feb"/>
+          <line x1="74" y1="207" x2="228" y2="207" stroke="#11875d" stroke-width="4"/><line x1="228" y1="109" x2="392" y2="109" stroke="#11875d" stroke-width="4"/>
+          <line x1="228" y1="44" x2="228" y2="260" stroke="#6741d9" stroke-width="2" stroke-dasharray="6 5"/>
+          <text x="112" y="196" fill="#11875d" font-size="13">₹36.25L</text><text x="310" y="98" fill="#11875d" font-size="13">₹68.50L</text><text x="236" y="58" fill="#6741d9" font-size="13">1000 sq ft</text>
+          <text x="184" y="294" class="axis-label">Area (sq ft)</text><text x="18" y="170" class="axis-label" transform="rotate(-90 18 170)">Price (₹L)</text>
+        </svg>
+        <p class="caption">A depth-1 regression tree is a two-step prediction function.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Choose the best regression split</h2>
+      <div class="formula">\[
+      (j^*,t^*)=\arg\min_{j,t}\left[SSE(Q_L(j,t))+SSE(Q_R(j,t))\right]
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> try every allowed feature-threshold pair and keep the one whose two local averages leave the smallest total squared error.</p>
+      <p>Maximizing \(\Delta SSE\) and minimizing child SSE are equivalent because parent SSE is fixed at the current node.</p>
+    </section>
+
+    <section class="section">
+      <h2>More depth creates a step function</h2>
+      <div class="activity"><h3>Shape question</h3><p class="prompt">Can a standard regression tree produce a smooth rising line between training regions?</p></div>
+      <div class="wide-visual compact-visual">
+        <svg class="plot-wide" viewBox="0 0 780 320" role="img" aria-label="Shallow and deep regression tree predictions">
+          <line x1="62" y1="258" x2="728" y2="258" stroke="#5e6875"/><line x1="62" y1="258" x2="62" y2="42" stroke="#5e6875"/>
+          <circle cx="92" cy="225" r="6" fill="#1f6feb"/><circle cx="152" cy="213" r="6" fill="#1f6feb"/><circle cx="212" cy="201" r="6" fill="#1f6feb"/><circle cx="272" cy="184" r="6" fill="#1f6feb"/><circle cx="392" cy="148" r="6" fill="#1f6feb"/><circle cx="512" cy="118" r="6" fill="#1f6feb"/><circle cx="632" cy="96" r="6" fill="#1f6feb"/><circle cx="712" cy="67" r="6" fill="#1f6feb"/>
+          <path d="M72 219 H182 V194 H332 V148 H452 V107 H572 V82 H730" fill="none" stroke="#11875d" stroke-width="4"/>
+          <text x="510" y="44" fill="#11875d" font-size="13">deeper tree: more, smaller constant regions</text>
+        </svg>
+        <p class="caption">More leaves approximate a curve with finer steps; they do not make each leaf prediction smooth.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Mixed features in regression</h2>
+      <p>A practical house model might use area, age, distance to metro, city zone, and furnishing status. Numeric and encoded categorical candidates compete using the same squared-error objective.</p>
+      <div class="codebox tree-code">Area ≤ 1000?
+├── yes: Furnished?
+│   ├── yes → predict ₹41L
+│   └── no  → predict ₹34L
+└── no: DistanceToMetro ≤ 2.5 km?
+    ├── yes → predict ₹76L
+    └── no  → predict ₹62L</div>
+      <p>These values are leaf means, not coefficients.</p>
+    </section>
+
+    <section class="section">
+      <h2>Regression-tree criteria</h2>
+      <table><thead><tr><th>Criterion</th><th>Leaf center</th><th>Behavior</th></tr></thead><tbody>
+        <tr><td>Squared error</td><td>Mean</td><td>Penalizes large residuals strongly.</td></tr>
+        <tr><td>Absolute error</td><td>Median</td><td>More robust to extreme target values, but slower to optimize.</td></tr>
+        <tr><td>Poisson deviance</td><td>Positive mean structure</td><td>Useful for non-negative count-like targets under suitable assumptions.</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Regression-tree limitations</h2>
+      <div class="activity"><h3>Extrapolation question</h3><p class="prompt">If the largest training house is 1700 sq ft, what trend will a tree use for a new 2500 sq ft house?</p></div>
+      <p>A standard tree sends the house to an existing terminal region and returns that leaf's mean. It does not continue the upward trend beyond training data.</p>
+      <div class="note warning">Regression trees are strong at interactions and local thresholds, but poor at smooth extrapolation. Plot predictions against important continuous features before deployment.</div>
+    </section>
+
+    <div class="pager"><a class="button" href="06-overfitting-pruning.html">Previous: Pruning</a><a class="button primary" href="08-evaluation-tuning.html">Next: Evaluation</a></div>
+  </main>
+</body>
+</html>

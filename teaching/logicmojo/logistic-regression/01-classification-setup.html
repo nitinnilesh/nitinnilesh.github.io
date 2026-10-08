@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classification Setup</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Logistic Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a class="active" href="01-classification-setup.html">Setup</a>
+        <a href="02-sigmoid-boundary.html">Sigmoid</a>
+        <a href="03-loss-training.html">Loss</a>
+        <a href="04-interpretation-regularization.html">Interpretation</a>
+        <a href="05-metrics-imbalance.html">Metrics</a>
+        <a href="06-handling-imbalance.html">Imbalance</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 1</div>
+    <h1>From regression to classification</h1>
+    <p class="lead">Linear regression predicts a continuous number. Logistic regression predicts the probability of a class, usually for a yes/no outcome.</p>
+
+    <section class="section">
+      <h2>Classification problem setup</h2>
+      <p>In binary classification, the target has two possible values:</p>
+      <div class="formula">\[
+y \in \{0,1\}
+\]</div>
+      <p>The goal is not just to predict a label. A better goal is to predict the probability of the positive class:</p>
+      <div class="formula">\[
+\hat{p}=P(y=1\mid x)
+\]</div>
+      <div class="grid">
+        <div class="card">
+          <h3>Spam detection</h3>
+          <p>\(y=1\): spam. \(y=0\): not spam.</p>
+        </div>
+        <div class="card">
+          <h3>Customer churn</h3>
+          <p>\(y=1\): customer leaves. \(y=0\): customer stays.</p>
+        </div>
+        <div class="card">
+          <h3>Loan default</h3>
+          <p>\(y=1\): default. \(y=0\): repaid.</p>
+        </div>
+      </div>
+      <div class="activity">
+        <h3>Target definition</h3>
+        <p class="prompt">In fraud detection, which class should be coded as \(1\): fraud or non-fraud?</p>
+        <p>Usually fraud is coded as \(1\), because it is the event we care about detecting.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Why linear regression is not enough</h2>
+        <p>A linear model can output any real number:</p>
+        <div class="formula">\[
+\hat{y}=\beta_0+\beta_1x
+\]</div>
+        <p>For classification, that creates two problems:</p>
+        <table>
+          <thead><tr><th>Problem</th><th>Why it hurts</th></tr></thead>
+          <tbody>
+            <tr><td>Predictions can be below 0 or above 1</td><td>Those values cannot be probabilities.</td></tr>
+            <tr><td>Error is not probability-aware</td><td>Confident wrong classification should be punished more strongly.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Linear regression can produce invalid probabilities">
+          <line x1="54" y1="240" x2="370" y2="240" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="54" y1="240" x2="54" y2="46" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="54" y1="190" x2="370" y2="190" stroke="#11875d" stroke-width="2" stroke-dasharray="6 5"></line>
+          <line x1="54" y1="90" x2="370" y2="90" stroke="#11875d" stroke-width="2" stroke-dasharray="6 5"></line>
+          <line x1="72" y1="252" x2="354" y2="38" stroke="#c3342f" stroke-width="4"></line>
+          <circle cx="92" cy="218" r="5" fill="#1f6feb"></circle><circle cx="138" cy="206" r="5" fill="#1f6feb"></circle><circle cx="182" cy="190" r="5" fill="#1f6feb"></circle>
+          <circle cx="246" cy="92" r="5" fill="#b85c00"></circle><circle cx="298" cy="78" r="5" fill="#b85c00"></circle><circle cx="334" cy="58" r="5" fill="#b85c00"></circle>
+          <text x="30" y="94" class="axis-label">1</text>
+          <text x="30" y="194" class="axis-label">0</text>
+          <text x="230" y="54" class="axis-label">linear line goes beyond probability range</text>
+        </svg>
+        <p class="caption">A straight-line output is not naturally limited to the range \([0,1]\).</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>The logistic regression idea</h2>
+      <p>Logistic regression keeps the useful linear part, but converts it into a probability.</p>
+      <div class="mini-flow">
+        <span>features \(x\)</span>
+        <span>linear score \(z\)</span>
+        <span>sigmoid</span>
+        <span>probability \(\hat{p}\)</span>
+        <span>class decision</span>
+      </div>
+      <div class="formula">\[
+z=\beta_0+\beta_1x_1+\cdots+\beta_px_p
+\qquad
+\hat{p}=\sigma(z)
+\]</div>
+      <div class="note">The word “regression” remains in the name because the model estimates a continuous probability and uses a linear combination of features. But the task is classification.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="index.html">Overview</a>
+      <a class="button primary" href="02-sigmoid-boundary.html">Next: Sigmoid</a>
+    </div>
+  </main>
+</body>
+</html>

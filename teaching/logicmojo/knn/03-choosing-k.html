@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Choosing K in KNN</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">KNN</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-knn-basics.html">Basics</a>
+        <a href="02-distance-metrics.html">Distances</a>
+        <a class="active" href="03-choosing-k.html">Choosing K</a>
+        <a href="04-knn-imputation.html">Imputation</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 3</div>
+    <h1>Choosing K controls how local the model is</h1>
+    <p class="lead">Small \(K\) listens to very local evidence. Large \(K\) smooths the prediction across a wider neighborhood.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Small K vs large K</h2>
+        <table>
+          <thead><tr><th>K value</th><th>Behavior</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td>Small \(K\)</td><td>Flexible, local boundary</td><td>Noise and overfitting</td></tr>
+            <tr><td>Large \(K\)</td><td>Smoother, more stable</td><td>Underfitting</td></tr>
+          </tbody>
+        </table>
+        <div class="formula">\[
+K=1 \Rightarrow \text{prediction follows the nearest point}
+\]</div>
+        <div class="formula">\[
+K=n \Rightarrow \text{prediction follows the global majority or average}
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Small K and large K boundaries">
+          <rect x="52" y="56" width="140" height="188" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="228" y="56" width="140" height="188" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <path d="M62 210 C88 120, 118 236, 184 82" fill="none" stroke="#c3342f" stroke-width="4"></path>
+          <path d="M238 198 C280 156, 314 132, 358 104" fill="none" stroke="#11875d" stroke-width="4"></path>
+          <text x="80" y="276" class="axis-label">small K: wiggly</text>
+          <text x="256" y="276" class="axis-label">large K: smooth</text>
+        </svg>
+        <p class="caption">Small \(K\) can overreact. Large \(K\) can oversmooth.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Bias-variance intuition</h2>
+      <table>
+        <thead><tr><th>K</th><th>Bias</th><th>Variance</th><th>Model behavior</th></tr></thead>
+        <tbody>
+          <tr><td>Small</td><td>Low</td><td>High</td><td>Fits local noise</td></tr>
+          <tr><td>Medium</td><td>Balanced</td><td>Balanced</td><td>Often best validation performance</td></tr>
+          <tr><td>Large</td><td>High</td><td>Low</td><td>Too smooth</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Choosing \(K\) is model tuning. We should not choose it by looking at test performance repeatedly.</div>
+    </section>
+
+    <section class="section">
+      <h2>Overfitting and underfitting in KNN</h2>
+      <div class="activity">
+        <h3>Prediction stability</h3>
+        <p class="prompt">If one mislabeled training point is closest to the query, which value of \(K\) is most likely to make a wrong prediction: 1, 3, or 5?</p>
+        <p>\(K=1\), because the model blindly trusts the closest single point.</p>
+      </div>
+      <p>KNN overfits when it reacts too strongly to individual training points. This usually happens when \(K\) is very small.</p>
+      <p>KNN underfits when it averages over too many neighbors. This usually happens when \(K\) is very large.</p>
+      <table>
+        <thead><tr><th>Case</th><th>What happens</th><th>Classroom intuition</th></tr></thead>
+        <tbody>
+          <tr><td>\(K=1\)</td><td>Every point is controlled by the nearest single example.</td><td>One noisy neighbor can flip the answer.</td></tr>
+          <tr><td>\(K=3\) or \(K=5\)</td><td>A small local group votes.</td><td>Noise is reduced while locality is preserved.</td></tr>
+          <tr><td>Very large \(K\)</td><td>The model listens to too many faraway points.</td><td>Local patterns get washed out.</td></tr>
+        </tbody>
+      </table>
+      <div class="formula">\[
+\text{Small }K \Rightarrow \text{low bias, high variance}
+\]</div>
+      <div class="formula">\[
+\text{Large }K \Rightarrow \text{high bias, low variance}
+\]</div>
+    </section>
+
+    <section class="section">
+      <h2>Outlier sensitivity</h2>
+      <div class="activity">
+        <h3>Noisy neighbor question</h3>
+        <p class="prompt">If one nearby point is mislabeled, should one neighbor be allowed to decide the prediction alone?</p>
+        <p>Usually no. This is why \(K=1\) is flexible but risky.</p>
+      </div>
+      <div class="two-col">
+        <div>
+          <p>Small \(K\) makes KNN sensitive to outliers and mislabeled examples. Increasing \(K\) or using distance-weighted voting can reduce the influence of one bad point.</p>
+          <table>
+            <thead><tr><th>Setting</th><th>Effect of one outlier</th></tr></thead>
+            <tbody>
+              <tr><td>\(K=1\)</td><td>Can fully control prediction.</td></tr>
+              <tr><td>\(K=5\)</td><td>Must outvote several neighbors.</td></tr>
+              <tr><td>Distance-weighted KNN</td><td>Outlier matters only if it is very close.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Outlier effect in KNN">
+            <rect x="58" y="48" width="304" height="202" fill="#f8fbff" stroke="#d9e0ea"></rect>
+            <circle cx="210" cy="150" r="10" fill="#18202a"></circle>
+            <circle cx="190" cy="142" r="9" fill="#1f6feb"></circle>
+            <circle cx="238" cy="122" r="9" fill="#c3342f"></circle>
+            <circle cx="246" cy="174" r="9" fill="#c3342f"></circle>
+            <circle cx="174" cy="186" r="9" fill="#c3342f"></circle>
+            <circle cx="214" cy="208" r="9" fill="#c3342f"></circle>
+            <circle cx="210" cy="150" r="34" fill="none" stroke="#1f6feb" stroke-width="3" stroke-dasharray="6 5"></circle>
+            <circle cx="210" cy="150" r="78" fill="none" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 6"></circle>
+            <text x="132" y="270" class="axis-label">K=1 follows blue outlier; K=5 predicts red</text>
+          </svg>
+          <p class="caption">A larger neighborhood can protect the prediction from a single noisy point.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Visualization: K = 1, 3, and 5</h2>
+      <p>The same query point can receive different predictions when \(K\) changes.</p>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 960 360" role="img" aria-label="KNN predictions for K 1 3 and 5">
+          <rect x="30" y="40" width="280" height="260" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="340" y="40" width="280" height="260" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="650" y="40" width="280" height="260" fill="#f8fbff" stroke="#d9e0ea"></rect>
+
+          <text x="118" y="28" class="axis-label">K = 1 predicts blue</text>
+          <text x="425" y="28" class="axis-label">K = 3 predicts red</text>
+          <text x="735" y="28" class="axis-label">K = 5 predicts red</text>
+
+          <g transform="translate(0,0)">
+            <circle cx="170" cy="170" r="58" fill="none" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 6"></circle>
+            <circle cx="170" cy="170" r="10" fill="#18202a"></circle>
+            <circle cx="150" cy="154" r="9" fill="#1f6feb"></circle>
+            <circle cx="204" cy="144" r="9" fill="#c3342f"></circle>
+            <circle cx="128" cy="196" r="9" fill="#c3342f"></circle>
+            <circle cx="220" cy="198" r="9" fill="#c3342f"></circle>
+            <circle cx="246" cy="158" r="9" fill="#1f6feb"></circle>
+            <text x="126" y="326" class="axis-label">nearest one is blue</text>
+          </g>
+
+          <g transform="translate(310,0)">
+            <circle cx="170" cy="170" r="78" fill="none" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 6"></circle>
+            <circle cx="170" cy="170" r="10" fill="#18202a"></circle>
+            <circle cx="150" cy="154" r="9" fill="#1f6feb"></circle>
+            <circle cx="204" cy="144" r="9" fill="#c3342f"></circle>
+            <circle cx="128" cy="196" r="9" fill="#c3342f"></circle>
+            <circle cx="220" cy="198" r="9" fill="#c3342f" opacity="0.35"></circle>
+            <circle cx="246" cy="158" r="9" fill="#1f6feb" opacity="0.35"></circle>
+            <text x="118" y="326" class="axis-label">2 red vs 1 blue</text>
+          </g>
+
+          <g transform="translate(620,0)">
+            <circle cx="170" cy="170" r="102" fill="none" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 6"></circle>
+            <circle cx="170" cy="170" r="10" fill="#18202a"></circle>
+            <circle cx="150" cy="154" r="9" fill="#1f6feb"></circle>
+            <circle cx="204" cy="144" r="9" fill="#c3342f"></circle>
+            <circle cx="128" cy="196" r="9" fill="#c3342f"></circle>
+            <circle cx="220" cy="198" r="9" fill="#c3342f"></circle>
+            <circle cx="246" cy="158" r="9" fill="#1f6feb"></circle>
+            <text x="118" y="326" class="axis-label">3 red vs 2 blue</text>
+          </g>
+        </svg>
+        <p class="caption">Increasing \(K\) increases the neighborhood size. The prediction becomes less sensitive to one nearby point.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Decision boundary changes with K</h2>
+      <div class="activity">
+        <h3>Boundary shape question</h3>
+        <p class="prompt">Which boundary should be smoother: \(K=1\) or \(K=15\)?</p>
+        <p>\(K=15\), because each prediction averages a larger neighborhood.</p>
+      </div>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 960 340" role="img" aria-label="Decision boundaries for different K values">
+          <rect x="38" y="44" width="270" height="218" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="346" y="44" width="270" height="218" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="654" y="44" width="270" height="218" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <text x="130" y="28" class="axis-label">K = 1</text>
+          <text x="438" y="28" class="axis-label">K = 5</text>
+          <text x="746" y="28" class="axis-label">K = 15</text>
+          <path d="M58 220 C88 88, 122 246, 160 122 C194 42, 236 214, 288 78" fill="none" stroke="#6741d9" stroke-width="4"></path>
+          <path d="M366 210 C416 132, 470 176, 518 120 C556 86, 582 104, 602 84" fill="none" stroke="#6741d9" stroke-width="4"></path>
+          <path d="M674 204 C732 176, 806 116, 904 94" fill="none" stroke="#6741d9" stroke-width="4"></path>
+          <g fill="#c3342f"><circle cx="82" cy="90" r="6"></circle><circle cx="122" cy="132" r="6"></circle><circle cx="178" cy="86" r="6"></circle><circle cx="392" cy="92" r="6"></circle><circle cx="450" cy="132" r="6"></circle><circle cx="502" cy="86" r="6"></circle><circle cx="704" cy="92" r="6"></circle><circle cx="760" cy="132" r="6"></circle><circle cx="812" cy="88" r="6"></circle></g>
+          <g fill="#1f6feb"><circle cx="230" cy="216" r="6"></circle><circle cx="266" cy="176" r="6"></circle><circle cx="154" cy="212" r="6"></circle><circle cx="538" cy="216" r="6"></circle><circle cx="574" cy="176" r="6"></circle><circle cx="462" cy="212" r="6"></circle><circle cx="846" cy="216" r="6"></circle><circle cx="882" cy="176" r="6"></circle><circle cx="770" cy="212" r="6"></circle></g>
+          <text x="74" y="296" class="axis-label">very local and jagged</text>
+          <text x="394" y="296" class="axis-label">balanced local pattern</text>
+          <text x="706" y="296" class="axis-label">smooth and less flexible</text>
+        </svg>
+        <p class="caption">KNN can make nonlinear boundaries, but \(K\) controls how sharply those boundaries react to the data.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>KNN regression smoothing</h2>
+      <div class="activity">
+        <h3>Smoothing question</h3>
+        <p class="prompt">For house-price prediction, would \(K=1\) or \(K=25\) produce a smoother price curve?</p>
+        <p>\(K=25\), because it averages across more neighboring houses.</p>
+      </div>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 960 340" role="img" aria-label="KNN regression smoothing for different K values">
+          <rect x="42" y="42" width="260" height="220" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="350" y="42" width="260" height="220" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="658" y="42" width="260" height="220" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <text x="132" y="28" class="axis-label">K = 1</text><text x="438" y="28" class="axis-label">K = 7</text><text x="746" y="28" class="axis-label">K = 25</text>
+          <polyline points="58,218 84,178 110,202 136,120 162,154 188,88 214,132 240,82 286,110" fill="none" stroke="#1f6feb" stroke-width="4"></polyline>
+          <polyline points="366,204 398,180 430,160 462,146 494,124 526,112 558,102 594,94" fill="none" stroke="#1f6feb" stroke-width="4"></polyline>
+          <polyline points="674,190 718,174 762,158 806,142 850,126 898,112" fill="none" stroke="#1f6feb" stroke-width="4"></polyline>
+          <g fill="#c3342f"><circle cx="74" cy="206" r="5"></circle><circle cx="114" cy="188" r="5"></circle><circle cx="150" cy="128" r="5"></circle><circle cx="190" cy="104" r="5"></circle><circle cx="238" cy="92" r="5"></circle><circle cx="382" cy="206" r="5"></circle><circle cx="422" cy="188" r="5"></circle><circle cx="458" cy="128" r="5"></circle><circle cx="498" cy="104" r="5"></circle><circle cx="546" cy="92" r="5"></circle><circle cx="690" cy="206" r="5"></circle><circle cx="730" cy="188" r="5"></circle><circle cx="766" cy="128" r="5"></circle><circle cx="806" cy="104" r="5"></circle><circle cx="854" cy="92" r="5"></circle></g>
+          <text x="88" y="296" class="axis-label">memorizes noise</text><text x="404" y="296" class="axis-label">captures trend</text><text x="704" y="296" class="axis-label">may oversmooth</text>
+        </svg>
+        <p class="caption">For regression, increasing \(K\) smooths the prediction curve. Too small can overfit; too large can underfit.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>How do we choose K?</h2>
+        <ol>
+          <li>Split data into train and validation, or use cross-validation.</li>
+          <li>Try candidate values: \(K=1,3,5,7,\ldots\).</li>
+          <li>Evaluate using the right metric.</li>
+          <li>Pick the \(K\) with best validation performance.</li>
+          <li>Evaluate final model once on test data.</li>
+        </ol>
+        <p>For classification, odd values of \(K\) are often used to reduce ties in binary classification.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Validation curve for K">
+          <line x1="60" y1="240" x2="366" y2="240" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="60" y1="240" x2="60" y2="54" stroke="#5e6875" stroke-width="2"></line>
+          <polyline points="76,74 118,92 160,112 202,134 244,154 286,172 328,188" fill="none" stroke="#c3342f" stroke-width="4"></polyline>
+          <polyline points="76,196 118,138 160,104 202,96 244,112 286,146 328,182" fill="none" stroke="#1f6feb" stroke-width="4"></polyline>
+          <circle cx="202" cy="96" r="7" fill="#18202a"></circle>
+          <text x="190" y="84" class="axis-label">best validation K</text>
+          <text x="286" y="172" class="axis-label">train</text>
+          <text x="282" y="132" class="axis-label">validation</text>
+          <text x="168" y="274" class="axis-label">K value</text>
+          <text x="12" y="88" class="axis-label">validation score</text>
+        </svg>
+        <p class="caption">Choose \(K\) using validation or cross-validation performance.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Effective methods to choose K</h2>
+      <table>
+        <thead><tr><th>Method</th><th>How it works</th><th>When useful</th></tr></thead>
+        <tbody>
+          <tr><td>Validation curve</td><td>Try many \(K\) values and plot validation score.</td><td>Best classroom method because the bias-variance pattern is visible.</td></tr>
+          <tr><td>Cross-validation</td><td>Average performance across folds for each \(K\).</td><td>More reliable when data is not very large.</td></tr>
+          <tr><td>Grid search</td><td>Tune \(K\), distance metric, and weights together.</td><td>Useful for real projects.</td></tr>
+          <tr><td>Elbow region</td><td>Choose a stable \(K\) where score stops improving significantly.</td><td>Useful when many nearby \(K\) values perform similarly.</td></tr>
+          <tr><td>Domain constraint</td><td>Prefer a \(K\) that makes sense operationally.</td><td>Useful when explainability matters.</td></tr>
+        </tbody>
+      </table>
+      <p>A practical starting range is odd values such as:</p>
+      <div class="formula">\[
+K\in\{1,3,5,7,9,11,15,21,31\}
+\]</div>
+      <p>Some people use \(\sqrt{n}\) as a rough starting point, but it is only a heuristic. Validation performance should make the final decision.</p>
+      <div class="note">If several \(K\) values perform almost equally well, prefer the simpler and more stable option, usually the slightly larger \(K\).</div>
+    </section>
+
+    <section class="section">
+      <h2>Parameter tuning</h2>
+      <p>KNN has more than one hyperparameter.</p>
+      <table>
+        <thead><tr><th>Hyperparameter</th><th>Choices</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td>`n_neighbors`</td><td>1, 3, 5, 7, ...</td><td>Controls locality</td></tr>
+          <tr><td>`metric`</td><td>Euclidean, Manhattan, cosine</td><td>Defines similarity</td></tr>
+          <tr><td>`weights`</td><td>uniform, distance</td><td>Whether closer neighbors count more</td></tr>
+          <tr><td>`p` in Minkowski</td><td>1 or 2 commonly</td><td>Manhattan vs Euclidean</td></tr>
+        </tbody>
+      </table>
+      <div class="note">For classification, tune \(K\) using the metric that matches the problem: accuracy for balanced classes, F1/recall/precision for imbalanced classes, and RMSE/MAE for regression.</div>
+    </section>
+
+    <section class="section">
+      <h2>Distance-weighted KNN</h2>
+      <div class="activity">
+        <h3>Weighted vote</h3>
+        <p class="prompt">If one neighbor is extremely close and four neighbors are far away, should every neighbor have equal importance?</p>
+        <p>Not always. Distance weighting lets closer neighbors count more.</p>
+      </div>
+      <p>Sometimes closer neighbors should influence the prediction more.</p>
+      <div class="formula">\[
+w_i=\frac{1}{d(x,x_i)+\epsilon}
+\]</div>
+      <p>For regression:</p>
+      <div class="formula">\[
+\hat{y}=\frac{\sum_{i\in N_K(x)}w_i y_i}{\sum_{i\in N_K(x)}w_i}
+\]</div>
+      <p>For classification, use weighted voting rather than simple majority voting.</p>
+    </section>
+
+    <section class="section">
+      <h2>KNN with imbalanced classes</h2>
+      <div class="activity">
+        <h3>Imbalance question</h3>
+        <p class="prompt">If 95% of customers do not churn, what class is likely to appear more often in most neighborhoods?</p>
+        <p>The majority class. KNN can miss minority-class regions when the neighborhood is dominated by majority examples.</p>
+      </div>
+      <div class="two-col">
+        <div>
+          <p>Class imbalance affects KNN because voting depends on local counts. If minority-class examples are rare, even a minority-like query can be surrounded by many majority-class points.</p>
+          <table>
+            <thead><tr><th>Method</th><th>How it helps</th></tr></thead>
+            <tbody>
+              <tr><td>Use recall/F1/PR-AUC</td><td>Evaluates minority detection properly.</td></tr>
+              <tr><td>Distance weighting</td><td>Very close minority neighbors can matter more.</td></tr>
+              <tr><td>Resampling</td><td>Changes the neighborhood composition during training.</td></tr>
+              <tr><td>Tune threshold from probabilities</td><td>Uses local vote fraction more carefully.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="KNN class imbalance neighborhood">
+            <rect x="58" y="48" width="304" height="202" fill="#f8fbff" stroke="#d9e0ea"></rect>
+            <circle cx="210" cy="150" r="88" fill="none" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 6"></circle>
+            <circle cx="210" cy="150" r="10" fill="#18202a"></circle>
+            <circle cx="176" cy="134" r="8" fill="#c3342f"></circle>
+            <circle cx="238" cy="166" r="8" fill="#c3342f"></circle>
+            <circle cx="252" cy="118" r="8" fill="#1f6feb"></circle>
+            <circle cx="156" cy="176" r="8" fill="#1f6feb"></circle>
+            <circle cx="210" cy="218" r="8" fill="#1f6feb"></circle>
+            <circle cx="284" cy="144" r="8" fill="#1f6feb"></circle>
+            <circle cx="184" cy="86" r="8" fill="#1f6feb"></circle>
+            <text x="118" y="270" class="axis-label">minority signal can be outvoted locally</text>
+          </svg>
+          <p class="caption">A local neighborhood can still be majority-heavy even near a minority-like point.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Curse of dimensionality</h2>
+      <div class="activity">
+        <h3>Dimension question</h3>
+        <p class="prompt">If we keep adding features, will “nearest” always become more meaningful?</p>
+        <p>No. In high dimensions, points often become similarly far away, so neighborhoods become less reliable.</p>
+      </div>
+      <p>KNN works best when distance captures similarity. In high dimensions, data becomes sparse and the nearest point may not be much closer than the farthest point.</p>
+      <div class="formula">\[
+\text{distance contrast}=\frac{d_{max}-d_{min}}{d_{min}}
+\]</div>
+      <p>As dimensionality grows, this contrast often shrinks. That means nearest and farthest examples can start looking almost equally far.</p>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 300" role="img" aria-label="Curse of dimensionality distance contrast">
+          <rect x="44" y="54" width="210" height="166" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="344" y="54" width="210" height="166" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="644" y="54" width="210" height="166" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <text x="116" y="38" class="axis-label">1D</text><text x="416" y="38" class="axis-label">2D</text><text x="692" y="38" class="axis-label">High dimensions</text>
+          <line x1="72" y1="136" x2="226" y2="136" stroke="#5e6875" stroke-width="3"></line>
+          <circle cx="98" cy="136" r="8" fill="#1f6feb"></circle><circle cx="204" cy="136" r="8" fill="#c3342f"></circle><circle cx="142" cy="136" r="10" fill="#18202a"></circle>
+          <circle cx="404" cy="112" r="8" fill="#1f6feb"></circle><circle cx="494" cy="176" r="8" fill="#c3342f"></circle><circle cx="450" cy="146" r="10" fill="#18202a"></circle>
+          <circle cx="704" cy="104" r="7" fill="#1f6feb"></circle><circle cx="748" cy="172" r="7" fill="#1f6feb"></circle><circle cx="812" cy="128" r="7" fill="#c3342f"></circle><circle cx="774" cy="198" r="7" fill="#c3342f"></circle><circle cx="752" cy="148" r="10" fill="#18202a"></circle>
+          <text x="70" y="256" class="axis-label">near and far are obvious</text><text x="352" y="256" class="axis-label">geometry still visible</text><text x="642" y="256" class="axis-label">distances become less distinct</text>
+        </svg>
+        <p class="caption">More features are useful only if they add signal. Too many weak features can make distance less meaningful.</p>
+      </div>
+      <div class="note">Common remedies include feature selection, dimensionality reduction, better embeddings, and choosing a metric that matches the data.</div>
+    </section>
+
+    <section class="section">
+      <h2>Fast nearest-neighbor search for large datasets</h2>
+      <p>Brute-force KNN compares the query point with every training point.</p>
+      <div class="formula">\[
+\text{brute force cost per query} \approx O(n\cdot p)
+\]</div>
+      <p>When \(n\) grows large, prediction can become slow. We can speed it up using smarter search structures or approximate search.</p>
+      <table>
+        <thead><tr><th>Method</th><th>Idea</th><th>Best for</th><th>Limitation</th></tr></thead>
+        <tbody>
+          <tr><td>KD-tree</td><td>Split space using feature axes.</td><td>Low-dimensional numeric data.</td><td>Weak in high dimensions.</td></tr>
+          <tr><td>Ball tree</td><td>Group points into nested balls.</td><td>Medium dimensions and non-axis-aligned neighborhoods.</td><td>Still weak when dimension is very high.</td></tr>
+          <tr><td>Approximate nearest neighbors</td><td>Search quickly and accept near-best neighbors.</td><td>Very large datasets, embeddings, recommendations.</td><td>May miss the exact nearest neighbor.</td></tr>
+          <tr><td>Dimensionality reduction</td><td>Reduce features before neighbor search.</td><td>High-dimensional noisy data.</td><td>Can lose information.</td></tr>
+          <tr><td>Feature selection</td><td>Remove irrelevant features.</td><td>Any KNN problem with noisy columns.</td><td>Needs careful validation.</td></tr>
+        </tbody>
+      </table>
+      <div class="two-col">
+        <div>
+          <p>In scikit-learn, `KNeighborsClassifier` supports:</p>
+          <table>
+            <thead><tr><th>`algorithm`</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>`brute`</td><td>Compare with all training points.</td></tr>
+              <tr><td>`kd_tree`</td><td>Use KD-tree search.</td></tr>
+              <tr><td>`ball_tree`</td><td>Use Ball-tree search.</td></tr>
+              <tr><td>`auto`</td><td>Let the library choose.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Fast nearest neighbor search partitions">
+            <rect x="64" y="54" width="292" height="190" fill="#f8fbff" stroke="#5e6875" stroke-width="2"></rect>
+            <line x1="196" y1="54" x2="196" y2="244" stroke="#1f6feb" stroke-width="3"></line>
+            <line x1="64" y1="132" x2="196" y2="132" stroke="#1f6feb" stroke-width="3"></line>
+            <line x1="196" y1="174" x2="356" y2="174" stroke="#1f6feb" stroke-width="3"></line>
+            <circle cx="118" cy="96" r="7" fill="#c3342f"></circle>
+            <circle cx="158" cy="202" r="7" fill="#c3342f"></circle>
+            <circle cx="248" cy="118" r="7" fill="#c3342f"></circle>
+            <circle cx="306" cy="214" r="7" fill="#c3342f"></circle>
+            <circle cx="280" cy="142" r="10" fill="#18202a"></circle>
+            <text x="292" y="146" class="axis-label">query</text>
+            <text x="96" y="272" class="axis-label">partition space, search fewer regions</text>
+          </svg>
+          <p class="caption">Tree-based methods avoid checking every point when the geometry is favorable.</p>
+        </div>
+      </div>
+      <div class="note warning">For text embeddings or very high-dimensional data, approximate nearest-neighbor libraries such as FAISS, HNSW, Annoy, or ScaNN are often more effective than exact KD-tree search.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="02-distance-metrics.html">Previous: Distances</a>
+      <a class="button primary" href="04-knn-imputation.html">Next: Imputation</a>
+    </div>
+  </main>
+</body>
+</html>

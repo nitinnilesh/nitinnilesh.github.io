@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assumptions And Risks</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="../index.html">Linear Regression Math</a>
+      <div class="navlinks">
+        <a href="../session-1/index.html">Session 1</a>
+        <a href="index.html">Session 2</a>
+        <a href="04-metrics.html">Metrics</a>
+        <a href="05-multiple.html">Multiple LR</a>
+        <a class="active" href="06-assumptions.html">Assumptions</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 6</div>
+    <h1>Assumptions and practical risks</h1>
+    <p class="lead">Assumptions explain when linear regression is trustworthy and when its output needs caution.</p>
+
+    <section class="section">
+      <h2>Core assumptions</h2>
+      <table>
+        <thead><tr><th>Assumption</th><th>Meaning</th><th>Plain-English meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Linearity</td><td>The average relationship between x and y is roughly linear.</td><td>A straight line should be a reasonable simplification.</td></tr>
+          <tr><td>Independent errors</td><td>One residual should not depend on another residual.</td><td>Time series data often violates this because nearby observations are related.</td></tr>
+          <tr><td>Constant variance</td><td>Residual spread should be similar across prediction levels.</td><td>The model should not be accurate for small values and wildly noisy for large values.</td></tr>
+          <tr><td>Normal residuals</td><td>Residuals should be roughly bell-shaped for inference.</td><td>Mainly important for confidence intervals and hypothesis tests, not just prediction.</td></tr>
+          <tr><td>No severe multicollinearity</td><td>Input features should not duplicate each other too strongly.</td><td>If TV and radio budgets were almost identical, coefficients become hard to trust.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Diagnostic check</h3>
+        <p class="prompt">If the residual plot shows a clear curve, which assumption is probably violated?</p>
+        <p>Takeaway: this points to a linearity problem. The model may need new features, transformations, or a different algorithm.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Assumptions visual gallery</h2>
+      <p>These quick visual checks help diagnose when linear regression is behaving well and when the model may need feature engineering, transformations, or another algorithm.</p>
+      <div class="assumption-gallery">
+        <div class="assumption-card">
+          <svg viewBox="0 0 420 250" role="img" aria-label="Linear relationship">
+            <line x1="42" y1="210" x2="382" y2="210" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="210" x2="42" y2="36" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="66" y1="190" x2="360" y2="58" stroke="#1f6feb" stroke-width="4"></line>
+            <circle cx="78" cy="188" r="5" fill="#11875d"></circle><circle cx="124" cy="166" r="5" fill="#11875d"></circle><circle cx="174" cy="146" r="5" fill="#11875d"></circle><circle cx="222" cy="118" r="5" fill="#11875d"></circle><circle cx="282" cy="94" r="5" fill="#11875d"></circle><circle cx="336" cy="70" r="5" fill="#11875d"></circle>
+          </svg>
+          <h3>Good: roughly linear</h3>
+          <p>The straight line is a reasonable summary of the average pattern.</p>
+        </div>
+        <div class="assumption-card">
+          <svg viewBox="0 0 420 250" role="img" aria-label="Curved relationship">
+            <line x1="42" y1="210" x2="382" y2="210" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="210" x2="42" y2="36" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M68 184 C138 52, 248 52, 354 184" fill="none" stroke="#6741d9" stroke-width="4"></path>
+            <line x1="66" y1="160" x2="360" y2="118" stroke="#c3342f" stroke-width="3" stroke-dasharray="8 6"></line>
+            <circle cx="78" cy="176" r="5" fill="#11875d"></circle><circle cx="130" cy="92" r="5" fill="#11875d"></circle><circle cx="204" cy="58" r="5" fill="#11875d"></circle><circle cx="282" cy="98" r="5" fill="#11875d"></circle><circle cx="344" cy="174" r="5" fill="#11875d"></circle>
+          </svg>
+          <h3>Warning: curved pattern</h3>
+          <p>Linearity is weak. Consider transformations, polynomial features, or a different model.</p>
+        </div>
+        <div class="assumption-card">
+          <svg viewBox="0 0 420 250" role="img" aria-label="Constant residual variance">
+            <line x1="42" y1="125" x2="382" y2="125" stroke="#1f6feb" stroke-width="4"></line>
+            <circle cx="76" cy="110" r="5" fill="#11875d"></circle><circle cx="112" cy="142" r="5" fill="#11875d"></circle><circle cx="156" cy="116" r="5" fill="#11875d"></circle><circle cx="198" cy="136" r="5" fill="#11875d"></circle><circle cx="244" cy="112" r="5" fill="#11875d"></circle><circle cx="286" cy="140" r="5" fill="#11875d"></circle><circle cx="332" cy="118" r="5" fill="#11875d"></circle>
+          </svg>
+          <h3>Good: constant variance</h3>
+          <p>Residuals have similar spread across fitted values.</p>
+        </div>
+        <div class="assumption-card">
+          <svg viewBox="0 0 420 250" role="img" aria-label="Fan-shaped residual variance">
+            <line x1="42" y1="125" x2="382" y2="125" stroke="#1f6feb" stroke-width="4"></line>
+            <circle cx="78" cy="120" r="5" fill="#11875d"></circle><circle cx="126" cy="134" r="5" fill="#11875d"></circle><circle cx="176" cy="98" r="5" fill="#11875d"></circle><circle cx="224" cy="160" r="5" fill="#11875d"></circle><circle cx="280" cy="70" r="5" fill="#11875d"></circle><circle cx="336" cy="188" r="5" fill="#11875d"></circle>
+            <path d="M62 122 L360 48" stroke="#c3342f" stroke-width="2" stroke-dasharray="6 5"></path>
+            <path d="M62 128 L360 204" stroke="#c3342f" stroke-width="2" stroke-dasharray="6 5"></path>
+          </svg>
+          <h3>Warning: fan shape</h3>
+          <p>Error variance grows. RMSE may hide that the model is worse for larger predictions.</p>
+        </div>
+        <div class="assumption-card">
+          <svg viewBox="0 0 420 250" role="img" aria-label="Normal residual histogram">
+            <line x1="48" y1="210" x2="372" y2="210" stroke="#5e6875" stroke-width="2"></line>
+            <rect x="86" y="172" width="32" height="38" fill="#8ecae6"></rect><rect x="124" y="138" width="32" height="72" fill="#8ecae6"></rect><rect x="162" y="88" width="32" height="122" fill="#1f6feb"></rect><rect x="200" y="62" width="32" height="148" fill="#1f6feb"></rect><rect x="238" y="92" width="32" height="118" fill="#1f6feb"></rect><rect x="276" y="140" width="32" height="70" fill="#8ecae6"></rect><rect x="314" y="174" width="32" height="36" fill="#8ecae6"></rect>
+          </svg>
+          <h3>Good: roughly normal residuals</h3>
+          <p>Useful when doing confidence intervals, p-values, or other inference.</p>
+        </div>
+        <div class="assumption-card">
+          <svg viewBox="0 0 420 250" role="img" aria-label="Multicollinearity heatmap">
+            <rect x="82" y="50" width="70" height="48" fill="#dbeafe"></rect><rect x="152" y="50" width="70" height="48" fill="#ffe2e0"></rect><rect x="222" y="50" width="70" height="48" fill="#fff6e8"></rect>
+            <rect x="82" y="98" width="70" height="48" fill="#ffe2e0"></rect><rect x="152" y="98" width="70" height="48" fill="#dbeafe"></rect><rect x="222" y="98" width="70" height="48" fill="#ffe2e0"></rect>
+            <rect x="82" y="146" width="70" height="48" fill="#fff6e8"></rect><rect x="152" y="146" width="70" height="48" fill="#ffe2e0"></rect><rect x="222" y="146" width="70" height="48" fill="#dbeafe"></rect>
+            <text x="170" y="126" class="axis-label">0.92</text>
+            <text x="240" y="126" class="axis-label">0.88</text>
+            <text x="303" y="80" class="axis-label">high correlation</text>
+          </svg>
+          <h3>Warning: multicollinearity</h3>
+          <p>Prediction may still be good, but individual coefficients become hard to trust.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Multicollinearity</h2>
+        <p>Multicollinearity happens when two or more input features are strongly related. It may not destroy prediction accuracy, but it can make coefficient interpretation unstable.</p>
+        <div class="formula">\[\mathrm{corr}(x_1, x_2) \approx 1\]\[\text{coefficient interpretation becomes unreliable}\]</div>
+        <ul class="checklist">
+          <li>Use a correlation heatmap as the first check.</li>
+          <li>Use VIF as an advanced diagnostic.</li>
+          <li>Remove or combine redundant features if interpretation matters.</li>
+        </ul>
+        <div class="activity">
+          <h3>Prediction check</h3>
+          <p class="prompt">If two features give almost the same information, should both coefficients be trusted separately?</p>
+          <p>Takeaway: not always. Prediction may still work, but individual coefficient interpretation becomes unstable.</p>
+        </div>
+      </div>
+      <div class="visual">
+        <table>
+          <thead><tr><th></th><th>TV</th><th>Radio</th><th>News</th></tr></thead>
+          <tbody>
+            <tr><th>TV</th><td style="background:#dbeafe">1.00</td><td style="background:#fff6e8">0.12</td><td style="background:#fff6e8">0.06</td></tr>
+            <tr><th>Radio</th><td style="background:#fff6e8">0.12</td><td style="background:#dbeafe">1.00</td><td style="background:#ffe2e0">0.88</td></tr>
+            <tr><th>News</th><td style="background:#fff6e8">0.06</td><td style="background:#ffe2e0">0.88</td><td style="background:#dbeafe">1.00</td></tr>
+          </tbody>
+        </table>
+        <p class="caption">High feature-feature correlation is the warning sign. Feature-target correlation is different and often useful.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Feature scaling</h2>
+      <p>Standard OLS linear regression does not require scaling for prediction because the solver can handle different numeric ranges. Scaling becomes important when:</p>
+      <ul class="checklist">
+        <li>you train using gradient descent or SGD,</li>
+        <li>you use regularization such as Ridge, Lasso, or ElasticNet,</li>
+        <li>you compare coefficient magnitudes across features,</li>
+        <li>you use distance-based models later, such as KNN.</li>
+      </ul>
+      <div class="activity">
+        <h3>Scale check</h3>
+        <p class="prompt">Which feature has a bigger number: house area in square feet or number of bedrooms? Does bigger number automatically mean bigger importance?</p>
+        <p>Takeaway: no. Units and scale affect magnitude; coefficient interpretation must consider feature scale.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Regularization teaser</h2>
+      <p>Regularization adds a penalty for large coefficients. It helps reduce overfitting and stabilize models with many features.</p>
+      <div class="formula">\[\text{Ridge: } \min\left(\mathrm{MSE} + \lambda\sum_{j=1}^{p}\beta_j^2\right)\]\[\text{Lasso: } \min\left(\mathrm{MSE} + \lambda\sum_{j=1}^{p}|\beta_j|\right)\]</div>
+      <div class="note">Next step: regularization is the natural tool after ordinary linear regression.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="05-multiple.html">Previous: Multiple regression</a>
+      <a class="button primary" href="index.html">Back to overview</a>
+    </div>
+  </main>
+</body>
+</html>

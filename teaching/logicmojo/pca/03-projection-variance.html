@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PCA Projection and Explained Variance</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">PCA</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-pca-geometry.html">Geometry</a>
+        <a href="02-covariance-eigen.html">Covariance</a>
+        <a class="active" href="03-projection-variance.html">Projection</a>
+        <a href="04-pca-in-practice.html">Practice</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 3</div>
+    <h1>Projection creates new features. Explained variance tells what we kept.</h1>
+    <p class="lead">Once PCA has directions, we project data onto them, measure retained variance, and choose how many components to keep.</p>
+
+    <section class="section">
+      <h2>Projection onto principal components</h2>
+      <div class="activity"><h3>Coordinate question</h3><p class="prompt">After finding the best new axis, how do we express each old point using that new axis?</p><p>We project the point onto the principal component direction.</p></div>
+      <p>Let \(W\) contain the top \(k\) principal component directions:</p>
+      <div class="formula">\[
+W = [v_1\ v_2\ \cdots\ v_k]
+\]</div>
+      <p>The transformed data is:</p>
+      <div class="formula">\[
+Z = X_cW
+\]</div>
+      <table><thead><tr><th>Object</th><th>Shape</th><th>Meaning</th></tr></thead><tbody><tr><td>\(X_c\)</td><td>\(n \times p\)</td><td>Centered original data</td></tr><tr><td>\(W\)</td><td>\(p \times k\)</td><td>Selected principal component directions</td></tr><tr><td>\(Z\)</td><td>\(n \times k\)</td><td>New lower-dimensional data</td></tr></tbody></table>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Geometric meaning of projection</h2>
+        <div class="activity"><h3>Shadow question</h3><p class="prompt">If a point casts a shadow onto a line, does the shadow keep all information about the original point?</p><p>No. It keeps position along the line and loses distance away from the line.</p></div>
+        <p>Projection is like dropping a perpendicular shadow from each point onto a principal component axis.</p>
+        <p>For a single unit direction \(v\), the projected point in the original coordinate system is:</p>
+        <div class="formula">\[
+x_{\parallel}=vv^Tx
+\]</div>
+        <div class="formula">\[
+z_i = x_i^T v_1
+\]</div>
+        <p>For one component, each row becomes one number: the coordinate along PC1.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Projection of points onto PC1">
+          <line x1="82" y1="222" x2="338" y2="78" stroke="#1f6feb" stroke-width="5"></line>
+          <g stroke="#5e6875" stroke-width="2" stroke-dasharray="5 5"><line x1="150" y1="120" x2="178" y2="168"></line><line x1="232" y1="94" x2="216" y2="148"></line><line x1="260" y1="188" x2="238" y2="136"></line></g>
+          <g fill="#18202a"><circle cx="150" cy="120" r="7"></circle><circle cx="232" cy="94" r="7"></circle><circle cx="260" cy="188" r="7"></circle></g>
+          <g fill="#c3342f"><circle cx="178" cy="168" r="6"></circle><circle cx="216" cy="148" r="6"></circle><circle cx="238" cy="136" r="6"></circle></g>
+          <text x="264" y="82" class="axis-label">PC1 line</text><text x="128" y="260" class="axis-label">red points are projections</text>
+        </svg>
+        <p class="caption">Projection keeps coordinates along the chosen component and drops the perpendicular part.</p>
+      </div>
+    </section>
+
+
+    <section class="section">
+      <h2>Scores and loadings</h2>
+      <div class="activity"><h3>Output question</h3><p class="prompt">After PCA, what are the new feature values called, and what tells us how original features combine?</p><p>The transformed values are scores. The component directions are loadings.</p></div>
+      <table><thead><tr><th>Term</th><th>Meaning</th><th>Where it appears</th></tr></thead><tbody><tr><td>Loadings</td><td>Weights showing how original features combine to form each component.</td><td>Columns of \(W\)</td></tr><tr><td>Scores</td><td>New coordinates of each row after projection.</td><td>Rows of \(Z=X_cW\)</td></tr></tbody></table>
+      <p>If PC1 has high positive loading for two features, then PC1 increases when both features increase together.</p>
+      <div class="formula">\[
+\text{PC1 score for row } i = x_{i1}v_{11}+x_{i2}v_{21}+\cdots+x_{ip}v_{p1}
+\]</div>
+    </section>
+
+
+    <section class="section">
+      <h2>Projection matrix view</h2>
+      <div class="activity"><h3>Subspace question</h3><p class="prompt">If we keep two principal components, how do we project a point onto the 2D PCA plane?</p><p>Use the matrix containing those two component directions.</p></div>
+      <p>Let \(V\) contain the selected orthonormal component directions. Projection into the lower-dimensional coordinates is:</p>
+      <div class="formula">\[
+y = V^Tx
+\]</div>
+      <p>Reconstruction back into the original feature space is:</p>
+      <div class="formula">\[
+\hat{x}=Vy=VV^Tx
+\]</div>
+      <p>The matrix \(VV^T\) is the projection matrix onto the subspace spanned by the selected principal components.</p>
+      <div class="note">This is a powerful geometric idea: PCA is not deleting random coordinates; it is projecting points onto the best lower-dimensional subspace.</div>
+    </section>
+
+    <section class="section">
+      <h2>Reconstruction after reducing dimensions</h2>
+      <div class="activity"><h3>Loss question</h3><p class="prompt">If we reduce 2D data to 1D and then rebuild it, should we expect the exact original points back?</p><p>No. We only get an approximation because one direction was dropped.</p></div>
+      <p>After projection, we can approximately reconstruct the centered data:</p>
+      <div class="formula">\[
+\hat{X}_c = ZW^T
+\]</div>
+      <p>If the original data was centered, add the mean back to reconstruct in the original location:</p>
+      <div class="formula">\[
+\hat{X}=\hat{X}_c + \mu
+\]</div>
+      <p>The difference between original and reconstructed data is information loss:</p>
+      <div class="formula">\[
+\text{Reconstruction Error}=\|X_c-\hat{X}_c\|^2
+\]</div>
+    </section>
+
+
+    <section class="section">
+      <h2>Reconstruction error from dropped eigenvalues</h2>
+      <div class="activity"><h3>Dropped variance question</h3><p class="prompt">If we keep the first 2 components, where does the lost information come from?</p><p>From the components we did not keep.</p></div>
+      <p>When eigenvalues are sorted from largest to smallest, keeping the first \(k\) components preserves:</p>
+      <div class="formula">\[
+\lambda_1+\lambda_2+\cdots+\lambda_k
+\]</div>
+      <p>The leftover reconstruction error is connected to the eigenvalues we drop:</p>
+      <div class="formula">\[
+\text{Reconstruction Error} = \sum_{j=k+1}^{p}\lambda_j
+\]</div>
+      <p>This gives a clean intuition: the small eigenvalues are the variance we are choosing to discard.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Explained variance ratio</h2>
+        <div class="activity"><h3>Information question</h3><p class="prompt">If PC1 explains 80 percent of the variance, what does that tell us?</p><p>One direction captures most of the data's spread.</p></div>
+        <p>Each eigenvalue is the variance captured by one principal component. The explained variance ratio is:</p>
+        <div class="formula">\[
+\text{Explained Variance Ratio}_k=\frac{\lambda_k}{\sum_{j=1}^{p}\lambda_j}
+\]</div>
+        <p>For the first \(m\) components, cumulative explained variance is:</p>
+        <div class="formula">\[
+\text{Cumulative Variance}_m=\frac{\sum_{k=1}^{m}\lambda_k}{\sum_{j=1}^{p}\lambda_j}
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Scree and cumulative variance plot">
+          <line x1="58" y1="238" x2="362" y2="238" stroke="#5e6875" stroke-width="2"></line><line x1="58" y1="238" x2="58" y2="54" stroke="#5e6875" stroke-width="2"></line>
+          <rect x="86" y="92" width="34" height="146" fill="#1f6feb"></rect><rect x="140" y="154" width="34" height="84" fill="#1f6feb"></rect><rect x="194" y="198" width="34" height="40" fill="#1f6feb"></rect><rect x="248" y="218" width="34" height="20" fill="#1f6feb"></rect>
+          <polyline points="103,92 157,72 211,66 265,62 320,60" fill="none" stroke="#c3342f" stroke-width="4"></polyline>
+          <text x="86" y="262" class="axis-label">PC1</text><text x="140" y="262" class="axis-label">PC2</text><text x="194" y="262" class="axis-label">PC3</text><text x="238" y="42" class="axis-label">cumulative</text>
+        </svg>
+        <p class="caption">The scree plot shows component-wise variance; the curve shows cumulative retained variance.</p>
+      </div>
+    </section>
+
+
+    <section class="section">
+      <h2>Detailed explained variance example</h2>
+      <div class="activity"><h3>Percentage question</h3><p class="prompt">If PCA gives eigenvalues 12, 5, 2, and 1, how much variance does PC1 explain?</p><p>PC1 explains \(12/(12+5+2+1)=60\%\) of the total variance.</p></div>
+      <p>Suppose a dataset has four principal components with eigenvalues:</p>
+      <div class="formula">\[
+\lambda_1=12,\quad \lambda_2=5,\quad \lambda_3=2,\quad \lambda_4=1
+\]</div>
+      <p>Total variance is the sum of all eigenvalues:</p>
+      <div class="formula">\[
+\text{Total variance}=12+5+2+1=20
+\]</div>
+      <table>
+        <thead><tr><th>Component</th><th>Eigenvalue</th><th>Explained variance ratio</th><th>Cumulative variance</th></tr></thead>
+        <tbody>
+          <tr><td>PC1</td><td>12</td><td>\(12/20=0.60=60\%\)</td><td>60%</td></tr>
+          <tr><td>PC2</td><td>5</td><td>\(5/20=0.25=25\%\)</td><td>85%</td></tr>
+          <tr><td>PC3</td><td>2</td><td>\(2/20=0.10=10\%\)</td><td>95%</td></tr>
+          <tr><td>PC4</td><td>1</td><td>\(1/20=0.05=5\%\)</td><td>100%</td></tr>
+        </tbody>
+      </table>
+      <p>If we keep only PC1 and PC2, we keep:</p>
+      <div class="formula">\[
+\frac{12+5}{20}=0.85=85\%
+\]</div>
+      <p>If we keep PC1, PC2, and PC3, we keep:</p>
+      <div class="formula">\[
+\frac{12+5+2}{20}=0.95=95\%
+\]</div>
+      <p>The dropped variance after keeping the first 2 components is:</p>
+      <div class="formula">\[
+\lambda_3+\lambda_4=2+1=3
+\]</div>
+      <p>So explained variance helps answer a practical question: how many components can we keep while losing an acceptable amount of information?</p>
+    </section>
+
+    <section class="section">
+      <h2>Choosing number of components</h2>
+      <div class="activity"><h3>Choice question</h3><p class="prompt">If 2 components explain 92 percent variance, should we always keep only 2?</p><p>Not always. It depends on the goal: visualization, compression, or prediction.</p></div>
+      <table><thead><tr><th>Method</th><th>How it works</th><th>Good for</th></tr></thead><tbody><tr><td>Cumulative variance</td><td>Keep enough components to explain 90 to 95 percent variance.</td><td>Compression and general dimensionality reduction.</td></tr><tr><td>Scree elbow</td><td>Look for the point where extra components add little variance.</td><td>Teaching and exploratory analysis.</td></tr><tr><td>Downstream validation</td><td>Try different component counts and evaluate the final ML model.</td><td>Prediction tasks.</td></tr><tr><td>Visualization need</td><td>Choose 2 or 3 components.</td><td>Plotting high-dimensional data.</td></tr></tbody></table>
+      <div class="note warning">High explained variance does not guarantee best classification accuracy. PCA is unsupervised and does not look at labels.</div>
+    </section>
+
+    <section class="section">
+      <h2>Complete PCA algorithm</h2>
+      <ol>
+        <li>Start with data matrix \(X\).</li>
+        <li>Center each feature to get \(X_c\).</li>
+        <li>Scale features if units or ranges differ.</li>
+        <li>Compute covariance matrix \(\Sigma=\frac{1}{n-1}X_c^TX_c\).</li>
+        <li>Find eigenvalues and eigenvectors of \(\Sigma\).</li>
+        <li>Sort eigenvectors by decreasing eigenvalues.</li>
+        <li>Select top \(k\) eigenvectors to form \(W\).</li>
+        <li>Project data: \(Z=X_cW\).</li>
+        <li>Use \(Z\) for visualization, compression, or modeling.</li>
+      </ol>
+    </section>
+
+    <div class="pager"><a class="button" href="02-covariance-eigen.html">Previous: Covariance</a><a class="button primary" href="04-pca-in-practice.html">Next: Practice</a></div>
+  </main>
+</body>
+</html>

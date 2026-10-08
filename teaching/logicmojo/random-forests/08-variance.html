@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Why Averaging Works</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
+    <a class="brand" href="index.html">Random Forests</a>
+    <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-why-ensemble.html">Why ensemble</a><a class="" href="02-bootstrap.html">Bootstrap</a><a class="" href="03-bagging.html">Bagging</a><a class="" href="04-feature-randomness.html">Features</a><a class="" href="05-classification.html">Classification</a><a class="" href="06-regression.html">Regression</a><a class="" href="07-oob.html">OOB</a><a class="active" href="08-variance.html">Variance</a><a class="" href="09-tuning.html">Tuning</a><a class="" href="10-interpretation.html">Interpretation</a><a class="" href="11-practical-guide.html">Practice</a></div>
+  </nav></header>
+  <main class="page">
+    <div class="eyebrow">Part 8</div>
+    <h1>The mathematics of a forest is a story about variance and correlation.</h1>
+    <p class="lead">Averaging does not erase every error. It reduces the part of the error that varies from tree to tree, especially when tree predictions are not too correlated.</p>
+
+<section class="section"><h2>Start with two trees</h2><div class="activity"><h3>Variance question</h3><p class="prompt">If two tree predictions fluctuate independently around the same average, what should happen when we average them?</p></div><p>Let each tree's prediction have variance \(\sigma^2\). If trees were independent, averaging \(B\) of them would divide variance by \(B\):</p><div class="formula">\[\operatorname{Var}\left(\frac{1}{B}\sum_{b=1}^B f_b\right)=\frac{\sigma^2}{B}\]</div><p class="intuition"><strong>Intuition:</strong> random high and low deviations partially cancel. More trees make the average steadier.</p></section>
+<section class="section"><h2>Real trees are correlated</h2><div class="activity"><h3>Correlation question</h3><p class="prompt">What if every tree still uses the same dominant feature and makes almost the same error?</p></div><p>Let \(\rho\) be the pairwise correlation between tree predictions. The variance of the average becomes:</p><div class="formula">\[\begin{aligned}\operatorname{Var}(\bar f)&=\frac{1}{B^2}\left[B\sigma^2+B(B-1)\rho\sigma^2\right]\\&=\sigma^2\left(\rho+\frac{1-\rho}{B}\right)\end{aligned}\]</div><table><thead><tr><th>Symbol</th><th>Meaning</th></tr></thead><tbody><tr><td>\(B\)</td><td>Number of trees.</td></tr><tr><td>\(\sigma^2\)</td><td>Variance of an individual tree's prediction.</td></tr><tr><td>\(\rho\)</td><td>How similarly trees move and make errors.</td></tr></tbody></table><p class="intuition"><strong>Key insight:</strong> as \(B\) becomes very large, the \(1/B\) term vanishes, but the correlated part \(\rho\sigma^2\) remains. More trees cannot cancel a shared mistake.</p></section>
+<section class="section"><h2>Explore the variance factor</h2><div class="explorer"><label for="trees-slider">Number of trees \(B\): <span id="trees-value">100</span></label><input id="trees-slider" type="range" min="1" max="500" value="100"><label for="rho-slider">Pairwise correlation \(\rho\): <span id="rho-value">0.20</span></label><input id="rho-slider" type="range" min="0" max="100" value="20"><p>Relative ensemble variance \(\sigma^2\) times: <strong id="variance-factor">0.208</strong></p></div><p>Try increasing \(B\), then increasing \(\rho\). The first change keeps helping, while the second creates a floor that more trees cannot remove.</p></section>
+<section class="section"><h2>How Random Forest targets the equation</h2><div class="three-col"><div class="card"><h3>Bootstrap rows</h3><p>Changes the training examples.</p></div><div class="card"><h3>Feature subsets</h3><p>Changes the candidate questions at nodes.</p></div><div class="card"><h3>Aggregation</h3><p>Turns many noisy predictions into one stable estimate.</p></div></div></section>
+    <div class="pager"><a class="button" href="07-oob.html">Previous: OOB</a><a class="button primary" href="09-tuning.html">Next: Tuning</a></div>
+  </main>
+</body>
+</html>

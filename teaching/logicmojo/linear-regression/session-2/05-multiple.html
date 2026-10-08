@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multiple Linear Regression</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="../index.html">Linear Regression Math</a>
+      <div class="navlinks">
+        <a href="../session-1/index.html">Session 1</a>
+        <a href="index.html">Session 2</a>
+        <a href="04-metrics.html">Metrics</a>
+        <a class="active" href="05-multiple.html">Multiple LR</a>
+        <a href="06-assumptions.html">Assumptions</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 5</div>
+    <h1>Multiple linear regression</h1>
+    <p class="lead">Real problems rarely depend on one input. Multiple regression lets many features contribute to one prediction.</p>
+
+    <section class="section">
+      <h2>Equation</h2>
+      <div class="formula">\[\hat{y} = \beta_0 + \beta_1x_1 + \beta_2x_2 + \beta_3x_3 + \cdots + \beta_px_p\]</div>
+      <p>Every feature gets its own coefficient. The interpretation is:</p>
+      <div class="note">If x1 increases by one unit while all other features stay constant, the prediction changes by b1 units.</div>
+      <div class="activity">
+        <h3>Feature brainstorm</h3>
+        <p class="prompt">If we are predicting house price, what features should we use?</p>
+        <p>Think about numerical features, categorical features, useful features, suspicious features, and features that may not be available at prediction time.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>How does the multivariate model fit?</h2>
+      <p>The model starts with many possible planes or hyperplanes. Each choice of coefficients creates a different prediction surface and different residuals.</p>
+      <div class="formula">\[\text{residual}_i = y_i - \hat{y}_i\]</div>
+      <p>The best fit is the surface that minimizes the total squared residuals across all rows:</p>
+      <div class="formula">\[\min_{\beta_0,\beta_1,\ldots,\beta_p}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2\]</div>
+      <div class="grid">
+        <div class="card">
+          <h3>Intercept moves the surface</h3>
+          <p>\(\beta_0\) shifts the whole line, plane, or hyperplane up and down without changing its tilt.</p>
+        </div>
+        <div class="card">
+          <h3>Coefficients tilt the surface</h3>
+          <p>Each \(\beta_j\) controls tilt in one feature direction. Larger magnitude means the prediction changes more along that feature.</p>
+        </div>
+        <div class="card">
+          <h3>All features compete together</h3>
+          <p>The model chooses coefficients jointly, not one by one. A feature's coefficient depends on the other features present.</p>
+        </div>
+      </div>
+      <div class="wide-visual">
+        <svg class="plot" viewBox="0 0 760 300" role="img" aria-label="Three candidate planes with different residual sizes">
+          <g transform="translate(0,0)">
+            <text x="80" y="28" class="axis-label">Underfit plane</text>
+            <polygon points="40,210 160,150 250,190 130,248" fill="#fee2e2" stroke="#c3342f" stroke-width="3" opacity="0.9"></polygon>
+            <circle cx="74" cy="184" r="5" fill="#11875d"></circle><circle cx="126" cy="140" r="5" fill="#11875d"></circle><circle cx="190" cy="128" r="5" fill="#11875d"></circle><circle cx="220" cy="168" r="5" fill="#11875d"></circle>
+            <line x1="190" y1="128" x2="190" y2="177" stroke="#c3342f" stroke-width="3" stroke-dasharray="5 5"></line>
+            <line x1="126" y1="140" x2="126" y2="167" stroke="#c3342f" stroke-width="3" stroke-dasharray="5 5"></line>
+          </g>
+          <g transform="translate(250,0)">
+            <text x="80" y="28" class="axis-label">Better fit</text>
+            <polygon points="40,218 160,128 250,168 130,254" fill="#dbeafe" stroke="#1f6feb" stroke-width="3" opacity="0.9"></polygon>
+            <circle cx="74" cy="200" r="5" fill="#11875d"></circle><circle cx="126" cy="160" r="5" fill="#11875d"></circle><circle cx="190" cy="142" r="5" fill="#11875d"></circle><circle cx="220" cy="168" r="5" fill="#11875d"></circle>
+            <line x1="190" y1="142" x2="190" y2="151" stroke="#c3342f" stroke-width="3" stroke-dasharray="5 5"></line>
+            <line x1="126" y1="160" x2="126" y2="154" stroke="#c3342f" stroke-width="3" stroke-dasharray="5 5"></line>
+          </g>
+          <g transform="translate(500,0)">
+            <text x="70" y="28" class="axis-label">Too steep</text>
+            <polygon points="40,238 160,92 250,132 130,268" fill="#fff6e8" stroke="#b85c00" stroke-width="3" opacity="0.92"></polygon>
+            <circle cx="74" cy="204" r="5" fill="#11875d"></circle><circle cx="126" cy="160" r="5" fill="#11875d"></circle><circle cx="190" cy="142" r="5" fill="#11875d"></circle><circle cx="220" cy="168" r="5" fill="#11875d"></circle>
+            <line x1="74" y1="204" x2="74" y2="223" stroke="#c3342f" stroke-width="3" stroke-dasharray="5 5"></line>
+            <line x1="220" y1="168" x2="220" y2="143" stroke="#c3342f" stroke-width="3" stroke-dasharray="5 5"></line>
+          </g>
+        </svg>
+        <p class="caption">Fitting means adjusting the surface until the residual distances are as small as possible overall.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Coefficient meaning: holding other features constant</h2>
+      <p>In multiple regression, each coefficient is a partial effect. It answers:</p>
+      <div class="formula">\[\text{What happens to }\hat{y}\text{ if }x_j\text{ increases by 1, while other features stay fixed?}\]</div>
+      <p>This is why coefficient interpretation is more subtle than simple regression.</p>
+      <table>
+        <thead><tr><th>Question</th><th>Simple regression</th><th>Multiple regression</th></tr></thead>
+        <tbody>
+          <tr><td>What does slope mean?</td><td>How \(y\) changes as one \(x\) changes.</td><td>How \(y\) changes as one \(x_j\) changes while other features stay constant.</td></tr>
+          <tr><td>Can coefficients change when we add features?</td><td>No other features exist.</td><td>Yes. Adding/removing features can change coefficients.</td></tr>
+          <tr><td>Why?</td><td>One feature explains everything it can.</td><td>Features share explanatory responsibility.</td></tr>
+        </tbody>
+      </table>
+      <div class="note warning">If two features carry similar information, the model may split credit between them in unstable ways. This is why multicollinearity matters.</div>
+    </section>
+
+    <section class="section">
+      <h2>Projection intuition</h2>
+      <p>Another way to think about fitting is projection. The target vector \(y\) may not be perfectly represented by the feature columns in \(X\). Linear regression finds the closest possible prediction vector \(\hat{y}\) inside the space created by those features.</p>
+      <div class="formula">\[\hat{y}=X\beta\]</div>
+      <div class="formula">\[e = y - \hat{y}\]</div>
+      <p>At the OLS solution, the residual vector is orthogonal to the feature space:</p>
+      <div class="formula">\[X^T(y - X\beta)=0\]</div>
+      <div class="two-col">
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 280" role="img" aria-label="Projection intuition for linear regression">
+            <polygon points="70,214 290,132 368,170 144,248" fill="#dbeafe" stroke="#1f6feb" stroke-width="3" opacity="0.9"></polygon>
+            <line x1="80" y1="226" x2="350" y2="158" stroke="#1f6feb" stroke-width="2" stroke-dasharray="7 6"></line>
+            <circle cx="246" cy="64" r="7" fill="#c3342f"></circle>
+            <circle cx="246" cy="154" r="7" fill="#11875d"></circle>
+            <line x1="246" y1="64" x2="246" y2="154" stroke="#c3342f" stroke-width="4" stroke-dasharray="6 5"></line>
+            <text x="260" y="66" class="axis-label">actual y</text>
+            <text x="258" y="158" class="axis-label">closest prediction y_hat</text>
+            <text x="132" y="238" class="axis-label">feature space from X</text>
+            <text x="256" y="112" class="axis-label">residual</text>
+          </svg>
+          <p class="caption">The prediction is the closest point the linear model can reach using the available features.</p>
+        </div>
+        <div>
+          <h3>Why this helps</h3>
+          <p>If important features are missing, the feature space cannot reach the true target well. The residual remains large.</p>
+          <p>If we add useful features, the feature space expands, and the model may get closer to \(y\).</p>
+          <p>If we add noisy or redundant features, the model may become harder to interpret or overfit.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>From line fitting to plane fitting</h2>
+        <p>With one input feature, linear regression fits a line:</p>
+        <div class="formula">\[\hat{y} = \beta_0 + \beta_1x_1\]</div>
+        <p>With two input features, it fits a plane:</p>
+        <div class="formula">\[\hat{y} = \beta_0 + \beta_1x_1 + \beta_2x_2\]</div>
+        <p>Example: house price may depend on both area and number of bedrooms.</p>
+        <div class="formula">\[\widehat{price} = \beta_0 + \beta_1(area) + \beta_2(bedrooms)\]</div>
+        <p>The model is still linear because the coefficients are added together in a straight weighted sum.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 320" role="img" aria-label="Plane fitting with two features">
+          <defs>
+            <linearGradient id="planeGrad" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stop-color="#dbeafe"></stop>
+              <stop offset="100%" stop-color="#bfdbfe"></stop>
+            </linearGradient>
+          </defs>
+          <line x1="74" y1="260" x2="350" y2="260" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="74" y1="260" x2="74" y2="70" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="74" y1="260" x2="34" y2="300" stroke="#5e6875" stroke-width="2"></line>
+          <polygon points="86,214 254,128 362,174 190,260" fill="url(#planeGrad)" stroke="#1f6feb" stroke-width="3" opacity="0.88"></polygon>
+          <circle cx="116" cy="202" r="6" fill="#11875d"></circle>
+          <circle cx="152" cy="176" r="6" fill="#11875d"></circle>
+          <circle cx="205" cy="190" r="6" fill="#11875d"></circle>
+          <circle cx="244" cy="139" r="6" fill="#11875d"></circle>
+          <circle cx="298" cy="168" r="6" fill="#11875d"></circle>
+          <circle cx="330" cy="144" r="6" fill="#11875d"></circle>
+          <line x1="244" y1="139" x2="244" y2="156" stroke="#c3342f" stroke-width="3" stroke-dasharray="5 5"></line>
+          <line x1="298" y1="168" x2="298" y2="151" stroke="#c3342f" stroke-width="3" stroke-dasharray="5 5"></line>
+          <text x="190" y="296" class="axis-label">x1: area</text>
+          <text x="20" y="310" class="axis-label">x2: bedrooms</text>
+          <text x="20" y="90" class="axis-label">y: price</text>
+          <text x="260" y="114" class="axis-label">fitted plane</text>
+        </svg>
+        <p class="caption">For two features, predictions lie on a plane. Residuals are vertical distances from points to the plane.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Advertising example</h2>
+        <div class="formula">\[\widehat{sales} = \beta_0 + \beta_1(TV) + \beta_2(Radio) + \beta_3(Newspaper)\]</div>
+        <table>
+          <thead><tr><th>Coefficient</th><th>Interpretation</th></tr></thead>
+          <tbody>
+            <tr><td>b1 for TV</td><td>Expected sales change for extra TV budget, holding radio and newspaper fixed.</td></tr>
+            <tr><td>b2 for Radio</td><td>Expected sales change for extra radio budget, holding TV and newspaper fixed.</td></tr>
+            <tr><td>b3 for Newspaper</td><td>Expected sales change for extra newspaper budget, holding TV and radio fixed.</td></tr>
+          </tbody>
+        </table>
+        <div class="activity">
+          <h3>Business interpretation</h3>
+          <p class="prompt">If TV coefficient is high but newspaper coefficient is near zero, what should the marketing team consider?</p>
+          <p>Takeaway: TV may be more useful, but check data quality, correlation, budget ranges, and business context before making decisions.</p>
+        </div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Multiple features combine into one prediction">
+          <rect x="42" y="58" width="96" height="52" rx="8" fill="#eef5ff" stroke="#1f6feb"></rect>
+          <rect x="42" y="126" width="96" height="52" rx="8" fill="#ecfdf5" stroke="#11875d"></rect>
+          <rect x="42" y="194" width="96" height="52" rx="8" fill="#fff6e8" stroke="#b85c00"></rect>
+          <text x="76" y="89" class="axis-label">TV</text>
+          <text x="67" y="157" class="axis-label">Radio</text>
+          <text x="54" y="225" class="axis-label">News</text>
+          <line x1="138" y1="84" x2="260" y2="150" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="138" y1="152" x2="260" y2="150" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="138" y1="220" x2="260" y2="150" stroke="#5e6875" stroke-width="2"></line>
+          <rect x="260" y="114" width="112" height="72" rx="8" fill="#f5f7fb" stroke="#5e6875"></rect>
+          <text x="285" y="145" class="axis-label">weighted</text>
+          <text x="286" y="166" class="axis-label">sum + b0</text>
+        </svg>
+        <p class="caption">Multiple regression is a weighted combination of features plus an intercept.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Why it is still linear</h2>
+      <p>The model is linear in its coefficients. Each coefficient multiplies a feature directly. The features can be many, but the coefficient relationship stays additive.</p>
+      <div class="formula">\[\text{linear: } \beta_0 + \beta_1x_1 + \beta_2x_2\]\[\text{not linear in coefficients: } \beta_0 + \sin(\beta_1x_1)\]</div>
+      <p>A polynomial feature such as \(x^2\) can still be used inside linear regression:</p>
+      <div class="formula">\[\hat{y} = \beta_0 + \beta_1x + \beta_2x^2\]</div>
+      <p>This creates a curved relationship in x, but the model is still linear in b0, b1, and b2.</p>
+      <div class="two-col">
+        <div>
+          <h3>What polynomial regression really does</h3>
+          <p>Polynomial regression does not change the core algorithm. It changes the input features.</p>
+          <p>Instead of giving the model only \(x\), we give it transformed features:</p>
+          <div class="formula">\[x,\quad x^2,\quad x^3,\quad \ldots\]</div>
+          <p>Then ordinary linear regression learns one coefficient for each transformed feature.</p>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 280" role="img" aria-label="Polynomial regression curved fit">
+            <line x1="44" y1="232" x2="382" y2="232" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="44" y1="232" x2="44" y2="38" stroke="#5e6875" stroke-width="2"></line>
+            <circle cx="70" cy="202" r="6" fill="#11875d"></circle>
+            <circle cx="118" cy="144" r="6" fill="#11875d"></circle>
+            <circle cx="168" cy="98" r="6" fill="#11875d"></circle>
+            <circle cx="220" cy="86" r="6" fill="#11875d"></circle>
+            <circle cx="274" cy="118" r="6" fill="#11875d"></circle>
+            <circle cx="332" cy="188" r="6" fill="#11875d"></circle>
+            <line x1="62" y1="176" x2="348" y2="132" stroke="#c3342f" stroke-width="3" stroke-dasharray="8 6"></line>
+            <path d="M62 204 C126 104, 188 64, 238 88 C286 112, 316 158, 356 208" fill="none" stroke="#1f6feb" stroke-width="4"></path>
+            <text x="258" y="84" class="axis-label">polynomial fit</text>
+            <text x="268" y="130" class="axis-label">straight line underfits</text>
+          </svg>
+          <p class="caption">Polynomial features let a linear model fit curved relationships.</p>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Model</th><th>Equation</th><th>What changes?</th></tr></thead>
+        <tbody>
+          <tr><td>Simple linear</td><td>\(\hat{y}=\beta_0+\beta_1x\)</td><td>One straight-line feature.</td></tr>
+          <tr><td>Quadratic</td><td>\(\hat{y}=\beta_0+\beta_1x+\beta_2x^2\)</td><td>Adds one curved feature.</td></tr>
+          <tr><td>Cubic</td><td>\(\hat{y}=\beta_0+\beta_1x+\beta_2x^2+\beta_3x^3\)</td><td>Can capture more bends, but risks overfitting.</td></tr>
+        </tbody>
+      </table>
+      <div class="note warning">Polynomial regression can improve underfitting, but high-degree polynomial features can overfit. A curve that passes through every training point may perform badly on new data.</div>
+      <div class="activity">
+        <h3>Pattern recognition</h3>
+        <p class="prompt">Can you think of a relationship that increases first but later slows down?</p>
+        <p>Examples: experience vs salary, ad spend vs sales, study hours vs marks. These are natural places to consider polynomial features.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Matrix notation of multiple linear regression</h2>
+      <p>For many rows and many features, writing one equation per row becomes messy. Matrix notation lets us write the whole dataset at once.</p>
+      <div class="formula">\[\hat{y} = X\beta\]</div>
+      <p>Suppose we have 4 training examples and 3 features. The design matrix \(X\) includes a first column of 1s for the intercept.</p>
+      <div class="formula">\[
+X =
+\begin{bmatrix}
+1 & x_{11} & x_{12} & x_{13} \\
+1 & x_{21} & x_{22} & x_{23} \\
+1 & x_{31} & x_{32} & x_{33} \\
+1 & x_{41} & x_{42} & x_{43}
+\end{bmatrix}
+\]</div>
+      <div class="formula">\[
+\beta =
+\begin{bmatrix}
+\beta_0 \\
+\beta_1 \\
+\beta_2 \\
+\beta_3
+\end{bmatrix}
+\qquad
+y =
+\begin{bmatrix}
+y_1 \\
+y_2 \\
+y_3 \\
+y_4
+\end{bmatrix}
+\]</div>
+      <p>Multiplying \(X\beta\) gives all predictions together:</p>
+      <div class="formula">\[
+\hat{y} =
+\begin{bmatrix}
+1 & x_{11} & x_{12} & x_{13} \\
+1 & x_{21} & x_{22} & x_{23} \\
+1 & x_{31} & x_{32} & x_{33} \\
+1 & x_{41} & x_{42} & x_{43}
+\end{bmatrix}
+\begin{bmatrix}
+\beta_0 \\
+\beta_1 \\
+\beta_2 \\
+\beta_3
+\end{bmatrix}
+=
+\begin{bmatrix}
+\hat{y}_1 \\
+\hat{y}_2 \\
+\hat{y}_3 \\
+\hat{y}_4
+\end{bmatrix}
+\]</div>
+      <p>The residual vector is:</p>
+      <div class="formula">\[e = y - \hat{y} = y - X\beta\]</div>
+      <p>OLS chooses the coefficient vector that minimizes squared residuals:</p>
+      <div class="formula">\[\min_{\beta}\|y-X\beta\|^2\]</div>
+      <p>When the matrix inverse exists, the closed-form OLS solution is:</p>
+      <div class="formula">\[\beta = (X^TX)^{-1}X^Ty\]</div>
+      <div class="note">Practical intuition: \(X\) contains the data, \(\beta\) contains what the model learns, and \(X\beta\) produces predictions for all rows at once.</div>
+    </section>
+
+    <section class="section">
+      <h2>Gradient descent with multiple features</h2>
+      <p>In Session 1, gradient descent updated an intercept and one slope. In multiple regression, the same idea updates a full vector of parameters.</p>
+      <div class="formula">\[
+\beta =
+\begin{bmatrix}
+\beta_0 \\
+\beta_1 \\
+\beta_2 \\
+\vdots \\
+\beta_p
+\end{bmatrix}
+\qquad
+\hat{y}=X\beta
+\]</div>
+      <p>The cost function measures prediction error across all training rows:</p>
+      <div class="formula">\[
+J(\beta)=\frac{1}{n}(y-X\beta)^T(y-X\beta)
+\]</div>
+      <p>The gradient tells us how the cost changes if we slightly change each coefficient:</p>
+      <div class="formula">\[
+\nabla_{\beta}J(\beta)=\frac{2}{n}X^T(X\beta-y)
+\]</div>
+      <p>Then all coefficients move together in the direction that reduces the cost:</p>
+      <div class="formula">\[
+\beta := \beta - \alpha\nabla_{\beta}J(\beta)
+\]</div>
+      <div class="two-col">
+        <div>
+          <h3>What changes from simple regression?</h3>
+          <p>Instead of asking, “Should the line slope increase or decrease?”, the model asks this for every feature coefficient at once.</p>
+          <p>If a feature helps reduce error, its coefficient is adjusted. If a feature adds little signal, its coefficient may stay small or become unstable when mixed with similar features.</p>
+          <div class="activity">
+            <h3>Prediction surface check</h3>
+            <p class="prompt">If the learning rate is too large, what will happen to the coefficient path on the cost surface?</p>
+            <p>The path may jump around the minimum or even move away from it instead of settling smoothly.</p>
+          </div>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Gradient descent path for two coefficients">
+            <ellipse cx="214" cy="150" rx="150" ry="94" fill="#eaf2ff" stroke="#bfdbfe" stroke-width="2"></ellipse>
+            <ellipse cx="214" cy="150" rx="112" ry="70" fill="#dbeafe" stroke="#93c5fd" stroke-width="2"></ellipse>
+            <ellipse cx="214" cy="150" rx="76" ry="48" fill="#bfdbfe" stroke="#60a5fa" stroke-width="2"></ellipse>
+            <ellipse cx="214" cy="150" rx="38" ry="24" fill="#93c5fd" stroke="#1f6feb" stroke-width="3"></ellipse>
+            <circle cx="214" cy="150" r="6" fill="#c3342f"></circle>
+            <polyline points="82,238 116,210 146,188 170,172 190,162 204,155 214,150" fill="none" stroke="#11875d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+            <circle cx="82" cy="238" r="6" fill="#11875d"></circle>
+            <circle cx="116" cy="210" r="5" fill="#11875d"></circle>
+            <circle cx="146" cy="188" r="5" fill="#11875d"></circle>
+            <circle cx="170" cy="172" r="5" fill="#11875d"></circle>
+            <circle cx="190" cy="162" r="5" fill="#11875d"></circle>
+            <circle cx="204" cy="155" r="5" fill="#11875d"></circle>
+            <line x1="44" y1="258" x2="374" y2="258" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="44" y1="258" x2="44" y2="42" stroke="#5e6875" stroke-width="2"></line>
+            <text x="186" y="286" class="axis-label">coefficient beta1</text>
+            <text x="20" y="58" class="axis-label">beta2</text>
+            <text x="222" y="144" class="axis-label">minimum</text>
+            <text x="86" y="256" class="axis-label">start</text>
+          </svg>
+          <p class="caption">For many features, the real cost surface has many coefficient directions. This 2D slice shows the core idea.</p>
+        </div>
+      </div>
+      <div class="note">OLS gives a direct closed-form solution when the matrix setup is manageable. Gradient descent gives an iterative route that becomes especially useful for large datasets, many features, and models beyond ordinary linear regression.</div>
+    </section>
+
+
+    <div class="pager">
+      <a class="button" href="04-metrics.html">Previous: Metrics</a>
+      <a class="button primary" href="06-assumptions.html">Next: Assumptions</a>
+    </div>
+  </main>
+</body>
+</html>

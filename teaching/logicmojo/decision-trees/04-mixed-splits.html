@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mixed Categorical and Numerical Splits</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-tree-intuition.html">Intuition</a><a class="" href="02-entropy-gini.html">Impurity</a><a class="" href="03-information-gain.html">Gain</a><a class="active" href="04-mixed-splits.html">Mixed Data</a><a class="" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="" href="07-regression-trees.html">Regression</a><a class="" href="08-evaluation-tuning.html">Evaluation</a><a class="" href="09-practical-guide.html">Practice</a><a class="" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Part 4</div>
+    <h1>A practical tree compares categories and numeric thresholds in one search.</h1>
+    <p class="lead">The synthetic loan example combines income, credit score, loan amount, employment type, and previous default. We will calculate the best root question without pretending the example is a real lending policy.</p>
+
+    <section class="section">
+      <h2>The mixed loan dataset</h2>
+      <div class="activity"><h3>Feature question</h3><p class="prompt">Which feature types need a threshold, and which can create category branches?</p></div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Income (₹k/month)</th><th>Credit score</th><th>Loan (₹L)</th><th>Employment</th><th>Previous default</th><th>Approved</th></tr></thead><tbody>
+        <tr><td>1</td><td>35</td><td>610</td><td>12</td><td>Salaried</td><td>No</td><td>No</td></tr>
+        <tr><td>2</td><td>45</td><td>650</td><td>15</td><td>Salaried</td><td>No</td><td>Yes</td></tr>
+        <tr><td>3</td><td>28</td><td>590</td><td>8</td><td>Self-employed</td><td>Yes</td><td>No</td></tr>
+        <tr><td>4</td><td>70</td><td>720</td><td>25</td><td>Salaried</td><td>No</td><td>Yes</td></tr>
+        <tr><td>5</td><td>55</td><td>680</td><td>22</td><td>Self-employed</td><td>No</td><td>Yes</td></tr>
+        <tr><td>6</td><td>32</td><td>640</td><td>10</td><td>Salaried</td><td>No</td><td>No</td></tr>
+        <tr><td>7</td><td>85</td><td>750</td><td>30</td><td>Business</td><td>No</td><td>Yes</td></tr>
+        <tr><td>8</td><td>40</td><td>620</td><td>18</td><td>Self-employed</td><td>No</td><td>No</td></tr>
+        <tr><td>9</td><td>60</td><td>700</td><td>24</td><td>Salaried</td><td>No</td><td>Yes</td></tr>
+        <tr><td>10</td><td>48</td><td>660</td><td>20</td><td>Business</td><td>No</td><td>Yes</td></tr>
+        <tr><td>11</td><td>30</td><td>625</td><td>9</td><td>Salaried</td><td>No</td><td>Yes</td></tr>
+        <tr><td>12</td><td>75</td><td>690</td><td>35</td><td>Business</td><td>Yes</td><td>No</td></tr>
+      </tbody></table></div>
+      <p class="small">Educational synthetic data. Sensitive attributes are intentionally absent, but real-world fairness cannot be guaranteed merely by omitting them because other variables can act as proxies.</p>
+    </section>
+
+    <section class="section">
+      <h2>Parent entropy</h2>
+      <p>There are 7 approvals and 5 declines.</p>
+      <div class="formula">\[
+      H(Approved)=-\frac{7}{12}\log_2\frac{7}{12}-\frac{5}{12}\log_2\frac{5}{12}\approx0.980
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> the labels are close to evenly mixed, so the root has high uncertainty.</p>
+    </section>
+
+    <section class="section">
+      <h2>Generate numeric thresholds</h2>
+      <div class="activity"><h3>Threshold question</h3><p class="prompt">Why test 622.5 rather than testing every real number between credit scores 620 and 625?</p></div>
+      <p>Sort the unique observed values and test their midpoints:</p>
+      <div class="formula">\[
+      t_i=\frac{x_{(i)}+x_{(i+1)}}{2}
+      \]</div>
+      <p>For 620 and 625:</p>
+      <div class="formula">\[
+      t=\frac{620+625}{2}=622.5
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> any threshold inside that empty gap sends exactly the same rows left and right. The midpoint is a convenient representative.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Work the split: CreditScore ≤ 622.5</h2>
+        <table><thead><tr><th>Child</th><th>Yes</th><th>No</th><th>Entropy</th></tr></thead><tbody>
+          <tr><td>Left: score ≤ 622.5</td><td>0</td><td>3</td><td>0.000</td></tr>
+          <tr><td>Right: score &gt; 622.5</td><td>7</td><td>2</td><td>0.764</td></tr>
+        </tbody></table>
+        <div class="formula">\[
+        H_{after}=\frac{3}{12}(0)+\frac{9}{12}(0.764)=0.573
+        \]</div>
+        <div class="formula">\[
+        IG=0.980-0.573=0.407\text{ bits}
+        \]</div>
+        <p class="intuition"><strong>Intuition:</strong> the question isolates three declines perfectly and leaves a mostly-approved group, so it removes substantial uncertainty.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 440 320" role="img" aria-label="Loan applications split by credit score">
+          <line x1="60" y1="258" x2="392" y2="258" stroke="#5e6875"/><line x1="60" y1="258" x2="60" y2="40" stroke="#5e6875"/>
+          <line x1="170" y1="42" x2="170" y2="258" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 5"/>
+          <text x="176" y="58" fill="#6741d9" font-size="13">622.5</text>
+          <circle cx="120" cy="200" r="7" fill="#c3342f"/><circle cx="145" cy="170" r="7" fill="#c3342f"/><circle cx="160" cy="138" r="7" fill="#c3342f"/>
+          <circle cx="186" cy="225" r="7" fill="#11875d"/><circle cx="220" cy="188" r="7" fill="#c3342f"/><circle cx="242" cy="210" r="7" fill="#11875d"/><circle cx="274" cy="160" r="7" fill="#11875d"/><circle cx="302" cy="118" r="7" fill="#c3342f"/><circle cx="322" cy="146" r="7" fill="#11875d"/><circle cx="344" cy="96" r="7" fill="#11875d"/><circle cx="362" cy="72" r="7" fill="#11875d"/><circle cx="382" cy="54" r="7" fill="#11875d"/>
+          <text x="200" y="294" class="axis-label">Credit score</text><text x="20" y="174" class="axis-label" transform="rotate(-90 20 174)">Income</text>
+        </svg>
+        <div class="legend"><span><i class="swatch approve"></i> Approved</span><span><i class="swatch decline"></i> Declined</span><span><i class="swatch split"></i> Candidate split</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Compare mixed candidates fairly</h2>
+      <div class="activity"><h3>Root decision</h3><p class="prompt">Can information gain compare a numeric threshold with a categorical feature?</p></div>
+      <p>Yes. Every candidate ultimately partitions the same parent rows, so we compare their expected child impurity.</p>
+      <table><thead><tr><th>Candidate</th><th>Best question</th><th>Gain</th></tr></thead><tbody>
+        <tr><td>Credit score</td><td>≤ 622.5</td><td><strong>0.407</strong></td></tr>
+        <tr><td>Income</td><td>≤ ₹42.5k/month</td><td>0.334</td></tr>
+        <tr><td>Previous default</td><td>No / Yes</td><td>0.245</td></tr>
+        <tr><td>Loan amount</td><td>≤ ₹19L</td><td>0.196</td></tr>
+        <tr><td>Employment</td><td>Business / Salaried / Self-employed</td><td>0.062</td></tr>
+      </tbody></table>
+      <p>The root chooses `CreditScore ≤ 622.5` for this sample.</p>
+    </section>
+
+    <section class="section">
+      <h2>Multiway categories versus binary CART splits</h2>
+      <p>A teaching ID3 tree may create one child per category. CART uses two children, so a categorical split conceptually divides categories into two groups.</p>
+      <div class="formula">\[
+      Employment\in\{\text{Salaried},\text{Business}\}\quad\text{versus}\quad Employment\in\{\text{Self-employed}\}
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> both are category questions, but one produces many branches and the other always produces exactly two.</p>
+      <div class="note">Scikit-learn's standard decision trees expect numeric input. One-hot or ordinal encoding changes which binary questions are available; encoding therefore belongs inside the model pipeline.</div>
+    </section>
+
+    <section class="section">
+      <h2>What happens next?</h2>
+      <p>The left child is pure and becomes a Decline leaf. The right child still contains 7 approvals and 2 declines, so it recalculates every remaining candidate using only those nine rows.</p>
+      <div class="codebox tree-code">CreditScore ≤ 622.5?
+├── yes → Decline  [0 Yes, 3 No]
+└── no  → mixed    [7 Yes, 2 No]
+          calculate local gains again</div>
+      <p class="intuition"><strong>Intuition:</strong> no global feature ranking is applied down the whole tree. The useful question can change from branch to branch.</p>
+    </section>
+
+    <section class="section">
+      <h2>Fairness and decision consequences</h2>
+      <div class="activity"><h3>Deployment question</h3><p class="prompt">If a split increases validation accuracy, is it automatically acceptable for a lending decision?</p></div>
+      <p>No. Predictive usefulness is only one requirement. Real systems must examine legal permissibility, proxy discrimination, different error rates across groups, data provenance, human appeal, calibration, drift, and the harm caused by false approvals and false declines.</p>
+      <div class="note warning">A transparent tree can still encode unfair historical patterns. Interpretability makes a rule visible; it does not make the rule fair.</div>
+    </section>
+
+    <div class="pager"><a class="button" href="03-information-gain.html">Previous: Information Gain</a><a class="button primary" href="05-recursion-prediction.html">Next: Recursion</a></div>
+  </main>
+</body>
+</html>

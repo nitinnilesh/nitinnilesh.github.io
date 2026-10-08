@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Assumptions And Risks</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Linear Regression Math</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-line.html">Line</a>
+        <a href="02-errors-cost.html">Errors</a>
+        <a href="03-ols-gradient.html">Learning</a>
+        <a href="04-metrics.html">Metrics</a>
+        <a href="05-multiple.html">Multiple LR</a>
+        <a class="active" href="06-assumptions.html">Assumptions</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 6</div>
+    <h1>Assumptions and practical risks</h1>
+    <p class="lead">Assumptions explain when linear regression is trustworthy and when its output needs caution.</p>
+
+    <section class="section">
+      <h2>Core assumptions</h2>
+      <table>
+        <thead><tr><th>Assumption</th><th>Meaning</th><th>How to explain to students</th></tr></thead>
+        <tbody>
+          <tr><td>Linearity</td><td>The average relationship between x and y is roughly linear.</td><td>A straight line should be a reasonable simplification.</td></tr>
+          <tr><td>Independent errors</td><td>One residual should not depend on another residual.</td><td>Time series data often violates this because nearby observations are related.</td></tr>
+          <tr><td>Constant variance</td><td>Residual spread should be similar across prediction levels.</td><td>The model should not be accurate for small values and wildly noisy for large values.</td></tr>
+          <tr><td>Normal residuals</td><td>Residuals should be roughly bell-shaped for inference.</td><td>Mainly important for confidence intervals and hypothesis tests, not just prediction.</td></tr>
+          <tr><td>No severe multicollinearity</td><td>Input features should not duplicate each other too strongly.</td><td>If TV and radio budgets were almost identical, coefficients become hard to trust.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Diagnostic question</h3>
+        <p class="prompt">If the residual plot shows a clear curve, which assumption is probably violated?</p>
+        <p>Expected answer: linearity. The model may need new features, transformations, or a different algorithm.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Multicollinearity</h2>
+        <p>Multicollinearity happens when two or more input features are strongly related. It may not destroy prediction accuracy, but it can make coefficient interpretation unstable.</p>
+        <div class="formula">\[\mathrm{corr}(x_1, x_2) \approx 1\]\[\text{coefficient interpretation becomes unreliable}\]</div>
+        <ul class="checklist">
+          <li>Use a correlation heatmap as the first check.</li>
+          <li>Use VIF as an advanced diagnostic.</li>
+          <li>Remove or combine redundant features if interpretation matters.</li>
+        </ul>
+        <div class="activity">
+          <h3>Student prediction</h3>
+          <p class="prompt">If two features give almost the same information, should both coefficients be trusted separately?</p>
+          <p>Expected answer: not always. Prediction may still work, but individual coefficient interpretation becomes unstable.</p>
+        </div>
+      </div>
+      <div class="visual">
+        <table>
+          <thead><tr><th></th><th>TV</th><th>Radio</th><th>News</th></tr></thead>
+          <tbody>
+            <tr><th>TV</th><td style="background:#dbeafe">1.00</td><td style="background:#fff6e8">0.12</td><td style="background:#fff6e8">0.06</td></tr>
+            <tr><th>Radio</th><td style="background:#fff6e8">0.12</td><td style="background:#dbeafe">1.00</td><td style="background:#ffe2e0">0.88</td></tr>
+            <tr><th>News</th><td style="background:#fff6e8">0.06</td><td style="background:#ffe2e0">0.88</td><td style="background:#dbeafe">1.00</td></tr>
+          </tbody>
+        </table>
+        <p class="caption">High feature-feature correlation is the warning sign. Feature-target correlation is different and often useful.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Feature scaling</h2>
+      <p>Standard OLS linear regression does not require scaling for prediction because the solver can handle different numeric ranges. Scaling becomes important when:</p>
+      <ul class="checklist">
+        <li>you train using gradient descent or SGD,</li>
+        <li>you use regularization such as Ridge, Lasso, or ElasticNet,</li>
+        <li>you compare coefficient magnitudes across features,</li>
+        <li>you use distance-based models later, such as KNN.</li>
+      </ul>
+      <div class="activity">
+        <h3>Scaling check</h3>
+        <p class="prompt">Which feature has a bigger number: house area in square feet or number of bedrooms? Does bigger number automatically mean bigger importance?</p>
+        <p>Expected answer: no. Units and scale affect magnitude; coefficient interpretation must consider feature scale.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Regularization teaser</h2>
+      <p>Regularization adds a penalty for large coefficients. It helps reduce overfitting and stabilize models with many features.</p>
+      <div class="formula">\[\text{Ridge: } \min\left(\mathrm{MSE} + \lambda\sum_{j=1}^{p}\beta_j^2\right)\]\[\text{Lasso: } \min\left(\mathrm{MSE} + \lambda\sum_{j=1}^{p}|\beta_j|\right)\]</div>
+      <div class="note">Good stopping point for linear regression: tell students regularization is the next tool after they understand ordinary linear regression.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="05-multiple.html">Previous: Multiple regression</a>
+      <a class="button primary" href="index.html">Back to overview</a>
+    </div>
+  </main>
+</body>
+</html>

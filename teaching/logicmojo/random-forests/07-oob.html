@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Out-of-Bag Evaluation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
+    <a class="brand" href="index.html">Random Forests</a>
+    <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-why-ensemble.html">Why ensemble</a><a class="" href="02-bootstrap.html">Bootstrap</a><a class="" href="03-bagging.html">Bagging</a><a class="" href="04-feature-randomness.html">Features</a><a class="" href="05-classification.html">Classification</a><a class="" href="06-regression.html">Regression</a><a class="active" href="07-oob.html">OOB</a><a class="" href="08-variance.html">Variance</a><a class="" href="09-tuning.html">Tuning</a><a class="" href="10-interpretation.html">Interpretation</a><a class="" href="11-practical-guide.html">Practice</a></div>
+  </nav></header>
+  <main class="page">
+    <div class="eyebrow">Part 7</div>
+    <h1>Rows left out of a tree's bootstrap sample provide an internal prediction check.</h1>
+    <p class="lead">Out-of-bag evaluation uses only trees that did not train on a particular row. It is convenient, but it should not be treated as a magical replacement for every validation design.</p>
+
+<section class="section"><h2>Read the OOB matrix</h2><div class="activity"><h3>Matrix question</h3><p class="prompt">For row A, which trees are allowed to predict its OOB estimate?</p></div><div class="table-wrap"><table class="oob-table"><thead><tr><th>Training row</th><th>Tree 1</th><th>Tree 2</th><th>Tree 3</th><th>Tree 4</th><th>Tree 5</th></tr></thead><tbody><tr><td>A</td><td class="in">In</td><td class="oob">OOB</td><td class="in">In</td><td class="oob">OOB</td><td class="oob">OOB</td></tr><tr><td>B</td><td class="oob">OOB</td><td class="in">In</td><td class="oob">OOB</td><td class="in">In</td><td class="oob">OOB</td></tr><tr><td>C</td><td class="in">In</td><td class="oob">OOB</td><td class="oob">OOB</td><td class="in">In</td><td class="in">In</td></tr><tr><td>D</td><td class="oob">OOB</td><td class="in">In</td><td class="in">In</td><td class="oob">OOB</td><td class="in">In</td></tr></tbody></table></div><p class="intuition"><strong>Read the row:</strong> row A's OOB prediction uses Trees 2, 4, and 5. Tree 1 and Tree 3 must be excluded because they trained on A.</p></section>
+<section class="section"><h2>One OOB prediction step by step</h2><div class="activity"><h3>Aggregation question</h3><p class="prompt">Trees 2, 4, and 5 give row A probabilities 0.70, 0.40, and 0.80 for the positive class. What is the OOB probability?</p></div><div class="formula">\[\hat p_{OOB}(A)=\frac{0.70+0.40+0.80}{3}=0.633\]</div><p>Repeat this for every row using only its OOB trees, then calculate an OOB metric. With enough trees, most rows receive many OOB predictions.</p><div class="visual"><svg class="plot" viewBox="0 0 420 300" role="img" aria-label="OOB prediction uses only the out of bag trees"><circle cx="80" cy="150" r="38" fill="#f7f5ff" stroke="#6741d9" stroke-width="2"/><text x="80" y="155" text-anchor="middle" font-size="15">Row A</text><g fill="#fff0ec" stroke="#c3342f"><rect x="188" y="48" width="90" height="38" rx="6"/><rect x="188" y="132" width="90" height="38" rx="6"/></g><g fill="#eef9f4" stroke="#11875d"><rect x="308" y="90" width="90" height="38" rx="6"/><rect x="308" y="174" width="90" height="38" rx="6"/><rect x="188" y="216" width="90" height="38" rx="6"/></g><g font-size="13" text-anchor="middle"><text x="233" y="72">Tree 1: In</text><text x="233" y="156">Tree 3: In</text><text x="233" y="240">Tree 5: OOB</text><text x="353" y="114">Tree 2: OOB</text><text x="353" y="198">Tree 4: OOB</text></g><path d="M118 150 C150 140 160 110 188 110 M118 150 C150 170 160 190 188 190 M118 150 C220 220 270 230 308 230" fill="none" stroke="#1f6feb" stroke-width="2"/><text x="210" y="282" class="axis-label">only green paths enter the OOB aggregate</text></svg></div></section>
+<section class="section"><h2>OOB versus a held-out test set</h2><p>OOB estimates are useful during exploration and can help monitor the effect of adding trees. A clean validation or test design remains important, especially for time-dependent data, grouped observations, repeated tuning, or a small dataset.</p><div class="note warning">OOB is not independent from every modeling decision if you repeatedly tune many choices against it. Once used for selection, it behaves like validation information.</div></section>
+    <div class="pager"><a class="button" href="06-regression.html">Previous: Regression</a><a class="button primary" href="08-variance.html">Next: Variance</a></div>
+  </main>
+</body>
+</html>

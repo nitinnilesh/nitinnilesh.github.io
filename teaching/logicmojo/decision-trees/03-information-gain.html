@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Information Gain and the Cricket Example</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-tree-intuition.html">Intuition</a><a class="" href="02-entropy-gini.html">Impurity</a><a class="active" href="03-information-gain.html">Gain</a><a class="" href="04-mixed-splits.html">Mixed Data</a><a class="" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="" href="07-regression-trees.html">Regression</a><a class="" href="08-evaluation-tuning.html">Evaluation</a><a class="" href="09-practical-guide.html">Practice</a><a class="" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Part 3</div>
+    <h1>Information gain measures how much uncertainty a question removes.</h1>
+    <p class="lead">Using the complete 14-day cricket dataset from the previous page, we now calculate one split, explain why child impurity is weighted, compare every feature, and grow the first levels of the tree.</p>
+
+    <section class="section">
+      <h2>The value of a question</h2>
+      <div class="activity"><h3>Split question</h3><p class="prompt">If the parent entropy is 0.940 bits and the expected child entropy is 0.694 bits, what did the question accomplish?</p></div>
+      <div class="formula">\[
+      IG(Y;A)=H(Y)-H(Y\mid A)
+      \]</div>
+      <table><thead><tr><th>Symbol</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>\(Y\)</td><td>The target, here whether cricket is played.</td></tr>
+        <tr><td>\(A\)</td><td>A candidate feature or question, such as Weather.</td></tr>
+        <tr><td>\(H(Y)\)</td><td>Uncertainty before knowing the answer.</td></tr>
+        <tr><td>\(H(Y\mid A)\)</td><td>Expected uncertainty after knowing the answer.</td></tr>
+      </tbody></table>
+      <p class="intuition"><strong>Intuition:</strong> information gain is uncertainty before minus uncertainty after. A larger drop means a more useful question.</p>
+    </section>
+
+    <section class="section">
+      <h2>Why child entropy must be weighted</h2>
+      <div class="activity"><h3>Weighting question</h3><p class="prompt">Should a child containing 1 row influence the split score as much as a child containing 13 rows?</p></div>
+      <div class="formula">\[
+      H(Y\mid A)=\sum_{v\in Values(A)}\frac{|D_v|}{|D|}H(D_v)
+      \]</div>
+      <p>The fraction \(|D_v|/|D|\) is the chance that a randomly selected training row follows branch \(v\).</p>
+      <p class="intuition"><strong>Intuition:</strong> the post-split score is the impurity a random row is expected to encounter, so large children must count more.</p>
+    </section>
+
+    <section class="section">
+      <h2>Split the cricket data by Weather</h2>
+      <div class="activity"><h3>Before calculating</h3><p class="prompt">Which Weather branch is already pure, and which branches still need another question?</p></div>
+      <div class="table-wrap"><table><thead><tr><th>Weather</th><th>Rows</th><th>Play Yes</th><th>Play No</th><th>Entropy</th><th>Weight</th></tr></thead><tbody>
+        <tr><td>Sunny</td><td class="numeric">5</td><td class="numeric">2</td><td class="numeric">3</td><td class="numeric">0.971</td><td class="numeric">5/14</td></tr>
+        <tr><td>Overcast</td><td class="numeric">4</td><td class="numeric">4</td><td class="numeric">0</td><td class="numeric">0.000</td><td class="numeric">4/14</td></tr>
+        <tr><td>Rain</td><td class="numeric">5</td><td class="numeric">3</td><td class="numeric">2</td><td class="numeric">0.971</td><td class="numeric">5/14</td></tr>
+      </tbody></table></div>
+      <div class="formula">\[
+      \begin{aligned}
+      H(Play\mid Weather)
+      &=\frac{5}{14}(0.971)+\frac{4}{14}(0)+\frac{5}{14}(0.971)\\
+      &\approx0.694
+      \end{aligned}
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> Overcast removes all uncertainty, while Sunny and Rain remain mixed. The weighted average summarizes what a random day experiences.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Weather information gain</h2>
+        <div class="formula">\[
+        \begin{aligned}
+        IG(Play;Weather)
+        &=H(Play)-H(Play\mid Weather)\\
+        &=0.940-0.694\\
+        &\approx0.247\text{ bits}
+        \end{aligned}
+        \]</div>
+        <p class="intuition"><strong>Intuition:</strong> knowing Weather saves about 0.247 bits of label uncertainty on average.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 440 310" role="img" aria-label="Cricket tree after splitting by weather">
+          <rect x="144" y="26" width="152" height="44" rx="6" fill="#f7f5ff" stroke="#6741d9" stroke-width="2"/><text x="220" y="53" text-anchor="middle" font-size="14">Weather?</text>
+          <line x1="184" y1="70" x2="80" y2="138" stroke="#5e6875"/><line x1="220" y1="70" x2="220" y2="138" stroke="#5e6875"/><line x1="256" y1="70" x2="360" y2="138" stroke="#5e6875"/>
+          <text x="104" y="105" class="axis-label">Sunny</text><text x="226" y="108" class="axis-label">Overcast</text><text x="326" y="105" class="axis-label">Rain</text>
+          <rect x="28" y="138" width="104" height="54" rx="6" fill="#fff6e8" stroke="#b85c00"/><text x="80" y="160" text-anchor="middle" font-size="13">2 Yes, 3 No</text><text x="80" y="180" text-anchor="middle" class="axis-label">H = 0.971</text>
+          <rect x="168" y="138" width="104" height="54" rx="6" fill="#eef9f4" stroke="#11875d"/><text x="220" y="160" text-anchor="middle" font-size="13">4 Yes, 0 No</text><text x="220" y="180" text-anchor="middle" class="axis-label">H = 0</text>
+          <rect x="308" y="138" width="104" height="54" rx="6" fill="#fff6e8" stroke="#b85c00"/><text x="360" y="160" text-anchor="middle" font-size="13">3 Yes, 2 No</text><text x="360" y="180" text-anchor="middle" class="axis-label">H = 0.971</text>
+          <line x1="80" y1="192" x2="80" y2="238" stroke="#1f6feb" stroke-dasharray="5 4"/><line x1="360" y1="192" x2="360" y2="238" stroke="#1f6feb" stroke-dasharray="5 4"/>
+          <text x="80" y="260" text-anchor="middle" class="axis-label">ask again</text><text x="220" y="228" text-anchor="middle" fill="#11875d" font-size="13">pure leaf: Play</text><text x="360" y="260" text-anchor="middle" class="axis-label">ask again</text>
+        </svg>
+        <p class="caption">Pure branches stop; mixed branches repeat the split search locally.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Compare all candidate features</h2>
+      <div class="activity"><h3>Root question</h3><p class="prompt">Should the root use the feature with the largest number of categories, or the feature with the largest measured gain?</p></div>
+      <div class="two-col">
+        <table><thead><tr><th>Feature</th><th>Information gain</th></tr></thead><tbody>
+          <tr><td>Weather</td><td class="numeric"><strong>0.247</strong></td></tr>
+          <tr><td>Humidity</td><td class="numeric">0.152</td></tr>
+          <tr><td>Wind</td><td class="numeric">0.048</td></tr>
+          <tr><td>Temperature</td><td class="numeric">0.029</td></tr>
+        </tbody></table>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Information gain of cricket features">
+            <line x1="70" y1="244" x2="382" y2="244" stroke="#5e6875"/><line x1="70" y1="244" x2="70" y2="44" stroke="#5e6875"/>
+            <rect x="94" y="67" width="48" height="177" fill="#6741d9"/><rect x="168" y="135" width="48" height="109" fill="#1f6feb"/><rect x="242" y="209" width="48" height="35" fill="#0f766e"/><rect x="316" y="223" width="48" height="21" fill="#b85c00"/>
+            <text x="118" y="58" text-anchor="middle" font-size="13">0.247</text><text x="192" y="126" text-anchor="middle" font-size="13">0.152</text><text x="266" y="200" text-anchor="middle" font-size="13">0.048</text><text x="340" y="214" text-anchor="middle" font-size="13">0.029</text>
+            <text x="118" y="266" text-anchor="middle" class="axis-label">Weather</text><text x="192" y="266" text-anchor="middle" class="axis-label">Humidity</text><text x="266" y="266" text-anchor="middle" class="axis-label">Wind</text><text x="340" y="266" text-anchor="middle" class="axis-label">Temp.</text>
+          </svg>
+        </div>
+      </div>
+      <p>`Weather` becomes the root because it gives the largest immediate reduction in uncertainty.</p>
+    </section>
+
+    <section class="section">
+      <h2>Repeat locally</h2>
+      <div class="activity"><h3>Sunny branch</h3><p class="prompt">Among Sunny days only, which remaining feature best separates 2 Yes from 3 No?</p></div>
+      <p>Inside the Sunny subset, `Humidity` perfectly separates the labels: High gives No and Normal gives Yes. Inside Rain, `Wind` separates Weak from Strong.</p>
+      <div class="codebox tree-code">Weather?
+├── Overcast → Play = Yes
+├── Sunny
+│   └── Humidity?
+│       ├── High   → No
+│       └── Normal → Yes
+└── Rain
+    └── Wind?
+        ├── Weak   → Yes
+        └── Strong → No</div>
+      <p class="intuition"><strong>Intuition:</strong> the algorithm is recursive because each mixed branch becomes a smaller version of the original learning problem.</p>
+    </section>
+
+    <section class="section">
+      <h2>Greedy does not mean globally optimal</h2>
+      <p>The tree chooses the best immediate split. It does not enumerate every possible future tree, which would become combinatorially expensive.</p>
+      <div class="formula">\[
+      A^*=\arg\max_A IG(Y;A)
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> choose the most useful next question, not the provably best complete sequence of all future questions.</p>
+      <div class="note warning">A feature with many unique categories can appear artificially attractive. Gain ratio, regularization, validation, or algorithms with stronger categorical handling help control this issue.</div>
+    </section>
+
+    <section class="section">
+      <h2>ID3, C4.5, and CART</h2>
+      <table><thead><tr><th>Family</th><th>Main idea</th><th>Important distinction</th></tr></thead><tbody>
+        <tr><td>ID3</td><td>Entropy and information gain</td><td>Classic treatment often uses multiway categorical splits.</td></tr>
+        <tr><td>C4.5</td><td>Extension of ID3</td><td>Handles continuous features, missingness strategies, and gain ratio.</td></tr>
+        <tr><td>CART</td><td>Classification and regression trees</td><td>Uses binary trees; scikit-learn implements an optimized CART-style algorithm.</td></tr>
+      </tbody></table>
+    </section>
+
+    <div class="pager"><a class="button" href="02-entropy-gini.html">Previous: Impurity</a><a class="button primary" href="04-mixed-splits.html">Next: Mixed Data</a></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Decision Tree Intuition and Anatomy</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="" href="index.html">Overview</a><a class="active" href="01-tree-intuition.html">Intuition</a><a class="" href="02-entropy-gini.html">Impurity</a><a class="" href="03-information-gain.html">Gain</a><a class="" href="04-mixed-splits.html">Mixed Data</a><a class="" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="" href="07-regression-trees.html">Regression</a><a class="" href="08-evaluation-tuning.html">Evaluation</a><a class="" href="09-practical-guide.html">Practice</a><a class="" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Part 1</div>
+    <h1>A decision tree is a flowchart learned from data.</h1>
+    <p class="lead">Start with the prediction experience: one row enters at the root, answers a sequence of questions, and leaves with a class, probability, or number.</p>
+
+    <section class="section">
+      <h2>From a business rule to a learned rule</h2>
+      <div class="activity"><h3>Opening question</h3><p class="prompt">For a loan application, which question would you ask first: income, credit score, employment type, or previous default?</p></div>
+      <p>A human can propose rules, but a decision tree learns questions from labelled examples. It searches for the question that produces the most useful separation of the target.</p>
+      <div class="codebox tree-code">CreditScore ≤ 622.5?
+├── yes  → predict Decline
+└── no   → PreviousDefault?
+    ├── yes → predict Decline
+    └── no  → ask another question</div>
+      <p class="note warning">This loan dataset is deliberately small and synthetic. It teaches mechanics, not a deployable lending policy. Real lending requires legal, fairness, causal, calibration, and monitoring review.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Anatomy of a tree</h2>
+        <table><thead><tr><th>Part</th><th>Meaning</th></tr></thead><tbody>
+          <tr><td>Root</td><td>The first question, seen by every row.</td></tr>
+          <tr><td>Internal node</td><td>A later question seen by a subset of rows.</td></tr>
+          <tr><td>Branch</td><td>One possible answer to a question.</td></tr>
+          <tr><td>Leaf</td><td>A final prediction after no more questions are asked.</td></tr>
+          <tr><td>Depth</td><td>Number of splits along the longest root-to-leaf path.</td></tr>
+        </tbody></table>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 440 320" role="img" aria-label="Decision tree anatomy">
+          <rect x="142" y="28" width="156" height="44" rx="6" fill="#f7f5ff" stroke="#6741d9" stroke-width="2"/><text x="220" y="55" text-anchor="middle" font-size="14">Credit score ≤ 622.5?</text>
+          <text x="220" y="18" text-anchor="middle" class="axis-label">root</text>
+          <line x1="180" y1="72" x2="104" y2="132" stroke="#5e6875"/><line x1="260" y1="72" x2="336" y2="132" stroke="#5e6875"/>
+          <text x="124" y="104" class="axis-label">yes</text><text x="302" y="104" class="axis-label">no</text>
+          <rect x="48" y="132" width="112" height="44" rx="6" fill="#fff4f1" stroke="#c3342f"/><text x="104" y="159" text-anchor="middle" font-size="14">Decline</text>
+          <rect x="268" y="132" width="136" height="44" rx="6" fill="#f4f8ff" stroke="#1f6feb"/><text x="336" y="159" text-anchor="middle" font-size="14">Default before?</text>
+          <text x="104" y="194" text-anchor="middle" class="axis-label">leaf</text><text x="336" y="194" text-anchor="middle" class="axis-label">internal node</text>
+          <line x1="304" y1="176" x2="260" y2="238" stroke="#5e6875"/><line x1="368" y1="176" x2="408" y2="238" stroke="#5e6875"/>
+          <rect x="210" y="238" width="100" height="42" rx="6" fill="#fff4f1" stroke="#c3342f"/><text x="260" y="264" text-anchor="middle" font-size="14">Decline</text>
+          <rect x="360" y="238" width="72" height="42" rx="6" fill="#eef9f4" stroke="#11875d"/><text x="396" y="264" text-anchor="middle" font-size="14">Approve</text>
+        </svg>
+        <p class="caption">A path is a conjunction of rules: first condition AND second condition AND so on.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>A tree partitions feature space</h2>
+      <div class="activity"><h3>Geometry question</h3><p class="prompt">If every numeric node asks one question such as \(x_j\le t\), what shape will its decision boundary have?</p></div>
+      <p>One numeric split creates an axis-aligned cut. Repeating these cuts creates rectangular regions. The overall boundary can be nonlinear even though every individual question is simple.</p>
+      <div class="two-col">
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Axis aligned feature partitions">
+            <rect x="58" y="40" width="300" height="210" fill="#fff" stroke="#5e6875"/>
+            <rect x="58" y="40" width="300" height="88" fill="#fff0ec"/><rect x="58" y="128" width="122" height="122" fill="#e8f7f1"/><rect x="180" y="128" width="178" height="122" fill="#fff0ec"/>
+            <line x1="58" y1="128" x2="358" y2="128" stroke="#6741d9" stroke-width="3"/><line x1="180" y1="128" x2="180" y2="250" stroke="#1f6feb" stroke-width="3"/>
+            <circle cx="94" cy="208" r="7" fill="#11875d"/><circle cx="130" cy="184" r="7" fill="#11875d"/><circle cx="152" cy="220" r="7" fill="#11875d"/>
+            <circle cx="95" cy="86" r="7" fill="#c3342f"/><circle cx="222" cy="84" r="7" fill="#c3342f"/><circle cx="300" cy="182" r="7" fill="#c3342f"/><circle cx="326" cy="214" r="7" fill="#c3342f"/>
+            <text x="188" y="282" class="axis-label">Feature 1</text><text x="18" y="160" class="axis-label" transform="rotate(-90 18 160)">Feature 2</text>
+          </svg>
+        </div>
+        <div>
+          <p>The top horizontal cut is the root. Only rows below it encounter the vertical second cut.</p>
+          <div class="formula">\[
+          R_1=\{x:x_2\le t_2\ \text{and}\ x_1\le t_1\}
+          \]</div>
+          <p class="intuition"><strong>Intuition:</strong> a leaf is a region defined by all the answers along its path.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Classification and regression use the same structure</h2>
+      <table><thead><tr><th>Question</th><th>Classification tree</th><th>Regression tree</th></tr></thead><tbody>
+        <tr><td>Target</td><td>A category such as Approve/Decline</td><td>A number such as house price</td></tr>
+        <tr><td>Split quality</td><td>Entropy or Gini reduction</td><td>Squared-error or variance reduction</td></tr>
+        <tr><td>Leaf output</td><td>Majority class and class proportions</td><td>Usually the mean target value</td></tr>
+        <tr><td>Prediction</td><td>Follow a path to a class leaf</td><td>Follow a path to a numeric leaf</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>What training must learn</h2>
+      <ol class="equation-steps">
+        <li>Which feature should this node inspect?</li>
+        <li>For a numeric feature, which threshold should it use?</li>
+        <li>Which rows move into each child?</li>
+        <li>Should each child split again or become a leaf?</li>
+        <li>What class, probability, or number should each leaf predict?</li>
+      </ol>
+      <p>The next page supplies the missing measurement: impurity.</p>
+    </section>
+
+    <div class="pager"><a class="button" href="index.html">Previous: Overview</a><a class="button primary" href="02-entropy-gini.html">Next: Impurity</a></div>
+  </main>
+</body>
+</html>

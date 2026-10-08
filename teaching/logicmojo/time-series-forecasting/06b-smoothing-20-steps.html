@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Smoothing in Small Steps and Intuition</title><link rel="stylesheet" href="styles.css">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script><script defer src="interactions.js"></script>
+</head>
+<body data-prev="06-smoothing.html" data-next="06c-arima-pre.html">
+<header class="topbar"><div class="progress"><span style="width:72%"></span></div><nav class="nav"><a class="brand" href="index.html">Time-Series Forecasting</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-forecasting-contract.html">Contract</a><a href="02-patterns.html">Patterns</a><a href="03-baselines.html">Baselines</a><a href="04-lags-and-acf.html">Lags</a><a href="05-stationarity.html">Stationarity</a><a href="06-smoothing.html">Smoothing</a><a class="active" href="06b-smoothing-20-steps.html">20 steps</a><a href="07-arima.html">ARIMA</a><a href="08-validation.html">Validation</a><a href="09-ml-workflow.html">ML workflow</a></div></nav></header>
+<main class="page">
+  <section class="section">
+    <h1>1. What Is Smoothing?</h1>
+    <p>Time-series data often contains:</p>
+    <ul><li>a useful underlying signal,</li><li>short-term random fluctuations,</li><li>measurement noise,</li><li>unusual events.</li></ul>
+    <p>Smoothing tries to reduce the effect of short-term noise so that the underlying level, trend, or seasonal pattern becomes easier to identify.</p>
+    <p>Suppose daily demand is:</p>
+    <div class="formula">\[100,\ 104,\ 98,\ 103,\ 97,\ 105,\ 101\]</div>
+    <p>The values fluctuate, but the underlying level appears to be around 101.</p>
+    <p>Smoothing asks:</p>
+    <blockquote>What is the current underlying level after ignoring some of the random movement?</blockquote>
+  </section>
+
+  <section class="section">
+    <h2>2. Why Not Use the Latest Observation Directly?</h2>
+    <p>If today’s demand is 130 because of an unusual event, predicting 130 for tomorrow may be too reactive.</p>
+    <p>On the other hand, using the average of the entire historical dataset may respond too slowly when demand genuinely changes.</p>
+    <p>We need a balance between:</p>
+    <ul><li>trusting the newest observation,</li><li>retaining information from previous observations.</li></ul>
+    <p>This is the central idea behind exponential smoothing.</p>
+  </section>
+
+  <section class="section">
+    <h2>3. Moving-Average Intuition</h2>
+    <p>A simple approach is to average the most recent \(w\) observations.</p>
+    <p>For a three-day moving average:</p>
+    <div class="formula">\[M_t=\frac{Y_t+Y_{t-1}+Y_{t-2}}{3}\]</div>
+    <p>If recent demand is:</p>
+    <div class="formula">\[100,\ 110,\ 105\]</div>
+    <p>then:</p>
+    <div class="formula">\[M_t=\frac{100+110+105}{3}=105\]</div>
+    <p>This reduces noise, but it has two limitations:</p>
+    <ol><li>Every observation inside the window receives equal weight.</li><li>Observations suddenly receive zero weight when they leave the window.</li></ol>
+    <p>Exponential smoothing uses weights that decrease gradually instead.</p>
+  </section>
+
+  <section class="section">
+    <h2>4. Simple Exponential Smoothing</h2>
+    <p>Simple exponential smoothing maintains one quantity:</p>
+    <div class="formula">\[\ell_t=\text{estimated current level}\]</div>
+    <p>The update equation is:</p>
+    <div class="formula">\[\ell_t=\alpha Y_t+(1-\alpha)\ell_{t-1}\]</div>
+    <p>where:</p>
+    <ul><li>\(Y_t\): new observation</li><li>\(\ell_{t-1}\): previous level estimate</li><li>\(\alpha\): smoothing parameter</li><li>\(0\leq\alpha\leq1\)</li></ul>
+  </section>
+
+  <section class="section">
+    <h2>5. Weighted-Average Intuition</h2>
+    <p>The new level is a compromise between:</p>
+    <ul><li>what we just observed,</li><li>what we previously believed.</li></ul>
+    <div class="formula">\[
+      \underbrace{\ell_t}_{\text{new belief}}
+      =
+      \underbrace{\alpha Y_t}_{\text{new evidence}}
+      +
+      \underbrace{(1-\alpha)\ell_{t-1}}_{\text{old belief}}
+    \]</div>
+    <p>If \(\alpha=0.3\), the new level uses:</p>
+    <ul><li>30% of the new observation,</li><li>70% of the previous estimate.</li></ul>
+  </section>
+
+  <section class="section">
+    <h2>6. Walk-Toward-the-Observation Intuition</h2>
+    <p>The same equation can be rewritten as:</p>
+    <div class="formula">\[
+      \ell_t
+      =
+      \ell_{t-1}
+      +
+      \alpha(Y_t-\ell_{t-1})
+    \]</div>
+    <p>The quantity:</p>
+    <div class="formula">\[Y_t-\ell_{t-1}\]</div>
+    <p>is the latest forecast error.</p>
+    <p>Therefore:</p>
+    <blockquote>Start at the old level and move \(\alpha\) of the way toward the new observation.</blockquote>
+  </section>
+
+  <section class="section">
+    <h2>7. Numerical Example</h2>
+    <p>Suppose:</p>
+    <div class="formula">\[\ell_{t-1}=100,\qquad Y_t=120,\qquad \alpha=0.3\]</div>
+    <p>The error is:</p><div class="formula">\[120-100=20\]</div>
+    <p>Move 30% of that distance:</p><div class="formula">\[\ell_t=100+0.3(20)=106\]</div>
+    <p>The new observation was 120, but the estimated level moves only from 100 to 106.</p>
+    <p>The model treats part of the jump as possible noise.</p>
+    <p>If the next observation is 90:</p><div class="formula">\[\ell_{t+1}=0.3(90)+0.7(106)=101.2\]</div>
+    <p>The estimate moves downward but does not immediately jump to 90.</p>
+  </section>
+
+  <section class="section">
+    <h2>8. Meaning of \(\alpha\)</h2>
+    <h3>Small \(\alpha\)</h3>
+    <p>For example:</p><div class="formula">\[\alpha=0.1\]</div>
+    <ul><li>trusts history more,</li><li>produces a smoother line,</li><li>reacts slowly,</li><li>is less sensitive to noise,</li><li>may miss sudden genuine changes.</li></ul>
+    <h3>Large \(\alpha\)</h3>
+    <p>For example:</p><div class="formula">\[\alpha=0.9\]</div>
+    <ul><li>trusts the latest observation,</li><li>reacts quickly,</li><li>produces less smoothing,</li><li>is more sensitive to noise and outliers.</li></ul>
+    <p>The choice is a bias-responsiveness tradeoff.</p>
+  </section>
+
+  <section class="section">
+    <h2>9. Why Is It Called “Exponential”?</h2>
+    <p>Repeatedly substitute the previous level:</p>
+    <div class="formula">\[\ell_t=\alpha Y_t+(1-\alpha)\ell_{t-1}\]</div>
+    <p>Since:</p>
+    <div class="formula">\[\ell_{t-1}=\alpha Y_{t-1}+(1-\alpha)\ell_{t-2}\]</div>
+    <p>we obtain:</p>
+    <div class="formula">\[
+      \ell_t
+      =
+      \alpha Y_t
+      +
+      \alpha(1-\alpha)Y_{t-1}
+      +
+      \alpha(1-\alpha)^2Y_{t-2}
+      +\cdots
+    \]</div>
+    <p>The weights are:</p>
+    <div class="formula">\[\alpha,\quad\alpha(1-\alpha),\quad\alpha(1-\alpha)^2,\ldots\]</div>
+    <p>They decline geometrically, or exponentially, as observations become older.</p>
+    <p>Older observations are not discarded abruptly. Their influence gradually becomes smaller.</p>
+  </section>
+
+  <section class="section">
+    <h2>10. Forecasting With SES</h2>
+    <p>Simple exponential smoothing has only a level state. It has no trend or seasonal state.</p>
+    <p>Therefore, all future forecasts are equal to the latest estimated level:</p>
+    <div class="formula">\[\widehat Y_{t+h\mid t}=\ell_t\]</div>
+    <p>for:</p><div class="formula">\[h=1,2,3,\ldots\]</div>
+    <p>If:</p><div class="formula">\[\ell_t=106\]</div>
+    <p>then:</p>
+    <div class="formula">\[
+      \widehat Y_{t+1\mid t}
+      =
+      \widehat Y_{t+2\mid t}
+      =
+      \widehat Y_{t+3\mid t}
+      =
+      106
+    \]</div>
+    <p>SES produces a flat forecast path.</p>
+    <p>Use SES when the series has:</p>
+    <ul><li>a changing local level,</li><li>no persistent trend,</li><li>no seasonality.</li></ul>
+  </section>
+
+  <section class="section">
+    <h2>11. Why SES Cannot Handle Trend</h2>
+    <p>Suppose demand is:</p><div class="formula">\[100,\ 110,\ 120,\ 130,\ 140\]</div>
+    <p>SES updates the level, but its future forecasts remain flat.</p>
+    <p>It may estimate the current level near 130 or 135, but it does not know that demand is increasing by approximately 10 every period.</p>
+    <p>To model that movement, we need a separate trend state.</p>
+  </section>
+
+  <section class="section">
+    <h2>12. Holt’s Method</h2>
+    <p>Holt’s method maintains two states:</p>
+    <div class="formula">\[\ell_t=\text{current level}\]</div>
+    <div class="formula">\[b_t=\text{current trend}\]</div>
+    <p>The equations are:</p>
+    <div class="formula">\[\ell_t=\alpha Y_t+(1-\alpha)(\ell_{t-1}+b_{t-1})\]</div>
+    <div class="formula">\[b_t=\beta(\ell_t-\ell_{t-1})+(1-\beta)b_{t-1}\]</div>
+    <p>The forecast is:</p>
+    <div class="formula">\[\widehat Y_{t+h\mid t}=\ell_t+hb_t\]</div>
+  </section>
+
+  <section class="section">
+    <h2>13. Holt’s Method in Small Steps</h2>
+    <p>Suppose:</p>
+    <div class="formula">\[\ell_{t-1}=100\]</div>
+    <div class="formula">\[b_{t-1}=5\]</div>
+    <div class="formula">\[Y_t=112\]</div>
+    <div class="formula">\[\alpha=0.4,\qquad\beta=0.3\]</div>
+    <h3>Step 1: Predict today before seeing it</h3>
+    <p>The old level was 100 and the old trend was 5:</p><div class="formula">\[100+5=105\]</div>
+    <p>The model expected today’s value to be 105.</p>
+    <h3>Step 2: Update the level</h3>
+    <p>Blend the actual observation with the projected level:</p>
+    <div class="formula">\[\ell_t=0.4(112)+0.6(105)=107.8\]</div>
+    <h3>Step 3: Observe the new level change</h3>
+    <div class="formula">\[\ell_t-\ell_{t-1}=107.8-100=7.8\]</div>
+    <p>The newly observed growth is 7.8.</p>
+    <h3>Step 4: Update the trend</h3>
+    <p>Blend the new growth with the old trend:</p>
+    <div class="formula">\[b_t=0.3(7.8)+0.7(5)=5.84\]</div>
+    <h3>Step 5: Forecast</h3>
+    <p>One step ahead:</p>
+    <div class="formula">\[\widehat Y_{t+1\mid t}=107.8+5.84=113.64\]</div>
+    <p>Two steps ahead:</p>
+    <div class="formula">\[\widehat Y_{t+2\mid t}=107.8+2(5.84)=119.48\]</div>
+    <p>Unlike SES, Holt’s method produces a trending future path.</p>
+  </section>
+
+  <section class="section">
+    <h2>14. Meaning of \(\alpha\) and \(\beta\)</h2>
+    <ul><li>\(\alpha\) controls how quickly the level changes.</li><li>\(\beta\) controls how quickly the estimated trend changes.</li></ul>
+    <p>A large \(\beta\) allows the slope to change rapidly. A small \(\beta\) assumes that the trend evolves gradually.</p>
+  </section>
+
+  <section class="section">
+    <h2>15. Why Holt’s Method Cannot Handle Seasonality</h2>
+    <p>Suppose bike demand has:</p>
+    <ul><li>moderate weekday demand,</li><li>high Saturday demand,</li><li>high Sunday demand.</li></ul>
+    <p>Holt’s method can model the overall level and growth, but it has no memory of which day of the week is being forecast.</p>
+    <p>We therefore add a seasonal state.</p>
+  </section>
+
+  <section class="section">
+    <h2>16. Holt-Winters Method</h2>
+    <p>Additive Holt-Winters maintains three components:</p>
+    <div class="formula">\[\ell_t=\text{level}\]</div>
+    <div class="formula">\[b_t=\text{trend}\]</div>
+    <div class="formula">\[s_t=\text{seasonal effect}\]</div>
+    <p>For season length \(m\):</p>
+    <div class="formula">\[\ell_t=\alpha(Y_t-s_{t-m})+(1-\alpha)(\ell_{t-1}+b_{t-1})\]</div>
+    <div class="formula">\[b_t=\beta(\ell_t-\ell_{t-1})+(1-\beta)b_{t-1}\]</div>
+    <div class="formula">\[s_t=\gamma(Y_t-\ell_{t-1}-b_{t-1})+(1-\gamma)s_{t-m}\]</div>
+    <p>The forecast is:</p>
+    <div class="formula">\[\widehat Y_{t+h\mid t}=\ell_t+hb_t+s_{\text{matching season}}\]</div>
+  </section>
+
+  <section class="section">
+    <h2>17. Holt-Winters Intuition</h2>
+    <p>Before updating the level:</p>
+    <ol><li>Remove the known seasonal effect.</li><li>Estimate the underlying level.</li><li>Update the trend.</li><li>Estimate whether this seasonal position was stronger or weaker than usual.</li><li>Store that updated seasonal effect for the next cycle.</li></ol>
+    <p>For daily observations with weekly seasonality:</p><div class="formula">\[m=7\]</div>
+    <p>Each weekday has its own seasonal memory.</p>
+    <p>For hourly demand:</p>
+    <ul><li>\(m=24\): hour-of-day seasonality.</li><li>\(m=168\): hour-and-weekday seasonality.</li></ul>
+  </section>
+
+  <section class="section">
+    <h2>18. Small Holt-Winters Example</h2>
+    <p>Suppose:</p><div class="formula">\[\ell_{t-1}=100,\qquad b_{t-1}=2\]</div>
+    <p>The seasonal effect for this weekday is:</p><div class="formula">\[s_{t-7}=15\]</div>
+    <p>Today’s observed demand is:</p><div class="formula">\[Y_t=120\]</div>
+    <p>Use:</p><div class="formula">\[\alpha=0.4,\qquad\beta=0.2,\qquad\gamma=0.3\]</div>
+    <h3>Step 1: Remove seasonality</h3>
+    <div class="formula">\[Y_t-s_{t-7}=120-15=105\]</div>
+    <p>The underlying nonseasonal value is approximately 105.</p>
+    <h3>Step 2: Update level</h3>
+    <div class="formula">\[\ell_t=0.4(105)+0.6(100+2)=103.2\]</div>
+    <h3>Step 3: Update trend</h3>
+    <div class="formula">\[b_t=0.2(103.2-100)+0.8(2)=2.24\]</div>
+    <h3>Step 4: Update seasonality</h3>
+    <p>The new seasonal evidence is:</p><div class="formula">\[120-100-2=18\]</div>
+    <p>Blend it with the previous seasonal effect:</p><div class="formula">\[s_t=0.3(18)+0.7(15)=15.9\]</div>
+    <p>The weekday effect changes from 15 to 15.9.</p>
+    <h3>Step 5: Forecast the same weekday next week</h3>
+    <div class="formula">\[\widehat Y_{t+7\mid t}=103.2+7(2.24)+15.9=134.78\]</div>
+  </section>
+
+  <section class="section">
+    <h2>19. Additive Versus Multiplicative Seasonality</h2>
+    <h3>Additive seasonality</h3>
+    <div class="formula">\[Y_t=\ell_t+b_t+s_t+\varepsilon_t\]</div>
+    <p>Use it when seasonal effects remain approximately constant in units.</p>
+    <p>Example:</p><blockquote>Every Saturday adds approximately 50 rentals.</blockquote>
+    <h3>Multiplicative seasonality</h3>
+    <div class="formula">\[Y_t=(\ell_t+b_t)s_t+\varepsilon_t\]</div>
+    <p>Use it when seasonal effects grow with the level.</p>
+    <p>Example:</p><blockquote>Saturday demand is approximately 30% above normal.</blockquote>
+    <p>If the seasonal fluctuations increase as the series grows, multiplicative seasonality may be more appropriate.</p>
+  </section>
+
+  <section class="section">
+    <h2>20. The Three Methods as a Story</h2>
+    <div class="table-wrap"><table><thead><tr><th>Method</th><th>What it remembers</th><th>Forecast shape</th></tr></thead><tbody>
+      <tr><td>SES</td><td>Current level</td><td>Flat</td></tr>
+      <tr><td>Holt</td><td>Level and trend</td><td>Trending</td></tr>
+      <tr><td>Holt-Winters</td><td>Level, trend and seasonality</td><td>Trending and repeating</td></tr>
+    </tbody></table></div>
+    <p>The progression is:</p>
+    <div class="formula">\[\text{Level}\rightarrow\text{Level + trend}\rightarrow\text{Level + trend + seasonality}\]</div>
+    <h2>Final Intuition</h2>
+    <p>Exponential smoothing is a controlled memory system.</p>
+    <p>Each new observation asks:</p>
+    <ul><li>Should the estimated level move?</li><li>Has the trend changed?</li><li>Was this seasonal position stronger or weaker than usual?</li></ul>
+    <p>The smoothing parameters determine how much the model changes its beliefs after receiving new evidence.</p>
+  </section>
+
+  <div class="pager"><a class="button" href="06-smoothing.html">Previous: Smoothing chapter</a><a class="button primary" href="06c-arima-pre.html">Next: ARIMA Pre</a></div>
+</main>
+</body>
+</html>

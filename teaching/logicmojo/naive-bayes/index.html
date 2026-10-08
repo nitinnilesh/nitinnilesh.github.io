@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Naive Bayes Overview</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Naive Bayes</a>
+      <div class="navlinks">
+        <a class="active" href="index.html">Overview</a>
+        <a class="" href="01-bayes-intuition.html">Bayes</a>
+        <a class="" href="02-text-naive-bayes.html">Text NB</a>
+        <a class="" href="03-smoothing-log-space.html">Smoothing</a>
+        <a class="" href="04-variants-evaluation.html">Variants</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Naive Bayes Classifier</div>
+    <h1>Naive Bayes: classify by asking which class best explains the evidence.</h1>
+    <p class="lead">Naive Bayes is a fast, interpretable probabilistic classifier. It is especially useful for text classification, where a document becomes evidence made from words.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Why should we learn it?</h2>
+        <div class="activity">
+          <h3>Opening question</h3>
+          <p class="prompt">When you see a message saying &ldquo;free cash prize&rdquo;, why do you immediately suspect spam?</p>
+          <p>You are mentally using word evidence. Naive Bayes formalizes this intuition using probability.</p>
+        </div>
+        <p>Instead of learning slopes like linear regression, Naive Bayes learns probability tables: how common each class is, and how common each word or feature is inside each class.</p>
+        <div class="formula">\[
+\text{prediction} = \text{class with strongest prior + evidence}
+\]</div>
+        <p>A useful mental model: the model asks, &ldquo;If this message was spam, how expected are these words? If it was ham, how expected are these words?&rdquo;</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Naive Bayes evidence from words">
+          <text x="40" y="38" class="plot-title">Message evidence</text>
+          <rect x="42" y="62" width="336" height="54" rx="8" fill="#ffffff" stroke="#d9e0ea"/>
+          <text x="62" y="94" font-size="18" fill="#18202a">free prize claim today</text>
+          <line x1="210" y1="118" x2="125" y2="168" stroke="#5e6875" stroke-width="2"/>
+          <line x1="210" y1="118" x2="295" y2="168" stroke="#5e6875" stroke-width="2"/>
+          <rect x="42" y="170" width="150" height="76" rx="8" fill="#ecfdf8" stroke="#a9ded4"/>
+          <text x="92" y="202" font-size="19" font-weight="700" fill="#0f766e">ham?</text>
+          <text x="66" y="226" font-size="13" fill="#134e4a">meeting, project</text>
+          <rect x="228" y="170" width="150" height="76" rx="8" fill="#fff3ef" stroke="#f1b2a0"/>
+          <text x="274" y="202" font-size="19" font-weight="700" fill="#9f341f">spam?</text>
+          <text x="250" y="226" font-size="13" fill="#7c2d12">free, prize, claim</text>
+          <path d="M 238 258 L 295 258 L 295 248 L 324 266 L 295 284 L 295 274 L 238 274 Z" fill="#0f766e" opacity="0.9"/>
+          <text x="40" y="282" font-size="13" fill="#5e6875">The class that makes the words most expected wins.</text>
+        </svg>
+        <p class="caption">Naive Bayes compares class-wise evidence, not geometric distance.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Session story</h2>
+      <div class="mini-flow">
+        <span>Start with a message</span>
+        <span>Count words</span>
+        <span>Learn probabilities</span>
+        <span>Add log evidence</span>
+        <span>Evaluate decisions</span>
+      </div>
+      <p>We begin with intuition, then build the exact formula, then handle practical details like smoothing, log-space computation, variants, and evaluation.</p>
+    </section>
+
+    <section class="section">
+      <h2>Roadmap</h2>
+      <div class="grid">
+        <a class="card" href="01-bayes-intuition.html"><div class="num">1</div><h3>Bayes intuition</h3><p>Prior, likelihood, posterior, and why the denominator can be ignored for classification.</p></a>
+        <a class="card" href="02-text-naive-bayes.html"><div class="num">2</div><h3>Text Naive Bayes</h3><p>Tokenization, vocabulary, bag-of-words, class-wise word counts, and the naive assumption.</p></a>
+        <a class="card" href="03-smoothing-log-space.html"><div class="num">3</div><h3>Smoothing and logs</h3><p>Zero probabilities, Laplace smoothing, log probabilities, and the full training/prediction algorithm.</p></a>
+        <a class="card" href="04-variants-evaluation.html"><div class="num">4</div><h3>Variants and evaluation</h3><p>Multinomial, Bernoulli, Gaussian NB, text preprocessing choices, metrics, strengths, and limitations.</p></a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Where Naive Bayes appears</h2>
+      <table>
+        <thead><tr><th>Problem</th><th>Why Naive Bayes fits</th></tr></thead>
+        <tbody>
+          <tr><td>Spam detection</td><td>Words like &ldquo;free&rdquo;, &ldquo;claim&rdquo;, and &ldquo;winner&rdquo; carry class evidence.</td></tr>
+          <tr><td>Sentiment classification</td><td>Words and phrases provide evidence for positive or negative sentiment.</td></tr>
+          <tr><td>Topic classification</td><td>Words such as &ldquo;orbit&rdquo;, &ldquo;team&rdquo;, or &ldquo;market&rdquo; point toward topics.</td></tr>
+          <tr><td>Language identification</td><td>Character or word patterns differ strongly across languages.</td></tr>
+          <tr><td>Medical screening baseline</td><td>Symptoms or test signals can be combined probabilistically, with care.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Reference idea</h2>
+      <p>This material is strengthened using the Naive Bayes and text classification treatment from <a href="https://web.stanford.edu/~jurafsky/slp3/B.pdf">Jurafsky and Martin, Speech and Language Processing, Chapter B</a>, especially the generative-classifier view, bag-of-words assumption, smoothing, log-space scoring, and evaluation metrics.</p>
+    </section>
+
+    <div class="pager"><span></span><a class="button primary" href="01-bayes-intuition.html">Next: Bayes Intuition</a></div>
+  </main>
+</body>
+</html>

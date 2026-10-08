@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regularization for Polynomial Regression</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Polynomial Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-introduction.html">Intro</a>
+        <a href="02-simulation-generalization.html">Simulation</a>
+        <a href="03-bias-variance.html">Bias-Variance</a>
+        <a href="04-validation-cross-validation.html">Validation</a>
+        <a class="active" href="05-regularization.html">Regularization</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 5</div>
+    <h1>Controlling overfitting with regularization</h1>
+    <p class="lead">Polynomial features can make a model powerful, but also unstable. Regularization adds a cost for unnecessary coefficient size, encouraging simpler curves.</p>
+
+    <section class="section">
+      <h2>Why regularization?</h2>
+      <p>High-degree polynomial models often use large positive and negative coefficients to create sharp bends. Those bends may fit training noise.</p>
+      <div class="formula">\[\text{training loss} + \text{penalty for complexity}\]</div>
+      <p>Regularization keeps the model from becoming too dependent on extreme coefficient values.</p>
+      <div class="activity">
+        <h3>Complexity check</h3>
+        <p class="prompt">If two models have similar validation error, but one has much smaller coefficients, which model feels safer?</p>
+        <p>The simpler model is often preferred because it is usually more stable.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Ridge regularization</h2>
+      <p>Ridge regression adds an \(L2\) penalty, which penalizes squared coefficient size.</p>
+      <div class="formula">\[
+J_{ridge}(\beta)
+=
+\sum_{i=1}^{n}(y_i-\hat{y}_i)^2
++
+\lambda\sum_{j=1}^{p}\beta_j^2
+\]</div>
+      <p>Large coefficients become expensive, so Ridge shrinks them toward zero. It usually does not make coefficients exactly zero.</p>
+      <div class="note">The intercept \(\beta_0\) is usually not regularized. The penalty is applied to feature coefficients.</div>
+    </section>
+
+    <section class="section">
+      <h2>Lasso regularization</h2>
+      <p>Lasso regression adds an \(L1\) penalty, which penalizes absolute coefficient size.</p>
+      <div class="formula">\[
+J_{lasso}(\beta)
+=
+\sum_{i=1}^{n}(y_i-\hat{y}_i)^2
++
+\lambda\sum_{j=1}^{p}|\beta_j|
+\]</div>
+      <p>Lasso can shrink some coefficients exactly to zero, so it can act like feature selection.</p>
+      <table>
+        <thead><tr><th>Method</th><th>Penalty</th><th>Main effect</th></tr></thead>
+        <tbody>
+          <tr><td>Ridge</td><td>\(\lambda\sum\beta_j^2\)</td><td>Shrinks coefficients smoothly.</td></tr>
+          <tr><td>Lasso</td><td>\(\lambda\sum|\beta_j|\)</td><td>Can set some coefficients to zero.</td></tr>
+          <tr><td>Elastic Net</td><td>Mix of \(L1\) and \(L2\)</td><td>Combines shrinkage and feature selection behavior.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Shrinkage parameter: lambda</h2>
+      <p>The parameter \(\lambda\) controls how strongly we punish large coefficients.</p>
+      <div class="formula">\[\lambda=0 \Rightarrow \text{unregularized polynomial regression}\]</div>
+      <div class="formula">\[\lambda \text{ large} \Rightarrow \text{stronger shrinkage, simpler model}\]</div>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 360" role="img" aria-label="Lambda controls polynomial smoothness">
+          <g transform="translate(40,0)">
+            <text x="96" y="30" class="axis-label">Small lambda</text>
+            <line x1="42" y1="260" x2="230" y2="260" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="260" x2="42" y2="54" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 214 C74 278, 96 82, 120 116 C140 146, 150 48, 170 88 C190 132, 202 220, 222 208" fill="none" stroke="#b85c00" stroke-width="4"></path>
+            <text x="56" y="308" class="axis-label">low penalty, flexible curve</text>
+          </g>
+          <g transform="translate(340,0)">
+            <text x="94" y="30" class="axis-label">Good lambda</text>
+            <line x1="42" y1="260" x2="230" y2="260" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="260" x2="42" y2="54" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 214 C96 104, 168 84, 222 214" fill="none" stroke="#11875d" stroke-width="4"></path>
+            <text x="62" y="308" class="axis-label">captures signal, ignores noise</text>
+          </g>
+          <g transform="translate(640,0)">
+            <text x="94" y="30" class="axis-label">Large lambda</text>
+            <line x1="42" y1="260" x2="230" y2="260" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="260" x2="42" y2="54" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 196 C110 170, 166 154, 222 144" fill="none" stroke="#c3342f" stroke-width="4"></path>
+            <text x="54" y="308" class="axis-label">too much penalty, underfits</text>
+          </g>
+          <g fill="#18202a">
+            <circle cx="106" cy="212" r="4"></circle><circle cx="146" cy="122" r="4"></circle><circle cx="188" cy="88" r="4"></circle><circle cx="226" cy="126" r="4"></circle><circle cx="262" cy="214" r="4"></circle>
+            <circle cx="406" cy="212" r="4"></circle><circle cx="446" cy="122" r="4"></circle><circle cx="488" cy="88" r="4"></circle><circle cx="526" cy="126" r="4"></circle><circle cx="562" cy="214" r="4"></circle>
+            <circle cx="706" cy="212" r="4"></circle><circle cx="746" cy="122" r="4"></circle><circle cx="788" cy="88" r="4"></circle><circle cx="826" cy="126" r="4"></circle><circle cx="862" cy="214" r="4"></circle>
+          </g>
+        </svg>
+        <p class="caption">Lambda is not “more is always better.” It is another model choice that should be selected using validation or cross-validation.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Coefficient shrinkage simulation</h2>
+      <p>Imagine a degree-8 polynomial model. Without regularization, high-degree terms may receive large coefficients to chase small noise patterns.</p>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Coefficient shrinkage bars">
+          <line x1="54" y1="246" x2="382" y2="246" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="54" y1="246" x2="54" y2="44" stroke="#5e6875" stroke-width="2"></line>
+          <rect x="76" y="104" width="20" height="142" fill="#b85c00"></rect>
+          <rect x="112" y="66" width="20" height="180" fill="#b85c00"></rect>
+          <rect x="148" y="134" width="20" height="112" fill="#b85c00"></rect>
+          <rect x="184" y="84" width="20" height="162" fill="#b85c00"></rect>
+          <rect x="220" y="158" width="20" height="88" fill="#b85c00"></rect>
+          <rect x="270" y="172" width="20" height="74" fill="#11875d"></rect>
+          <rect x="306" y="188" width="20" height="58" fill="#11875d"></rect>
+          <rect x="342" y="204" width="20" height="42" fill="#11875d"></rect>
+          <text x="82" y="268" class="axis-label">unregularized</text>
+          <text x="270" y="268" class="axis-label">regularized</text>
+          <text x="92" y="56" class="axis-label">large coefficients</text>
+          <text x="264" y="164" class="axis-label">shrunk</text>
+        </svg>
+        <p class="caption">Regularization discourages extreme coefficient values, which often produces smoother polynomial curves.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Regularized polynomial workflow</h2>
+      <div class="mini-flow">
+        <span>Create polynomial features</span>
+        <span>Scale features</span>
+        <span>Fit Ridge/Lasso</span>
+        <span>Tune degree and lambda</span>
+        <span>Evaluate final test score</span>
+      </div>
+      <div class="formula">\[
+\text{Best model}=\arg\min_{\text{degree},\lambda}\text{CVError}(\text{degree},\lambda)
+\]</div>
+      <div class="note warning">Scaling is important because polynomial terms can have very different magnitudes. Without scaling, the regularization penalty may treat features unfairly.</div>
+      <div class="activity">
+        <h3>Final session check</h3>
+        <p class="prompt">What are the two main knobs we used to control polynomial regression?</p>
+        <p>Polynomial degree controls flexibility. Lambda controls coefficient shrinkage.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Feature engineering beyond powers</h2>
+      <p>Polynomial regression is one feature engineering strategy, but the larger idea is to create features whose shape matches the problem.</p>
+      <table>
+        <thead><tr><th>Feature idea</th><th>Example</th><th>When it may help</th></tr></thead>
+        <tbody>
+          <tr><td>Power feature</td><td>\(size^2\), \(experience^3\)</td><td>Relationship bends or changes direction.</td></tr>
+          <tr><td>Square-root feature</td><td>\(\sqrt{size}\)</td><td>Effect grows quickly first, then slows down.</td></tr>
+          <tr><td>Interaction feature</td><td>\(x_1x_2\)</td><td>One feature changes the effect of another feature.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Feature shape</h3>
+        <p class="prompt">If house price rises with size but the increase slows for very large houses, which feature shape might be more natural: \(size^2\) or \(\sqrt{size}\)?</p>
+        <p>A square-root style feature may better represent diminishing returns.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Takeaway</h2>
+      <p>Polynomial regression teaches a general ML lesson:</p>
+      <div class="formula">\[\text{powerful features} + \text{validation} + \text{regularization} = \text{better generalization}\]</div>
+      <p>Curves are useful, but uncontrolled curves can memorize. The complete workflow is to create flexible features, validate carefully, and regularize when needed.</p>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="04-validation-cross-validation.html">Previous: Validation</a>
+      <a class="button primary" href="index.html">Back to Overview</a>
+    </div>
+  </main>
+</body>
+</html>

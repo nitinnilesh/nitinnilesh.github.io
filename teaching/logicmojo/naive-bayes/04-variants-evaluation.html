@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Naive Bayes Variants And Evaluation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Naive Bayes</a>
+      <div class="navlinks">
+        <a class="" href="index.html">Overview</a>
+        <a class="" href="01-bayes-intuition.html">Bayes</a>
+        <a class="" href="02-text-naive-bayes.html">Text NB</a>
+        <a class="" href="03-smoothing-log-space.html">Smoothing</a>
+        <a class="active" href="04-variants-evaluation.html">Variants</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Part 4</div>
+    <h1>Choose the Naive Bayes variant based on the feature type.</h1>
+    <p class="lead">The Bayes idea remains the same, but the likelihood model changes depending on whether features are word counts, word presence, or continuous numbers.</p>
+
+    <section class="section">
+      <h2>Three common variants</h2>
+      <div class="activity"><h3>Feature question</h3><p class="prompt">Should repeated words matter, or only whether a word appears?</p></div>
+      <table>
+        <thead><tr><th>Variant</th><th>Feature type</th><th>Likelihood idea</th><th>Good use case</th></tr></thead>
+        <tbody>
+          <tr><td>Multinomial NB</td><td>Counts</td><td>How often word/event occurs in a class.</td><td>Text classification with word counts.</td></tr>
+          <tr><td>Bernoulli NB</td><td>Binary presence</td><td>Whether feature appears or does not appear.</td><td>Short text, flags, yes/no features.</td></tr>
+          <tr><td>Gaussian NB</td><td>Continuous numbers</td><td>Feature values follow class-wise Gaussian distributions.</td><td>Numeric tabular features.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Multinomial vs Bernoulli</h2>
+        <div class="activity"><h3>Repeated word question</h3><p class="prompt">Should &ldquo;free free free prize&rdquo; be stronger spam evidence than &ldquo;free prize&rdquo;?</p></div>
+        <p>Multinomial NB says yes because counts matter. Bernoulli NB says no after the word is already present.</p>
+        <table>
+          <thead><tr><th>Message</th><th>Multinomial view</th><th>Bernoulli view</th></tr></thead>
+          <tbody>
+            <tr><td>free prize</td><td>free: 1, prize: 1</td><td>free: present, prize: present</td></tr>
+            <tr><td>free free free prize</td><td>free: 3, prize: 1</td><td>free: present, prize: present</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Multinomial and Bernoulli comparison">
+          <text x="38" y="34" class="plot-title">Effect of repeated words</text>
+          <line x1="72" y1="250" x2="360" y2="250" stroke="#5e6875" stroke-width="2"/>
+          <line x1="72" y1="250" x2="72" y2="62" stroke="#5e6875" stroke-width="2"/>
+          <text x="96" y="272" font-size="12" fill="#5e6875">free prize</text>
+          <text x="214" y="272" font-size="12" fill="#5e6875">free free free prize</text>
+          <rect x="116" y="172" width="24" height="78" fill="#e76f51"/><rect x="144" y="172" width="24" height="78" fill="#457b9d"/>
+          <rect x="260" y="94" width="24" height="156" fill="#e76f51"/><rect x="288" y="172" width="24" height="78" fill="#457b9d"/>
+          <rect x="248" y="54" width="14" height="14" fill="#e76f51"/><text x="268" y="66" font-size="12" fill="#5e6875">Multinomial</text>
+          <rect x="248" y="78" width="14" height="14" fill="#457b9d"/><text x="268" y="90" font-size="12" fill="#5e6875">Bernoulli</text>
+        </svg>
+        <p class="caption">Multinomial count evidence grows with repetition; Bernoulli presence evidence does not.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Gaussian Naive Bayes</h2>
+      <div class="activity"><h3>Numeric feature question</h3><p class="prompt">If features are petal length and petal width, how can Naive Bayes compute likelihoods?</p></div>
+      <p>Gaussian NB estimates a mean and variance for each feature inside each class.</p>
+      <div class="formula">\[
+P(x_j\mid c)=\frac{1}{\sqrt{2\pi\sigma_{cj}^{2}}}\exp\left(-\frac{(x_j-\mu_{cj})^2}{2\sigma_{cj}^{2}}\right)
+\]</div>
+      <p>Then it uses the same log-score pattern:</p>
+      <div class="formula">\[
+\text{score}(c)=\log P(c)+\sum_j\log P(x_j\mid c)
+\]</div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Gaussian intuition</h2>
+        <div class="activity"><h3>Bell curve question</h3><p class="prompt">For a flower class, if most petal lengths are near 5 cm, what happens to a flower with petal length 1.5 cm?</p></div>
+        <p>The likelihood under that class becomes small. Gaussian NB checks how plausible each feature value is under every class distribution.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Gaussian distributions by class">
+          <text x="38" y="34" class="plot-title">Class-wise Gaussian likelihoods</text>
+          <line x1="52" y1="246" x2="370" y2="246" stroke="#5e6875" stroke-width="2"/>
+          <path d="M60 246 C95 246, 95 124, 132 124 C169 124, 169 246, 204 246" fill="none" stroke="#0f766e" stroke-width="4"/>
+          <path d="M150 246 C190 246, 190 82, 232 82 C274 82, 274 246, 314 246" fill="none" stroke="#e76f51" stroke-width="4"/>
+          <path d="M235 246 C270 246, 270 142, 306 142 C342 142, 342 246, 376 246" fill="none" stroke="#457b9d" stroke-width="4"/>
+          <line x1="182" y1="62" x2="182" y2="246" stroke="#18202a" stroke-width="2" stroke-dasharray="5 5"/>
+          <text x="166" y="54" font-size="12" fill="#18202a">new x</text>
+          <text x="106" y="270" font-size="12" fill="#0f766e">class A</text>
+          <text x="214" y="270" font-size="12" fill="#e76f51">class B</text>
+          <text x="312" y="270" font-size="12" fill="#457b9d">class C</text>
+        </svg>
+        <p class="caption">A feature value can have high likelihood under one class and low likelihood under another.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Text preprocessing choices</h2>
+      <div class="activity"><h3>Preprocessing question</h3><p class="prompt">Should &ldquo;good&rdquo; and &ldquo;not good&rdquo; give the same evidence?</p></div>
+      <table>
+        <thead><tr><th>Choice</th><th>Why it matters</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Lowercasing</td><td>Merges duplicate forms.</td><td>Free and free become same token.</td></tr>
+          <tr><td>Stop words</td><td>Can reduce noise, but sometimes remove useful signals.</td><td>&ldquo;not&rdquo; should often be kept.</td></tr>
+          <tr><td>N-grams</td><td>Capture short word order.</td><td>&ldquo;not good&rdquo;, &ldquo;very good&rdquo;.</td></tr>
+          <tr><td>Binary counts</td><td>Reduce effect of repeated words.</td><td>Useful for very short text.</td></tr>
+          <tr><td>Negation handling</td><td>Prevents opposite sentiment confusion.</td><td>good vs NOT_good.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Evaluation</h2>
+      <div class="activity"><h3>Metric question</h3><p class="prompt">If only 1% of messages are spam, is 99% accuracy always impressive?</p></div>
+      <p>No. Predicting every message as ham gives 99% accuracy but catches no spam. Use precision, recall, and F1.</p>
+      <div class="formula">\[
+Precision=\frac{TP}{TP+FP}
+\qquad
+Recall=\frac{TP}{TP+FN}
+\]</div>
+      <div class="formula">\[
+F_1=2\cdot\frac{Precision\cdot Recall}{Precision+Recall}
+\]</div>
+      <table>
+        <thead><tr><th>Metric</th><th>In spam detection</th></tr></thead>
+        <tbody>
+          <tr><td>Precision</td><td>Of messages predicted spam, how many were truly spam?</td></tr>
+          <tr><td>Recall</td><td>Of all actual spam messages, how many did we catch?</td></tr>
+          <tr><td>F1</td><td>Balanced summary of precision and recall.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Strengths and limitations</h2>
+      <div class="activity"><h3>Final reflection</h3><p class="prompt">Why can a model with a false independence assumption still work well?</p></div>
+      <table>
+        <thead><tr><th>Strengths</th><th>Limitations</th></tr></thead>
+        <tbody>
+          <tr><td>Very fast to train and predict.</td><td>Assumes conditional independence of features.</td></tr>
+          <tr><td>Works well for sparse high-dimensional text.</td><td>Basic bag-of-words ignores word order.</td></tr>
+          <tr><td>Needs relatively little data for a useful baseline.</td><td>Correlated features can overcount evidence.</td></tr>
+          <tr><td>Interpretable through class-wise word evidence.</td><td>Predicted probabilities may be poorly calibrated.</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Naive Bayes is a strong baseline because it trades perfect realism for simple, stable probability estimates.</div>
+    </section>
+
+    <div class="pager"><a class="button" href="03-smoothing-log-space.html">Previous: Smoothing</a><a class="button primary" href="index.html">Back to Overview</a></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PCA Overview</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">PCA</a>
+      <div class="navlinks">
+        <a class="active" href="index.html">Overview</a>
+        <a href="01-pca-geometry.html">Geometry</a>
+        <a href="02-covariance-eigen.html">Covariance</a>
+        <a href="03-projection-variance.html">Projection</a>
+        <a href="04-pca-in-practice.html">Practice</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Principal Component Analysis</div>
+    <h1>Principal Component Analysis: reduce dimensions by finding the main directions of variation.</h1>
+    <p class="lead">PCA turns many correlated features into fewer new axes that preserve most of the data cloud shape.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Why do we need PCA?</h2>
+        <div class="activity">
+          <h3>Opening question</h3>
+          <p class="prompt">If a dataset has 100 features, do all 100 features always add 100 different pieces of information?</p>
+          <p>Not necessarily. Many features may be correlated, repeated, noisy, or combinations of each other.</p>
+        </div>
+        <p>Principal Component Analysis is a technique for reducing the number of features while preserving as much variation as possible.</p>
+        <p>It does this by creating new features called principal components. These components are directions in the data where the data spreads out the most.</p>
+        <div class="formula">\[
+\text{many original features} \quad \longrightarrow \quad \text{few principal components}
+\]</div>
+        <p>A useful mental picture: PCA rotates the coordinate system so that the first axis points along the longest direction of the data cloud.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Tilted data cloud and principal component direction">
+          <line x1="58" y1="240" x2="362" y2="240" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="58" y1="240" x2="58" y2="54" stroke="#5e6875" stroke-width="2"></line>
+          <ellipse cx="210" cy="148" rx="126" ry="38" transform="rotate(-28 210 148)" fill="#eaf3ff" stroke="#bfd3ff" stroke-width="2"></ellipse>
+          <line x1="102" y1="210" x2="318" y2="86" stroke="#1f6feb" stroke-width="5"></line>
+          <line x1="172" y1="80" x2="248" y2="216" stroke="#c3342f" stroke-width="4" stroke-dasharray="7 6"></line>
+          <circle cx="138" cy="186" r="7" fill="#18202a"></circle><circle cx="176" cy="160" r="7" fill="#18202a"></circle><circle cx="216" cy="144" r="7" fill="#18202a"></circle><circle cx="252" cy="120" r="7" fill="#18202a"></circle><circle cx="286" cy="104" r="7" fill="#18202a"></circle>
+          <text x="300" y="78" class="axis-label">PC1</text>
+          <text x="252" y="218" class="axis-label">PC2</text>
+          <text x="112" y="270" class="axis-label">PCA finds the main directions of spread</text>
+        </svg>
+        <p class="caption">PC1 captures the largest variation. PC2 captures the next largest variation, perpendicular to PC1.</p>
+      </div>
+    </section>
+
+
+    <section class="section">
+      <h2>Two equivalent PCA viewpoints</h2>
+      <div class="activity"><h3>Viewpoint question</h3><p class="prompt">Should PCA be explained as keeping maximum variance or as losing minimum information?</p><p>Both. These are two sides of the same idea.</p></div>
+      <table>
+        <thead><tr><th>Viewpoint</th><th>Meaning</th><th>Classroom intuition</th></tr></thead>
+        <tbody>
+          <tr><td>Maximum variance</td><td>Choose directions where projected points are most spread out.</td><td>The shadow should still show the shape of the data.</td></tr>
+          <tr><td>Minimum reconstruction error</td><td>Choose a lower-dimensional subspace from which original points can be rebuilt as closely as possible.</td><td>The projection line or plane should pass close to the cloud.</td></tr>
+        </tbody>
+      </table>
+      <div class="formula">\[
+\text{Minimize reconstruction error} \quad \Longleftrightarrow \quad \text{Maximize projected variance}
+\]</div>
+      <p>This equivalence is one of the most important PCA intuitions. We will revisit it when we discuss projection and reconstruction.</p>
+    </section>
+
+    <section class="section">
+      <h2>PCA story in one line</h2>
+      <div class="mini-flow">
+        <span>Center data</span>
+        <span>Measure covariance</span>
+        <span>Find eigenvectors</span>
+        <span>Project data</span>
+        <span>Keep variance</span>
+      </div>
+      <p>Each step has a simple role. Centering places the cloud around the origin. Covariance describes the cloud shape. Eigenvectors find the cloud axes. Projection rewrites each point using those new axes.</p>
+    </section>
+
+    <section class="section">
+      <h2>Session roadmap</h2>
+      <div class="grid">
+        <a class="card" href="01-pca-geometry.html"><div class="num">1</div><h3>Geometry</h3><p>Best viewing angle, variance, centering, and scaling.</p></a>
+        <a class="card" href="02-covariance-eigen.html"><div class="num">2</div><h3>Math core</h3><p>Covariance, covariance matrix, eigenvectors, and eigenvalues.</p></a>
+        <a class="card" href="03-projection-variance.html"><div class="num">3</div><h3>Projection</h3><p>Transforming data, reconstruction, explained variance, and choosing components.</p></a>
+        <a class="card" href="04-pca-in-practice.html"><div class="num">4</div><h3>Practice</h3><p>Visualization, ML pipelines, noise reduction, use cases, and limitations.</p></a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Where PCA is useful</h2>
+      <table>
+        <thead><tr><th>Use case</th><th>How PCA helps</th></tr></thead>
+        <tbody>
+          <tr><td>Visualization</td><td>Convert many features into 2 or 3 components and plot them.</td></tr>
+          <tr><td>Compression</td><td>Represent data using fewer numbers while retaining most variation.</td></tr>
+          <tr><td>Noise reduction</td><td>Drop very small-variance directions that may mostly contain noise.</td></tr>
+          <tr><td>Multicollinearity</td><td>Replace correlated original features with uncorrelated components.</td></tr>
+          <tr><td>Speed</td><td>Train later models on fewer dimensions.</td></tr>
+        </tbody>
+      </table>
+      <div class="note warning">PCA preserves variance, not necessarily prediction power. A low-variance direction can sometimes be useful for classification.</div>
+    </section>
+
+
+    <section class="section">
+      <h2>Reference ideas used</h2>
+      <p>This teaching material is strengthened using PCA explanations from Stanford STATS 202 and detailed PCA lecture notes, especially the ideas of closest lower-dimensional subspace, maximum variance, reconstruction error, explained variance, SVD, and whitening.</p>
+      <table>
+        <thead><tr><th>Reference</th><th>Useful idea</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://web.stanford.edu/class/stats202/notes/Unsupervised/PCA.html">Stanford STATS 202 PCA notes</a></td><td>First PC as closest line, PC scores, orthogonal second component, scaled vs unscaled PCA, scree plot.</td></tr>
+          <tr><td><a href="https://graphics.stanford.edu/courses/cs233-25-spring/ReferencedPapers/LectureNotes-PCA.pdf">Detailed PCA lecture notes PDF</a></td><td>Projection/reconstruction geometry, variance-error equivalence, projection matrices, dropped-eigenvalue reconstruction error, whitening/sphering.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager"><span></span><a class="button primary" href="01-pca-geometry.html">Next: Geometry</a></div>
+  </main>
+</body>
+</html>

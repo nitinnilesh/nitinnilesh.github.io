@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PCA in Practice</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">PCA</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-pca-geometry.html">Geometry</a>
+        <a href="02-covariance-eigen.html">Covariance</a>
+        <a href="03-projection-variance.html">Projection</a>
+        <a class="active" href="04-pca-in-practice.html">Practice</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 4</div>
+    <h1>Using PCA responsibly in real machine learning workflows.</h1>
+    <p class="lead">PCA is powerful for visualization, compression, multicollinearity, and noise reduction, but it must be used with care.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>PCA for visualization</h2>
+        <div class="activity"><h3>Visualization question</h3><p class="prompt">How can we visualize a dataset with 30 features on a 2D screen?</p><p>Use PCA to create two components, then plot PC1 vs PC2.</p></div>
+        <p>PCA is commonly used to compress many features into two principal components for plotting.</p>
+        <div class="formula">\[
+X_{n\times p} \quad \longrightarrow \quad Z_{n\times 2}
+\]</div>
+        <p>If classes separate in the PCA plot, the original feature space likely contains useful structure. If they overlap, classification may be harder or may require nonlinear methods.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="PCA scatter plot colored by class">
+          <line x1="58" y1="238" x2="362" y2="238" stroke="#5e6875" stroke-width="2"></line><line x1="58" y1="238" x2="58" y2="54" stroke="#5e6875" stroke-width="2"></line>
+          <g fill="#1f6feb"><circle cx="124" cy="164" r="7"></circle><circle cx="142" cy="188" r="7"></circle><circle cx="112" cy="208" r="7"></circle><circle cx="160" cy="150" r="7"></circle></g>
+          <g fill="#c3342f"><circle cx="250" cy="116" r="7"></circle><circle cx="286" cy="98" r="7"></circle><circle cx="306" cy="134" r="7"></circle><circle cx="268" cy="150" r="7"></circle></g>
+          <text x="186" y="268" class="axis-label">PC1</text><text x="18" y="96" class="axis-label">PC2</text>
+        </svg>
+        <p class="caption">A PCA scatter plot helps inspect high-dimensional structure in 2D.</p>
+      </div>
+    </section>
+
+
+    <section class="section">
+      <h2>Biplot intuition</h2>
+      <div class="activity"><h3>Biplot question</h3><p class="prompt">After plotting rows using PC1 and PC2, how can we also understand which original features influenced those axes?</p><p>Use loadings. A biplot shows scores and feature directions together.</p></div>
+      <p>A PCA scatter plot shows the transformed rows, called scores. A biplot adds arrows for original feature loadings.</p>
+      <table>
+        <thead><tr><th>Part of biplot</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Points</td><td>Rows or observations shown using PC1 and PC2 scores.</td></tr>
+          <tr><td>Arrows</td><td>Original feature directions based on loadings.</td></tr>
+          <tr><td>Arrow length</td><td>How strongly that feature contributes to the plotted components.</td></tr>
+          <tr><td>Arrow direction</td><td>Which side of the PCA plot increases for that feature.</td></tr>
+        </tbody>
+      </table>
+      <div class="note">A biplot is excellent for teaching because it connects the new PCA space back to the original columns.</div>
+    </section>
+
+    <section class="section">
+      <h2>PCA before machine learning models</h2>
+      <div class="activity"><h3>Pipeline question</h3><p class="prompt">Should PCA be fit on the full dataset before train-test split?</p><p>No. PCA must be fit only on training data to avoid data leakage.</p></div>
+      <p>A correct modeling workflow uses a pipeline:</p>
+      <div class="mini-flow">
+        <span>Split data</span>
+        <span>Scale train</span>
+        <span>Fit PCA on train</span>
+        <span>Train model</span>
+        <span>Evaluate test once</span>
+      </div>
+      <div class="formula">\[
+\text{Raw features} \rightarrow \text{Scaler} \rightarrow \text{PCA} \rightarrow \text{ML model}
+\]</div>
+      <p>This is especially useful for models affected by dimensionality, such as KNN, logistic regression with many correlated features, or models trained on high-dimensional data.</p>
+    </section>
+
+    <section class="section">
+      <h2>PCA for multicollinearity</h2>
+      <div class="activity"><h3>Correlation question</h3><p class="prompt">If two features are almost copies of each other, should a model treat them as two independent signals?</p><p>No. They mostly repeat the same information.</p></div>
+      <p>PCA converts correlated original features into uncorrelated components.</p>
+      <div class="formula">\[
+\operatorname{Cov}(Z_i,Z_j)=0 \quad \text{for } i\neq j
+\]</div>
+      <p>This can make downstream modeling more stable, though it also makes features less directly interpretable.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>PCA for noise reduction</h2>
+        <div class="activity"><h3>Noise question</h3><p class="prompt">If the last few principal components explain tiny variance, what might they contain?</p><p>They may contain small details or noise.</p></div>
+        <p>When signal is concentrated in high-variance directions, dropping low-variance components can reduce noise.</p>
+        <p>But this is a judgment call: low variance does not always mean useless.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Noise reduction by keeping large variance components">
+          <line x1="58" y1="238" x2="362" y2="238" stroke="#5e6875" stroke-width="2"></line><line x1="58" y1="238" x2="58" y2="54" stroke="#5e6875" stroke-width="2"></line>
+          <polyline points="70,196 96,158 122,176 148,126 174,142 200,94 226,108 252,86 278,94 304,78 340,82" fill="none" stroke="#c3342f" stroke-width="2" stroke-dasharray="4 5"></polyline>
+          <polyline points="70,188 104,166 138,144 172,126 206,108 240,96 274,88 308,82 340,78" fill="none" stroke="#1f6feb" stroke-width="4"></polyline>
+          <text x="98" y="270" class="axis-label">dropping tiny components can smooth noise</text>
+        </svg>
+        <p class="caption">Keeping major components can preserve structure while reducing small noisy variation.</p>
+      </div>
+    </section>
+
+
+    <section class="section">
+      <h2>Covariance eigen approach vs SVD</h2>
+      <div class="activity"><h3>Implementation question</h3><p class="prompt">Do libraries always explicitly build the covariance matrix to run PCA?</p><p>Not always. Many implementations use Singular Value Decomposition because it is numerically stable.</p></div>
+      <p>In teaching, the covariance and eigenvector explanation is the most intuitive path:</p>
+      <div class="formula">\[
+\Sigma v=\lambda v
+\]</div>
+      <p>In practical implementations, PCA is often computed using SVD on centered data:</p>
+      <div class="formula">\[
+X_c = U S V^T
+\]</div>
+      <p>The columns of \(V\) give principal component directions, and the singular values in \(S\) are connected to explained variance.</p>
+      <div class="note">For students, it is enough to know that eigenvectors explain the idea, while SVD is commonly used under the hood for stable computation.</div>
+    </section>
+
+
+    <section class="two-col section">
+      <div>
+        <h2>PCA whitening</h2>
+        <div class="activity"><h3>Whitening question</h3><p class="prompt">After PCA rotation, components are uncorrelated. Do they automatically have equal variance?</p><p>No. Their variances are the eigenvalues, so whitening rescales them.</p></div>
+        <p>PCA first rotates data into principal component coordinates. Whitening goes one step further and divides each component by its standard deviation.</p>
+        <div class="formula">\[
+Z = X_cU
+\]</div>
+        <div class="formula">\[
+Z_{white}=Z\Lambda^{-1/2}
+\]</div>
+        <p>The goal is to make the transformed data have identity covariance:</p>
+        <div class="formula">\[
+\operatorname{Cov}(Z_{white}) \approx I
+\]</div>
+        <p>Geometrically, whitening turns an elongated ellipsoid into a more spherical cloud.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="PCA whitening turns ellipse into sphere">
+          <rect x="48" y="56" width="140" height="186" fill="#f8fbff" stroke="#d9e0ea"></rect><rect x="234" y="56" width="140" height="186" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <ellipse cx="118" cy="150" rx="62" ry="22" transform="rotate(-25 118 150)" fill="#eaf3ff" stroke="#1f6feb" stroke-width="3"></ellipse>
+          <circle cx="304" cy="150" r="48" fill="#eaf3ff" stroke="#11875d" stroke-width="3"></circle>
+          <text x="72" y="270" class="axis-label">PCA scores: unequal variance</text><text x="246" y="270" class="axis-label">whitened: unit variance</text>
+        </svg>
+        <p class="caption">Whitening decorrelates and rescales. It can help some algorithms, but may amplify noise.</p>
+      </div>
+      <div class="note warning">Whitening is not always better. Dividing by very small eigenvalues can amplify low-variance noise, so it should be used deliberately.</div>
+    </section>
+
+    <section class="section">
+      <h2>PCA limitations</h2>
+      <div class="activity"><h3>Limitation question</h3><p class="prompt">If the data forms a curved spiral, will straight PCA axes fully capture that shape?</p><p>No. PCA is linear, so it captures straight directions of variation.</p></div>
+      <table><thead><tr><th>Limitation</th><th>Why it matters</th></tr></thead><tbody><tr><td>Linear method</td><td>Cannot directly capture curved structure.</td></tr><tr><td>Sensitive to scaling</td><td>Large-scale features can dominate components.</td></tr><tr><td>Sensitive to outliers</td><td>Outliers can change variance directions.</td></tr><tr><td>Unsupervised</td><td>Finds variance, not class separation or target prediction.</td></tr><tr><td>Harder interpretability</td><td>Components are combinations of original features.</td></tr></tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>How to explain PCA in one minute</h2>
+      <p>PCA looks at the shape of the data cloud. It finds the direction where the cloud is longest, calls that PC1, then finds the next perpendicular direction, calls that PC2, and continues. We can keep only the first few directions if they preserve most of the variation.</p>
+      <div class="formula">\[
+\text{Data cloud} \rightarrow \text{main axes} \rightarrow \text{new compact representation}
+\]</div>
+      <div class="note">The central intuition: PCA does not choose original columns. It creates new axes by combining original columns.</div>
+    </section>
+
+    <section class="section">
+      <h2>Final checklist</h2>
+      <table><thead><tr><th>Question</th><th>Why it matters</th></tr></thead><tbody><tr><td>Were features centered?</td><td>PCA works on variation around the mean.</td></tr><tr><td>Were features scaled?</td><td>Required when feature units differ.</td></tr><tr><td>How many components were kept?</td><td>Controls compression and information loss.</td></tr><tr><td>Was PCA fit only on training data?</td><td>Prevents leakage.</td></tr><tr><td>Is PCA suitable for the goal?</td><td>Variance preservation may not equal predictive usefulness.</td></tr></tbody></table>
+    </section>
+
+    <div class="pager"><a class="button" href="03-projection-variance.html">Previous: Projection</a><a class="button primary" href="index.html">Back to Overview</a></div>
+  </main>
+</body>
+</html>

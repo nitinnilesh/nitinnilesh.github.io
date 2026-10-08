@@ -1,0 +1,47 @@
+---
+layout: page
+---
+
+<div class="course">
+  <p class="course__back"><a href="{{ '/teaching/' | relative_url }}">&larr; All teaching</a></p>
+
+  <div class="course__facts" aria-label="Course information">
+    {%- if page.instructor -%}
+      <div><span>Instructor</span><strong>{{ page.instructor }}</strong></div>
+    {%- endif -%}
+    {%- if page.term or page.year -%}
+      <div><span>Course</span><strong>{{ page.term }} {{ page.year }}</strong></div>
+    {%- endif -%}
+    {%- if page.level -%}
+      <div><span>Level</span><strong>{{ page.level }}</strong></div>
+    {%- endif -%}
+    <div><span>Format</span><strong>Interactive webpages</strong></div>
+  </div>
+
+  {{ content }}
+
+  {%- if page.lessons -%}
+    <section class="course__lessons" aria-labelledby="course-topics">
+      <div class="course__section-heading">
+        <p class="course__eyebrow">Course materials</p>
+        <h2 id="course-topics">Explore the topics</h2>
+        <p>Open a topic to enter its interactive lesson pack. Use the overview and numbered pages inside each pack to move through the material.</p>
+      </div>
+
+      <ol class="lesson-list">
+        {%- for lesson in page.lessons -%}
+          <li class="lesson-card">
+            <a href="{{ lesson.url | relative_url }}">
+              <span class="lesson-card__number">{{ forloop.index }}</span>
+              <span class="lesson-card__body">
+                <strong>{{ lesson.title }}</strong>
+                <span>{{ lesson.description }}</span>
+              </span>
+              <span class="lesson-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ol>
+    </section>
+  {%- endif -%}
+</div>

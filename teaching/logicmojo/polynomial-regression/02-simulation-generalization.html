@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulation and Generalization</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Polynomial Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-introduction.html">Intro</a>
+        <a class="active" href="02-simulation-generalization.html">Simulation</a>
+        <a href="03-bias-variance.html">Bias-Variance</a>
+        <a href="04-validation-cross-validation.html">Validation</a>
+        <a href="05-regularization.html">Regularization</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 2</div>
+    <h1>Exploring data, simulation, and generalization</h1>
+    <p class="lead">Polynomial regression is easiest to understand when students can see several models trying to fit the same curved dataset.</p>
+
+    <section class="section">
+      <h2>Build a simulated problem</h2>
+      <p>Suppose the true relationship is curved, but the observations contain noise.</p>
+      <div class="formula">\[y = f(x) + \epsilon\]</div>
+      <div class="formula">\[f(x)=3+2x-0.7x^2\qquad \epsilon\sim \mathcal{N}(0,\sigma^2)\]</div>
+      <p>The model never sees the clean function \(f(x)\). It only sees noisy samples. That is why a model can accidentally fit noise instead of signal.</p>
+      <div class="activity">
+        <h3>Signal vs noise</h3>
+        <p class="prompt">When a point is far away from the smooth pattern, should the model bend itself to pass through that point?</p>
+        <p>This question separates fitting the training data from learning the underlying relationship.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Compare model degrees</h2>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 380" role="img" aria-label="Polynomial degrees comparison">
+          <g transform="translate(0,0)">
+            <text x="120" y="30" class="axis-label">Degree 1: too rigid</text>
+            <line x1="42" y1="160" x2="230" y2="160" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="160" x2="42" y2="48" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 132 C90 72, 130 54, 170 76 C196 92, 210 124, 222 148" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <line x1="58" y1="122" x2="222" y2="88" stroke="#c3342f" stroke-width="4"></line>
+            <circle cx="66" cy="126" r="4" fill="#18202a"></circle><circle cx="94" cy="80" r="4" fill="#18202a"></circle><circle cx="124" cy="62" r="4" fill="#18202a"></circle><circle cx="158" cy="82" r="4" fill="#18202a"></circle><circle cx="194" cy="116" r="4" fill="#18202a"></circle><circle cx="218" cy="146" r="4" fill="#18202a"></circle>
+          </g>
+          <g transform="translate(222,0)">
+            <text x="112" y="30" class="axis-label">Degree 2: good shape</text>
+            <line x1="42" y1="160" x2="230" y2="160" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="160" x2="42" y2="48" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 132 C90 72, 130 54, 170 76 C196 92, 210 124, 222 148" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <path d="M58 130 C92 70, 132 52, 170 76 C198 94, 212 124, 222 150" fill="none" stroke="#11875d" stroke-width="4"></path>
+            <circle cx="66" cy="126" r="4" fill="#18202a"></circle><circle cx="94" cy="80" r="4" fill="#18202a"></circle><circle cx="124" cy="62" r="4" fill="#18202a"></circle><circle cx="158" cy="82" r="4" fill="#18202a"></circle><circle cx="194" cy="116" r="4" fill="#18202a"></circle><circle cx="218" cy="146" r="4" fill="#18202a"></circle>
+          </g>
+          <g transform="translate(444,0)">
+            <text x="104" y="30" class="axis-label">Degree 5: flexible</text>
+            <line x1="42" y1="160" x2="230" y2="160" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="160" x2="42" y2="48" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 132 C90 72, 130 54, 170 76 C196 92, 210 124, 222 148" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <path d="M58 126 C80 106, 90 76, 112 70 C136 64, 140 84, 162 82 C190 78, 196 120, 222 146" fill="none" stroke="#1f6feb" stroke-width="4"></path>
+            <circle cx="66" cy="126" r="4" fill="#18202a"></circle><circle cx="94" cy="80" r="4" fill="#18202a"></circle><circle cx="124" cy="62" r="4" fill="#18202a"></circle><circle cx="158" cy="82" r="4" fill="#18202a"></circle><circle cx="194" cy="116" r="4" fill="#18202a"></circle><circle cx="218" cy="146" r="4" fill="#18202a"></circle>
+          </g>
+          <g transform="translate(666,0)">
+            <text x="90" y="30" class="axis-label">Degree 12: memorizes</text>
+            <line x1="42" y1="160" x2="230" y2="160" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="160" x2="42" y2="48" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 132 C90 72, 130 54, 170 76 C196 92, 210 124, 222 148" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <path d="M58 126 C70 160, 84 44, 98 80 C112 118, 118 40, 128 62 C144 102, 152 54, 160 82 C176 142, 190 74, 198 116 C206 152, 214 130, 222 146" fill="none" stroke="#b85c00" stroke-width="4"></path>
+            <circle cx="66" cy="126" r="4" fill="#18202a"></circle><circle cx="94" cy="80" r="4" fill="#18202a"></circle><circle cx="124" cy="62" r="4" fill="#18202a"></circle><circle cx="158" cy="82" r="4" fill="#18202a"></circle><circle cx="194" cy="116" r="4" fill="#18202a"></circle><circle cx="218" cy="146" r="4" fill="#18202a"></circle>
+          </g>
+          <text x="62" y="344" class="axis-label">Gray curve: true relationship. Colored curve: learned model. Black points: noisy training data.</text>
+        </svg>
+        <p class="caption">The goal is not to pass through every point. The goal is to recover a pattern that works on future data.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Generalization</h2>
+      <p>Generalization means the model performs well on new data, not only on the data it saw during training.</p>
+      <div class="formula">\[\text{good ML model} \neq \text{lowest training error}\]</div>
+      <div class="formula">\[\text{good ML model} = \text{low future error}\]</div>
+      <p>A high-degree polynomial can reduce training error almost to zero, but its predictions between and beyond training points may become unreasonable.</p>
+      <div class="two-col">
+        <div>
+          <h3>Training error</h3>
+          <p>Error measured on the data used to learn the coefficients.</p>
+          <p>Training error usually decreases as model complexity increases.</p>
+        </div>
+        <div>
+          <h3>Test or validation error</h3>
+          <p>Error measured on data not used for fitting.</p>
+          <p>This is a better estimate of how the model will behave in the real world.</p>
+        </div>
+      </div>
+      <div class="activity">
+        <h3>Generalization check</h3>
+        <p class="prompt">If a degree-15 model has almost zero training error, should we trust it more than a degree-3 model?</p>
+        <p>Answer depends on validation performance. Without validation, low training error can be misleading.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Extrapolation risk</h2>
+      <p>Extrapolation means using the fitted curve outside the range of observed training data. Polynomial curves can behave very strangely outside the data range, especially at higher degrees.</p>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 320" role="img" aria-label="Extrapolation risk in polynomial regression">
+          <rect x="226" y="46" width="360" height="224" rx="8" fill="#eef5ff" stroke="#bfd3ff"></rect>
+          <line x1="70" y1="260" x2="826" y2="260" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="70" y1="260" x2="70" y2="46" stroke="#5e6875" stroke-width="2"></line>
+          <path d="M94 222 C178 196, 252 112, 340 96 C440 78, 520 132, 586 214 C666 314, 740 122, 806 42" fill="none" stroke="#b85c00" stroke-width="5"></path>
+          <circle cx="254" cy="170" r="5" fill="#18202a"></circle><circle cx="310" cy="116" r="5" fill="#18202a"></circle><circle cx="382" cy="96" r="5" fill="#18202a"></circle><circle cx="448" cy="112" r="5" fill="#18202a"></circle><circle cx="520" cy="170" r="5" fill="#18202a"></circle><circle cx="568" cy="218" r="5" fill="#18202a"></circle>
+          <line x1="226" y1="276" x2="226" y2="46" stroke="#1f6feb" stroke-width="3" stroke-dasharray="7 6"></line>
+          <line x1="586" y1="276" x2="586" y2="46" stroke="#1f6feb" stroke-width="3" stroke-dasharray="7 6"></line>
+          <text x="330" y="292" class="axis-label">training data range</text>
+          <text x="94" y="72" class="axis-label">outside range</text>
+          <text x="674" y="72" class="axis-label">outside range</text>
+        </svg>
+        <p class="caption">Inside the observed range, the curve may look reasonable. Outside it, high-degree terms can dominate and produce unrealistic predictions.</p>
+      </div>
+      <div class="activity">
+        <h3>Prediction boundary</h3>
+        <p class="prompt">If the training data has house sizes from 500 to 3000 sq ft, should we confidently predict prices for a 20,000 sq ft mansion using the same polynomial curve?</p>
+        <p>Be careful. That is extrapolation, and polynomial models can be unreliable outside the observed range.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Polynomial feature matrix</h2>
+      <p>For one original feature \(x\), a degree-3 polynomial model creates this design matrix:</p>
+      <div class="formula">\[
+X_{poly}=
+\begin{bmatrix}
+1 & x_1 & x_1^2 & x_1^3 \\
+1 & x_2 & x_2^2 & x_2^3 \\
+1 & x_3 & x_3^2 & x_3^3 \\
+\vdots & \vdots & \vdots & \vdots \\
+1 & x_n & x_n^2 & x_n^3
+\end{bmatrix}
+\]</div>
+      <p>After this transformation, the model is fit using the same linear regression machinery:</p>
+      <div class="formula">\[\hat{y}=X_{poly}\beta\]</div>
+      <p>This matrix is a polynomial design matrix. For one input feature, the columns follow the pattern \(1,x,x^2,\ldots,x^d\). The same idea extends to multiple features by adding powers and interaction terms.</p>
+      <div class="formula">\[x_1x_2,\quad x_1^2,\quad x_2^2,\quad x_1^2x_2,\quad x_1x_2^2\]</div>
+      <p>Interaction terms let the effect of one feature depend on another feature.</p>
+      <div class="note warning">Polynomial features can become numerically large. In practice, scaling features before regularized polynomial regression is usually important.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="01-introduction.html">Previous: Intro</a>
+      <a class="button primary" href="03-bias-variance.html">Next: Bias-Variance</a>
+    </div>
+  </main>
+</body>
+</html>

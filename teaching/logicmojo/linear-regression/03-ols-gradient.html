@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OLS And Gradient Descent</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Linear Regression Math</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-line.html">Line</a>
+        <a href="02-errors-cost.html">Errors</a>
+        <a class="active" href="03-ols-gradient.html">Learning</a>
+        <a href="04-metrics.html">Metrics</a>
+        <a href="05-multiple.html">Multiple LR</a>
+        <a href="06-assumptions.html">Assumptions</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 3</div>
+    <h1>OLS and gradient descent</h1>
+    <p class="lead">Both stories answer the same question: which slope and intercept produce the smallest overall error?</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Ordinary Least Squares</h2>
+        <p>OLS means choose the coefficients that minimize the sum of squared residuals.</p>
+        <div class="formula">\[\min_{\beta_0,\beta_1}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2\]</div>
+        <p>For simple linear regression, the closed-form slope can be written as:</p>
+        <div class="formula">\[\beta_1 = \frac{\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^{n}(x_i - \bar{x})^2}\]\[\beta_0 = \bar{y} - \beta_1\bar{x}\]</div>
+        <p>Teacher framing: slope is based on how x and y move together, divided by how much x itself varies.</p>
+        <div class="activity">
+          <h3>Concept check</h3>
+          <p class="prompt">If x and y usually increase together, should the slope be positive or negative?</p>
+          <p>Follow-up: What if x increases and y usually decreases?</p>
+        </div>
+      </div>
+      <div class="visual">
+        <div class="curve">
+          <span class="dot" aria-hidden="true"></span>
+        </div>
+        <p class="caption">Cost function intuition: move downhill until you reach the lowest error.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Gradient descent</h2>
+      <p>Gradient descent does not jump directly to the answer. It starts with guesses for b0 and b1, checks the error, and repeatedly updates the guesses.</p>
+      <div class="formula">\[\theta_{new} = \theta_{old} - \alpha\nabla J(\theta)\]</div>
+      <div class="mini-flow">
+        <span>Guess b0, b1</span>
+        <span>Predict y_hat</span>
+        <span>Calculate MSE</span>
+        <span>Find gradient</span>
+        <span>Update values</span>
+      </div>
+      <table>
+        <thead><tr><th>Term</th><th>Meaning</th><th>Teaching warning</th></tr></thead>
+        <tbody>
+          <tr><td>Gradient</td><td>Direction and steepness of change in cost.</td><td>It tells us how to move the parameter to reduce error.</td></tr>
+          <tr><td>Learning rate</td><td>Step size used during each update.</td><td>Too small is slow. Too large can overshoot.</td></tr>
+          <tr><td>Epoch</td><td>One full pass over the training data.</td><td>More epochs may help, but after convergence they add little value.</td></tr>
+          <tr><td>Convergence</td><td>Cost stops improving meaningfully.</td><td>The model has reached a stable minimum.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Human gradient descent</h3>
+        <p class="prompt">Tell students: imagine you are blindfolded on a hill and can only feel slope under your feet. How do you reach the lowest point?</p>
+        <p>Use their answers to explain gradient direction, step size, overshooting, and convergence.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Important distinction</h2>
+      <div class="note">Scikit-learn's standard LinearRegression uses a direct least-squares solver, not ordinary gradient descent. Still teach gradient descent because it becomes essential for neural networks and many large-scale optimization problems.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="02-errors-cost.html">Previous: Errors</a>
+      <a class="button primary" href="04-metrics.html">Next: Metrics</a>
+    </div>
+  </main>
+</body>
+</html>

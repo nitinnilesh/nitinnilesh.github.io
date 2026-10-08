@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SVM In Practice</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">SVM</a>
+      <div class="navlinks">
+        <a class="" href="index.html">Overview</a>
+        <a class="" href="01-svm-geometry.html">Geometry</a>
+        <a class="" href="02-margin-and-scratch-svm.html">Scratch</a>
+        <a class="" href="03-soft-margin.html">Soft Margin</a>
+        <a class="" href="04-kernels.html">Kernels</a>
+        <a class="active" href="05-svm-in-practice.html">Practice</a>
+        <a class="" href="06-support-vector-regression.html">SVR</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Part 5</div>
+    <h1>Using SVM well is mostly about preprocessing, scaling, and tuning.</h1>
+    <p class="lead">SVM can be powerful, but it is sensitive to data preparation. A clean pipeline matters as much as the algorithm.</p>
+
+    <section class="section">
+      <h2>When to use SVM</h2>
+      <div class="activity"><h3>Model-choice question</h3><p class="prompt">What kind of dataset makes SVM a good candidate?</p></div>
+      <table><thead><tr><th>Good fit</th><th>Why</th></tr></thead><tbody>
+        <tr><td>small to medium datasets</td><td>kernel SVM training can be expensive on very large datasets</td></tr>
+        <tr><td>high-dimensional features</td><td>linear SVM works well for text and sparse features</td></tr>
+        <tr><td>clear margin structure</td><td>SVM is designed to find confident separation</td></tr>
+        <tr><td>nonlinear medium-sized data</td><td>RBF or polynomial kernels may help</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>When not to use SVM first</h2>
+      <div class="activity"><h3>Practicality question</h3><p class="prompt">When might logistic regression, tree models, or boosting be easier to start with?</p></div>
+      <ul>
+        <li>millions of rows and frequent retraining</li>
+        <li>many raw categorical variables and missing values</li>
+        <li>need for direct probability estimates</li>
+        <li>need for very simple stakeholder explanations</li>
+        <li>limited time for scaling and hyperparameter tuning</li>
+      </ul>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Feature scaling is essential</h2>
+        <div class="activity"><h3>Scale question</h3><p class="prompt">If income ranges from 30,000 to 200,000 and age ranges from 20 to 70, which feature dominates distance?</p></div>
+        <p>SVM uses dot products and distances. Features with larger numeric scale can dominate the model.</p>
+        <div class="formula">\[
+z=\frac{x-\mu}{\sigma}
+\]</div>
+        <p>Standardization puts features on comparable scale.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Scaling features for SVM">
+          <text x="38" y="34" class="plot-title">Before scaling</text>
+          <line x1="70" y1="236" x2="350" y2="236" stroke="#5e6875" stroke-width="2"/><line x1="70" y1="236" x2="70" y2="66" stroke="#5e6875" stroke-width="2"/>
+          <circle cx="96" cy="210" r="7" fill="#2a9d8f"/><circle cx="270" cy="86" r="7" fill="#e76f51"/><circle cx="316" cy="76" r="7" fill="#e76f51"/><circle cx="128" cy="198" r="7" fill="#2a9d8f"/>
+          <text x="252" y="264" class="axis-label">large-scale feature</text><text x="16" y="88" class="axis-label">small-scale feature</text>
+          <text x="92" y="286" class="axis-label">Scaling prevents one feature from dominating.</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Split before preprocessing</h2>
+      <div class="activity"><h3>Leakage question</h3><p class="prompt">Should the scaler learn mean and standard deviation from the test data?</p></div>
+      <p>No. Fit preprocessing only on training data. The safest pattern is a pipeline.</p>
+      <div class="formula">\[
+\text{split data} \rightarrow \text{fit scaler on train} \rightarrow \text{train SVM}
+\]</div>
+      <div class="codebox">Pipeline([<br>&nbsp;&nbsp;("scaler", StandardScaler()),<br>&nbsp;&nbsp;("svm", SVC())<br>])</div>
+    </section>
+
+    <section class="section">
+      <h2>Hyperparameter tuning</h2>
+      <div class="activity"><h3>Tuning question</h3><p class="prompt">How should we choose kernel, \(C\), and \(\gamma\)?</p></div>
+      <p>Use cross-validation on training data. Keep the test set for final evaluation.</p>
+      <table><thead><tr><th>Hyperparameter</th><th>What it controls</th></tr></thead><tbody>
+        <tr><td>kernel</td><td>linear or nonlinear decision shape</td></tr>
+        <tr><td>\(C\)</td><td>strictness about margin violations</td></tr>
+        <tr><td>\(\gamma\)</td><td>locality of RBF influence</td></tr>
+        <tr><td>class_weight</td><td>cost adjustment for imbalanced classes</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Evaluation</h2>
+      <div class="activity"><h3>Metric question</h3><p class="prompt">If the positive class is rare or high-risk, is accuracy enough?</p></div>
+      <p>For applied SVM projects, report metrics that match the business cost.</p>
+      <table><thead><tr><th>Metric</th><th>Use when</th></tr></thead><tbody>
+        <tr><td>accuracy</td><td>classes are balanced and error costs are similar</td></tr>
+        <tr><td>precision</td><td>false positives are costly</td></tr>
+        <tr><td>recall</td><td>false negatives are costly</td></tr>
+        <tr><td>F1</td><td>need balance between precision and recall</td></tr>
+        <tr><td>confusion matrix</td><td>want to inspect error types directly</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Probability estimates</h2>
+      <div class="activity"><h3>Output question</h3><p class="prompt">Does SVM naturally output probabilities like logistic regression?</p></div>
+      <p>No. SVM naturally outputs a decision score, not a probability.</p>
+      <div class="formula">\[
+f(x)=w^Tx+b
+\]</div>
+      <p>In sklearn, probability estimates require extra work:</p>
+      <div class="codebox">SVC(probability=True)</div>
+      <div class="note warning">This can make training slower. If probabilities are important, consider calibration and check probability quality.</div>
+    </section>
+
+    <section class="section">
+      <h2>Multiclass SVM</h2>
+      <div class="activity"><h3>Multiclass question</h3><p class="prompt">SVM is naturally binary. How can it classify three or more classes?</p></div>
+      <p>Common strategies:</p>
+      <table><thead><tr><th>Strategy</th><th>Idea</th></tr></thead><tbody>
+        <tr><td>one-vs-rest</td><td>train one classifier per class against all others</td></tr>
+        <tr><td>one-vs-one</td><td>train one classifier for every pair of classes</td></tr>
+      </tbody></table>
+      <p>sklearn's `SVC` uses one-vs-one internally for multiclass classification.</p>
+    </section>
+
+    <section class="section">
+      <h2>SVM data engineering checklist</h2>
+      <div class="activity"><h3>Before training</h3><p class="prompt">What should we check before fitting SVM?</p></div>
+      <ol>
+        <li>Confirm binary or multiclass target.</li>
+        <li>Handle missing values.</li>
+        <li>Encode categorical variables.</li>
+        <li>Scale numeric features.</li>
+        <li>Use stratified train-test split for classification.</li>
+        <li>Put preprocessing inside a pipeline.</li>
+        <li>Tune \(C\), kernel, \(\gamma\), and class weights with cross-validation.</li>
+        <li>Evaluate with suitable metrics.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>Final mental model</h2>
+      <div class="activity"><h3>One-minute summary</h3><p class="prompt">How would you explain SVM to someone in one minute?</p></div>
+      <p>SVM finds a decision boundary with maximum margin. The support vectors are the critical points that define the margin. Soft margin allows controlled violations. Kernels allow nonlinear boundaries. In practice, scale features and tune carefully.</p>
+      <div class="formula">\[
+\hat{y}=\operatorname{sign}(w^Tx+b)
+\qquad
+\text{margin width}=\frac{2}{\|w\|}
+\]</div>
+    </section>
+
+    <div class="pager"><a class="button" href="04-kernels.html">Previous: Kernels</a><a class="button primary" href="06-support-vector-regression.html">Next: SVR</a></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Introduction to Polynomial Regression</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Polynomial Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a class="active" href="01-introduction.html">Intro</a>
+        <a href="02-simulation-generalization.html">Simulation</a>
+        <a href="03-bias-variance.html">Bias-Variance</a>
+        <a href="04-validation-cross-validation.html">Validation</a>
+        <a href="05-regularization.html">Regularization</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 1</div>
+    <h1>Introduction to polynomial regression</h1>
+    <p class="lead">Polynomial regression is the first major step beyond a straight-line model. It lets linear regression fit curved relationships by giving it transformed input features.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Why do we need it?</h2>
+        <p>Simple linear regression assumes the prediction changes at a constant rate as \(x\) changes:</p>
+        <div class="formula">\[\hat{y}=\beta_0+\beta_1x\]</div>
+        <p>But many real relationships are not constant-rate relationships. The effect may increase, flatten, reverse, or saturate.</p>
+        <div class="activity">
+          <h3>Real-world check</h3>
+          <p class="prompt">If study hours increase from 1 to 2, and then from 10 to 11, should the score improve by the same amount?</p>
+          <p>This question reveals why a straight line can be too rigid for many problems.</p>
+        </div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Straight line missing curved data">
+          <line x1="46" y1="244" x2="380" y2="244" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="46" y1="244" x2="46" y2="40" stroke="#5e6875" stroke-width="2"></line>
+          <path d="M64 214 C118 116, 178 76, 236 94 C292 112, 328 166, 362 220" fill="none" stroke="#11875d" stroke-width="5"></path>
+          <line x1="62" y1="182" x2="360" y2="148" stroke="#c3342f" stroke-width="4" stroke-dasharray="9 7"></line>
+          <circle cx="70" cy="206" r="5" fill="#18202a"></circle>
+          <circle cx="122" cy="130" r="5" fill="#18202a"></circle>
+          <circle cx="178" cy="90" r="5" fill="#18202a"></circle>
+          <circle cx="232" cy="96" r="5" fill="#18202a"></circle>
+          <circle cx="292" cy="136" r="5" fill="#18202a"></circle>
+          <circle cx="352" cy="214" r="5" fill="#18202a"></circle>
+          <text x="244" y="124" class="axis-label">curved pattern</text>
+          <text x="236" y="168" class="axis-label">straight-line fit</text>
+        </svg>
+        <p class="caption">When the data bends, a straight line may miss the main pattern even if it is mathematically correct.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>What is polynomial regression?</h2>
+      <p>Polynomial regression extends linear regression by adding powers of the input feature.</p>
+      <div class="formula">\[\hat{y}=\beta_0+\beta_1x+\beta_2x^2+\beta_3x^3+\cdots+\beta_dx^d\]</div>
+      <p>The degree \(d\) controls how flexible the curve can be.</p>
+      <p>Under squared-error loss, the ideal regression prediction is the conditional average of \(y\) at each value of \(x\):</p>
+      <div class="formula">\[\mathbb{E}(y \mid x)\]</div>
+      <p>That distinction matters because noisy points may sit above or below the underlying average pattern. The fitted curve should usually follow the pattern, not every noisy point.</p>
+      <table>
+        <thead><tr><th>Degree</th><th>Model</th><th>Shape it can learn</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>\(\beta_0+\beta_1x\)</td><td>Straight line</td></tr>
+          <tr><td>2</td><td>\(\beta_0+\beta_1x+\beta_2x^2\)</td><td>One bend, U-shape or inverted U-shape</td></tr>
+          <tr><td>3</td><td>\(\beta_0+\beta_1x+\beta_2x^2+\beta_3x^3\)</td><td>More flexible curve</td></tr>
+          <tr><td>High degree</td><td>Many powers of \(x\)</td><td>Very flexible, but can overfit noise</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Polynomial regression is not a completely new algorithm. It is linear regression applied to engineered features like \(x^2\), \(x^3\), and \(x^4\).</div>
+    </section>
+
+    <section class="section">
+      <h2>Curve fitting, interpolation, and smoothing</h2>
+      <p>Polynomial regression belongs to a larger family of curve fitting ideas. The important classroom distinction is whether we want an exact fit or an approximate fit.</p>
+      <table>
+        <thead><tr><th>Idea</th><th>Meaning</th><th>Polynomial regression connection</th></tr></thead>
+        <tbody>
+          <tr><td>Interpolation</td><td>The curve is forced to pass through known points.</td><td>Can look perfect on training points but may become unstable between points.</td></tr>
+          <tr><td>Smoothing</td><td>The curve follows the main trend while ignoring some noise.</td><td>Usually closer to the ML goal when data is noisy.</td></tr>
+          <tr><td>Least-squares fitting</td><td>The model chooses the curve with small total squared vertical errors.</td><td>This is the usual way polynomial regression learns coefficients.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Fitting choice</h3>
+        <p class="prompt">If the data contains measurement noise, should our curve interpolate every point or smooth the overall trend?</p>
+        <p>For prediction, smoothing the trend is usually safer than forcing an exact fit.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>How can it be linear and curved?</h2>
+        <p>The model is linear in the coefficients, not necessarily linear in the original input.</p>
+        <div class="formula">\[\hat{y}=\beta_0+\beta_1x+\beta_2x^2\]</div>
+        <p>The term \(x^2\) creates curvature, but the model still learns coefficients using linear regression methods.</p>
+        <div class="formula">\[\text{linear in coefficients: }\beta_0,\beta_1,\beta_2\]</div>
+        <p>The effect of \(x\) is no longer constant. For a quadratic model, the slope at a particular \(x\) is:</p>
+        <div class="formula">\[\frac{d\hat{y}}{dx}=\beta_1+2\beta_2x\]</div>
+        <p>So a one-unit change in \(x\) can have a different impact at low, medium, and high values of \(x\).</p>
+        <p>This is the key trick: transform the inputs, then fit a linear model in the transformed feature space.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Polynomial feature transformation">
+          <rect x="38" y="54" width="90" height="52" rx="8" fill="#eef5ff" stroke="#1f6feb"></rect>
+          <text x="74" y="86" class="axis-label">x</text>
+          <line x1="128" y1="80" x2="194" y2="80" stroke="#5e6875" stroke-width="2"></line>
+          <polygon points="194,74 208,80 194,86" fill="#5e6875"></polygon>
+          <rect x="208" y="38" width="142" height="84" rx="8" fill="#ecfdf5" stroke="#11875d"></rect>
+          <text x="238" y="70" class="axis-label">x, x^2, x^3</text>
+          <text x="236" y="94" class="axis-label">new features</text>
+          <line x1="280" y1="122" x2="280" y2="176" stroke="#5e6875" stroke-width="2"></line>
+          <polygon points="274,176 280,190 286,176" fill="#5e6875"></polygon>
+          <rect x="190" y="190" width="180" height="62" rx="8" fill="#fff6e8" stroke="#b85c00"></rect>
+          <text x="224" y="218" class="axis-label">linear regression</text>
+          <text x="224" y="240" class="axis-label">on transformed X</text>
+        </svg>
+        <p class="caption">Polynomial regression is feature engineering plus linear regression.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Examples where polynomial features help</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Experience vs salary</h3>
+          <p>Salary may rise quickly early in a career and later flatten.</p>
+        </div>
+        <div class="card">
+          <h3>Ad spend vs sales</h3>
+          <p>More spend can help at first, but returns may diminish after a point.</p>
+        </div>
+        <div class="card">
+          <h3>Medicine dosage</h3>
+          <p>Response may improve up to a dose, then worsen or saturate.</p>
+        </div>
+      </div>
+      <div class="activity">
+        <h3>Feature decision</h3>
+        <p class="prompt">If adding \(x^2\) improves the fit, should we immediately add \(x^3,x^4,\ldots,x^{20}\)?</p>
+        <p>This sets up the next part of the story: flexibility can help, but too much flexibility can memorize noise.</p>
+      </div>
+      <div class="note warning">Feature scaling becomes important because powers can explode in size. If \(x\) ranges from 1 to 1000, then \(x^2\) ranges up to 1,000,000 and \(x^3\) ranges up to 1,000,000,000.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="index.html">Overview</a>
+      <a class="button primary" href="02-simulation-generalization.html">Next: Simulation</a>
+    </div>
+  </main>
+</body>
+</html>

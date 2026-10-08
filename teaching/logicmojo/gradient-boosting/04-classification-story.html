@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gradient Boosting for Classification</title>
+  <link rel="stylesheet" href="styles.css?v=2">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+<header class="topbar"><nav class="nav" aria-label="Boosting foundations"><a class="brand" href="index.html">Boosting Foundations</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-idea-of-boosting.html">From bagging</a><a href="02-gradient-boosting-story.html">Regression</a><a href="03-why-gradient.html">Why gradient?</a><a class="active" href="04-classification-story.html">Classification</a><a href="04-complete-algorithm.html">Algorithm</a></div></nav></header>
+<main class="page">
+  <div class="eyebrow">Part 4 · Binary classification</div>
+  <h1>A classification model still adds numerical corrections.</h1>
+  <p class="lead">Gradient Boosting does not ask each tree to make a final yes-or-no decision. It builds a continuous raw score, converts that score to a probability, measures log loss, and uses a regression tree to improve the scores.</p>
+
+  <section class="section">
+    <div class="activity"><h3>Prediction question</h3><p class="prompt">If trees output corrections such as \(+0.55\) and \(-0.55\), how can their sum become a class probability?</p></div>
+    <h2>Three objects must stay separate</h2>
+    <div class="grid">
+      <div class="card"><h3>Raw score \(F(x)\)</h3><p>The additive quantity built by the trees. It can be any real number.</p></div>
+      <div class="card"><h3>Probability \(p(x)\)</h3><p>The sigmoid transforms the raw score into a number between 0 and 1.</p><div class="formula">\[p(x)=\sigma(F(x))=\frac{1}{1+e^{-F(x)}}\]</div></div>
+      <div class="card"><h3>Predicted class</h3><p>A threshold turns the probability into a decision, commonly \(\widehat y=1\) when \(p\geq0.5\).</p></div>
+      <div class="card"><h3>Training loss</h3><p>Binary log loss judges the probability, not merely the final class label.</p><div class="formula">\[L(y,p)=-\left[y\log p+(1-y)\log(1-p)\right]\]</div></div>
+    </div>
+    <p class="intuition"><strong>Why use a raw score?</strong> Sums are unrestricted, but probabilities must remain in \([0,1]\). Add trees on the raw-score scale and use the sigmoid only to interpret the result as probability.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Baseline question</h3><p class="prompt">Before using any feature, what probability should the model assign to every application?</p></div>
+    <h2>Step 0: start from the class prior</h2>
+    <p>Suppose eight historical loan applications are ordered by a risk feature. The target is \(y=1\) for default and \(y=0\) for repayment.</p>
+    <div class="table-wrap"><table><thead><tr><th>Risk rank \(x\)</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th></tr></thead><tbody><tr><td>Actual \(y\)</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr></tbody></table></div>
+    <p>There are four defaults in eight rows, so the initial probability is</p>
+    <div class="formula">\[p_0=\frac{4}{8}=0.5\]</div>
+    <h3>Why convert probability into a raw score?</h3>
+    <p>First convert probability to odds. Odds compare the chance of default with the chance of repayment:</p>
+    <div class="formula">\[\operatorname{odds}=\frac{p_0}{1-p_0}=\frac{0.5}{0.5}=1\]</div>
+    <p>Odds of \(1\) mean \(1{:}1\): the two outcomes are equally likely. The raw score is the logarithm of these odds:</p>
+    <div class="formula">\[F_0=\log\left(\frac{p_0}{1-p_0}\right)=\log(1)=0\]</div>
+    <p>Raw scores can range from \(-\infty\) to \(+\infty\), so trees can safely add corrections to them. The sigmoid converts the score back to probability:</p>
+    <div class="formula">\[\sigma(F_0)=\frac{1}{1+e^{-0}}=0.5\]</div>
+    <p class="intuition"><strong>Score direction:</strong> \(F=0\) means \(p=0.5\); a positive score means \(p>0.5\); and a negative score means \(p<0.5\).</p>
+
+    <h3>Why is the initial mean log loss \(0.6931\)?</h3>
+    <p>The model has not used any features yet, so every row receives probability \(0.5\). For a default row \((y=1)\):</p>
+    <div class="formula">\[L(1,0.5)=-\log(0.5)=0.6931\]</div>
+    <p>For a repayment row \((y=0)\):</p>
+    <div class="formula">\[L(0,0.5)=-\log(1-0.5)=0.6931\]</div>
+    <p>All eight rows therefore have the same loss, so averaging them gives the same number:</p>
+    <div class="formula">\[\operatorname{LogLoss}_0=\frac{8(0.6931)}{8}=0.6931\]</div>
+    <p class="intuition"><strong>Starting point:</strong> before seeing any features, the model predicts only the overall class proportion. The trees must move individual raw scores above or below zero to improve this baseline.</p>
+    <p class="note"><strong>General baseline:</strong> if the positive-class fraction is \(\pi\), then \(F_0=\log(\pi/(1-\pi))\). An imbalanced dataset therefore does not normally begin at probability \(0.5\).</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Correction question</h3><p class="prompt">For a positive row currently predicted as \(0.5\), should its probability move up or down? What about a negative row?</p></div>
+    <h2>Step 1: calculate the classification pseudo-residuals</h2>
+    <p>For binary log loss, differentiating with respect to the raw score gives</p>
+    <div class="formula">\[\frac{\partial L}{\partial F}=p-y\qquad\Longrightarrow\qquad r_i=-\frac{\partial L}{\partial F}=y_i-p_i\]</div>
+    <p>Because every initial probability is \(0.5\), positives receive \(+0.5\) and negatives receive \(-0.5\).</p>
+    <div class="table-wrap"><table><thead><tr><th>\(x\)</th><th>\(y\)</th><th>Current \(p_0\)</th><th>Pseudo-residual \(r=y-p_0\)</th><th>Meaning</th></tr></thead><tbody>
+      <tr><td>1</td><td>1</td><td>0.5</td><td class="numeric">+0.5</td><td>Push upward</td></tr>
+      <tr><td>2</td><td>0</td><td>0.5</td><td class="numeric">−0.5</td><td>Push downward</td></tr>
+      <tr><td>3</td><td>1</td><td>0.5</td><td class="numeric">+0.5</td><td>Push upward</td></tr>
+      <tr><td>4</td><td>1</td><td>0.5</td><td class="numeric">+0.5</td><td>Push upward</td></tr>
+      <tr><td>5</td><td>0</td><td>0.5</td><td class="numeric">−0.5</td><td>Push downward</td></tr>
+      <tr><td>6</td><td>0</td><td>0.5</td><td class="numeric">−0.5</td><td>Push downward</td></tr>
+      <tr><td>7</td><td>1</td><td>0.5</td><td class="numeric">+0.5</td><td>Push upward</td></tr>
+      <tr><td>8</td><td>0</td><td>0.5</td><td class="numeric">−0.5</td><td>Push downward</td></tr>
+    </tbody></table></div>
+    <p class="intuition"><strong>The tree's target is continuous:</strong> \(r_i\) says both direction and urgency. This is why Gradient Boosting uses a regression tree internally even for classification.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Split question</h3><p class="prompt">Looking only at the \(+0.5\) and \(-0.5\) targets, where would a one-split tree divide the rows?</p></div>
+    <h2>Step 2: fit a small regression tree to the corrections</h2>
+    <p>Among the seven possible split positions, the smallest squared error occurs between ranks 4 and 5. The first leaf contains three positives and one negative; the second contains one positive and three negatives.</p>
+    <div class="two-col">
+      <div class="visual"><svg class="plot" viewBox="0 0 430 300" role="img" aria-label="A decision stump splitting eight pseudo-residuals after risk rank four"><line x1="40" y1="145" x2="397" y2="145" class="axis"/><line x1="40" y1="48" x2="40" y2="243" class="axis"/><line x1="219" y1="42" x2="219" y2="245" stroke="#6346b8" stroke-width="3" stroke-dasharray="7 6"/><g fill="#c43b36"><circle cx="65" cy="82" r="7"/><circle cx="155" cy="82" r="7"/><circle cx="200" cy="82" r="7"/><circle cx="335" cy="82" r="7"/></g><g fill="#1769aa"><circle cx="110" cy="208" r="7"/><circle cx="245" cy="208" r="7"/><circle cx="290" cy="208" r="7"/><circle cx="380" cy="208" r="7"/></g><text x="226" y="58" class="axis-label">split at 4.5</text><text x="115" y="275" class="axis-label">leaf A: ranks 1–4</text><text x="288" y="275" class="axis-label">leaf B: ranks 5–8</text><text x="7" y="85" class="axis-label">+0.5</text><text x="7" y="212" class="axis-label">−0.5</text></svg><div class="legend"><span><i class="swatch" style="background:#c43b36"></i>positive row</span><span><i class="swatch" style="background:#1769aa"></i>negative row</span></div></div>
+      <div><h3>What the split discovered</h3><p>Leaf A has observed default rate \(3/4=0.75\). Leaf B has observed default rate \(1/4=0.25\).</p><p>The stump has found a useful regional pattern, though it is not perfect. That is exactly the role of a weak learner.</p><div class="formula">\[\bar r_A=+0.25,\qquad \bar r_B=-0.25\]</div><p>These means guide the split search. After fixing the regions, Gradient Boosting chooses leaf updates that best reduce the actual log loss.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Update question</h3><p class="prompt">Should the next probability be obtained by adding \(0.25\) directly to \(0.5\), or by updating the raw score?</p></div>
+    <h2>Step 3: find each leaf's best raw-score correction</h2>
+    <p>Inside a leaf with positive fraction \(q\), the log-loss-minimizing raw score is its log-odds, \(\log(q/(1-q))\). Since the current score is zero:</p>
+    <div class="formula">\[\gamma_A=\log\left(\frac{0.75}{0.25}\right)=\log 3\approx1.0986\]</div>
+    <div class="formula">\[\gamma_B=\log\left(\frac{0.25}{0.75}\right)=-\log 3\approx-1.0986\]</div>
+    <p>Use learning rate \(\eta=0.5\), so the model takes only half of each correction:</p>
+    <div class="formula">\[F_1(x)=F_0(x)+0.5\,\gamma_{\operatorname{leaf}(x)}\]</div>
+    <div class="table-wrap"><table><thead><tr><th>Region</th><th>New raw score \(F_1\)</th><th>New probability \(\sigma(F_1)\)</th><th>Direction</th></tr></thead><tbody><tr><td>Ranks 1–4</td><td class="numeric">+0.5493</td><td class="numeric">0.6340</td><td>More confidence in default</td></tr><tr><td>Ranks 5–8</td><td class="numeric">−0.5493</td><td class="numeric">0.3660</td><td>More confidence in repayment</td></tr></tbody></table></div>
+    <p class="note"><strong>Do not add corrections directly to probabilities.</strong> Repeated probability additions could leave the valid range. Corrections are added to raw scores; the sigmoid always returns a valid probability.</p>
+    <p class="small">This page uses exact leaf-wise log-loss minimization so the arithmetic stays transparent. Some implementations use a Newton approximation to obtain closely related leaf updates.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Verification question</h3><p class="prompt">The tree still misclassifies two rows at a \(0.5\) threshold. Can log loss nevertheless improve?</p></div>
+    <h2>Step 4: verify that the loss fell</h2>
+    <p>Six rows agree with their leaf's majority and receive probability \(0.6340\) for their true class. Two disagree and receive probability \(0.3660\) for their true class. Therefore:</p>
+    <div class="formula">\[\begin{aligned}\operatorname{LogLoss}_1&=-\frac18\left[6\log(0.6340)+2\log(0.3660)\right]\\&\approx0.5930\end{aligned}\]</div>
+    <div class="grid"><div class="card"><h3>Before the tree</h3><p class="numeric">Mean log loss = 0.6931</p></div><div class="card"><h3>After one cautious tree</h3><p class="numeric">Mean log loss ≈ 0.5930</p></div></div>
+    <p>The hard-label accuracy rises from an ambiguous \(0.5\)-probability baseline to \(6/8=75\%\). More importantly, the differentiable log loss supplies graded feedback for the next round. The model recalculates \(y-p_1\), fits another correction tree, and continues.</p>
+    <p class="intuition"><strong>The classification loop:</strong> raw scores → sigmoid probabilities → log loss → pseudo-residuals \(y-p\) → regression tree → raw-score correction → repeat.</p>
+  </section>
+
+  <section class="section"><h2>What this example establishes</h2><ol><li>Classification Gradient Boosting builds scores before it produces classes.</li><li>The initial score represents the class prior.</li><li>For binary log loss, the negative-gradient target is \(y-p\).</li><li>A regression tree groups observations needing similar score corrections.</li><li>Leaf values update raw scores, and the sigmoid converts them to probabilities.</li><li>A weak tree need not classify every row correctly to reduce the ensemble's loss.</li></ol></section>
+  <div class="pager"><a class="button" href="03-why-gradient.html">Previous: Why gradient?</a><a class="button primary" href="04-complete-algorithm.html">Next: Algorithm</a></div>
+</main>
+</body>
+</html>

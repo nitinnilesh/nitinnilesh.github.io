@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Practical Decision Tree Workflow</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-tree-intuition.html">Intuition</a><a class="" href="02-entropy-gini.html">Impurity</a><a class="" href="03-information-gain.html">Gain</a><a class="" href="04-mixed-splits.html">Mixed Data</a><a class="" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="" href="07-regression-trees.html">Regression</a><a class="" href="08-evaluation-tuning.html">Evaluation</a><a class="active" href="09-practical-guide.html">Practice</a><a class="" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Part 9</div>
+    <h1>Trees need less numerical preprocessing, but they still need careful data engineering.</h1>
+    <p class="lead">A reliable tree workflow protects the validation boundary, handles categories and missingness deliberately, inspects leaf support, and treats interpretation as evidence rather than causality.</p>
+
+    <section class="section">
+      <h2>End-to-end workflow</h2>
+      <div class="activity"><h3>Workflow question</h3><p class="prompt">If trees do not usually need scaling, does that mean preprocessing cannot leak information?</p></div>
+      <div class="mini-flow"><span>Define target and costs</span><span>Split by real deployment unit</span><span>Fit preprocessing on train</span><span>Tune with validation</span><span>Test and monitor</span></div>
+      <ol>
+        <li>Define the prediction time, target window, and cost of each mistake.</li>
+        <li>Split data by person, account, location, or time as deployment requires.</li>
+        <li>Fit imputation and encoding only on training folds.</li>
+        <li>Build a simple baseline and tune tree complexity.</li>
+        <li>Evaluate metrics, calibration, fairness, stability, and latency.</li>
+        <li>Document the final rules and monitor drift after deployment.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>Why scaling is usually unnecessary</h2>
+      <div class="formula">\[
+      x_j\le t
+      \]</div>
+      <p>If income is converted from thousands of rupees to rupees, the ordering of values is unchanged and the equivalent threshold rescales with it.</p>
+      <div class="formula">\[
+      Income_{thousands}\le42.5\quad\Longleftrightarrow\quad Income_{rupees}\le42{,}500
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> a tree cares about which rows fall on each side of a threshold, not Euclidean distance or gradient size.</p>
+      <div class="note">Scaling can still be needed elsewhere in a pipeline, such as when a tree is compared or stacked with scale-sensitive models.</div>
+    </section>
+
+    <section class="section">
+      <h2>Categorical features</h2>
+      <table><thead><tr><th>Strategy</th><th>Benefit</th><th>Risk</th></tr></thead><tbody>
+        <tr><td>One-hot encoding</td><td>Safe for unordered categories and standard scikit-learn pipelines.</td><td>Each split isolates one encoded category; high cardinality creates many columns.</td></tr>
+        <tr><td>Ordinal encoding</td><td>Compact and suitable for truly ordered categories.</td><td>Invents an order when used on nominal categories.</td></tr>
+        <tr><td>Native categorical tree library</td><td>Can search category groupings more directly.</td><td>Behavior differs across libraries and must be validated.</td></tr>
+        <tr><td>Target encoding</td><td>Compact for high cardinality.</td><td>Severe leakage risk unless learned within each training fold.</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Missing values</h2>
+      <div class="activity"><h3>Missingness question</h3><p class="prompt">Can “missing income” itself carry information, and when would using that information be dangerous?</p></div>
+      <ul>
+        <li>Numeric imputation can use median values plus a missingness indicator.</li>
+        <li>Categorical missingness can become an explicit `Missing` category when meaningful.</li>
+        <li>Some tree estimators and versions support missing values natively; verify the exact estimator and criterion.</li>
+        <li>Missingness created only after deployment may signal pipeline failure rather than user behavior.</li>
+      </ul>
+      <p class="intuition"><strong>Intuition:</strong> treat missingness as a data-generating event that needs investigation, not just an empty cell to fill.</p>
+    </section>
+
+    <section class="section">
+      <h2>A leakage-safe classification pipeline</h2>
+      <div class="codebox">numeric_pipe = Pipeline([
+    ("imputer", SimpleImputer(strategy="median"))
+])
+
+categorical_pipe = Pipeline([
+    ("imputer", SimpleImputer(strategy="most_frequent")),
+    ("onehot", OneHotEncoder(handle_unknown="ignore"))
+])
+
+model = Pipeline([
+    ("prepare", ColumnTransformer([...])) ,
+    ("tree", DecisionTreeClassifier(
+        criterion="entropy",
+        random_state=42
+    ))
+])</div>
+      <p>The complete pipeline is fitted inside each validation fold so imputers and encoders never learn from validation rows.</p>
+    </section>
+
+    <section class="section">
+      <h2>Interpret one tree carefully</h2>
+      <table><thead><tr><th>Inspection</th><th>Question to ask</th></tr></thead><tbody>
+        <tr><td>Root and early splits</td><td>Are dominant rules plausible, stable, and available at prediction time?</td></tr>
+        <tr><td>Leaf sample counts</td><td>Are important predictions supported by enough examples?</td></tr>
+        <tr><td>Class distribution</td><td>How uncertain is each leaf?</td></tr>
+        <tr><td>Train vs validation behavior</td><td>Do the same rules survive unseen data?</td></tr>
+        <tr><td>Subgroup errors</td><td>Are mistakes concentrated in protected or operationally important groups?</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Feature importance is not causality</h2>
+      <div class="formula">\[
+      Importance(j)\propto\sum_{t:\,\text{node }t\text{ splits on }j}\frac{N_t}{N}\Delta I_t
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> a feature receives credit when the fitted tree uses it to reduce impurity for many rows.</p>
+      <ul>
+        <li>Continuous and high-cardinality features have more chances to create an attractive split.</li>
+        <li>Correlated features can share or substitute importance.</li>
+        <li>Importance does not give direction: it does not say whether higher values raise or lower predictions.</li>
+        <li>Predictive association does not prove that changing the feature changes the outcome.</li>
+      </ul>
+      <p>Compare impurity importance with validation-set permutation importance and domain knowledge.</p>
+    </section>
+
+    <section class="section">
+      <h2>High-cardinality identifiers</h2>
+      <div class="activity"><h3>Identifier question</h3><p class="prompt">Why might customer ID appear to create excellent training splits?</p></div>
+      <p>An identifier can isolate very small groups and memorize labels without learning reusable structure. Similar risks occur with post-outcome codes, timestamps that reveal the target period, and category levels seen only once.</p>
+      <div class="note warning">Remove pure identifiers unless they have a defensible deployment role. Audit suspiciously strong features before celebrating model performance.</div>
+    </section>
+
+    <section class="section">
+      <h2>Computational behavior</h2>
+      <p>At one node containing \(n\) rows and \(p\) features, sorting and scanning candidate numerical thresholds is roughly:</p>
+      <div class="formula">\[
+      O(p\,n\log n)
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> each feature is ordered so adjacent values can become candidate boundaries, then the algorithm scans those boundaries. Across the complete tree, total fitting cost also depends on how many nodes grow and whether the tree is balanced. Worst-case analyses can be much higher; optimized implementations reduce practical cost by reusing sorted order and other cached work.</p>
+      <p>Prediction is simpler because one row follows only one root-to-leaf path:</p>
+      <div class="formula">\[
+      O(depth)\text{ per sample}
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> trees can predict quickly because a row evaluates only the questions on its path, not every node.</p>
+    </section>
+
+    <section class="section">
+      <h2>Operational checks</h2>
+      <ul>
+        <li>Confirm all split features are available and trustworthy at prediction time.</li>
+        <li>Version the encoder, feature definitions, tree, and threshold together.</li>
+        <li>Monitor missingness, category frequencies, leaf traffic, probability calibration, and subgroup errors.</li>
+        <li>Alert when a formerly common leaf receives almost no rows or a rare leaf suddenly dominates.</li>
+        <li>Revalidate explanations after retraining because the tree structure can change sharply.</li>
+      </ul>
+    </section>
+
+    <div class="pager"><a class="button" href="08-evaluation-tuning.html">Previous: Evaluation</a><a class="button primary" href="10-when-to-use.html">Next: Model Choice</a></div>
+  </main>
+</body>
+</html>

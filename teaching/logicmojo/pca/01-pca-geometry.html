@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PCA Geometry and Preprocessing</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">PCA</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a class="active" href="01-pca-geometry.html">Geometry</a>
+        <a href="02-covariance-eigen.html">Covariance</a>
+        <a href="03-projection-variance.html">Projection</a>
+        <a href="04-pca-in-practice.html">Practice</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 1</div>
+    <h1>PCA begins with geometry: preserve the largest spread.</h1>
+    <p class="lead">Before eigenvectors appear, PCA is simply asking which direction gives the best one-dimensional view of the data.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>PCA as the best viewing angle</h2>
+        <div class="activity">
+          <h3>Projection question</h3>
+          <p class="prompt">If you must flatten a tilted 2D cloud onto one line, should the line go along the cloud or across the cloud?</p>
+          <p>Along the cloud, because that keeps more spread and loses less information.</p>
+        </div>
+        <p>PCA searches for a line or axis where projected points remain as spread out as possible. The same line can also be understood as the line that passes closest to the data cloud in squared-distance terms.</p>
+        <p>The first principal component is the direction with maximum variance:</p>
+        <div class="formula">\[
+w_1 = \underset{\|w\|=1}{\arg\max}\ \operatorname{Var}(Xw)
+\]</div>
+        <p>Here, \(w\) is not a row from the data. It is a candidate direction in feature space.</p>
+        <table>
+          <thead><tr><th>Object</th><th>Shape</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td>\(X\)</td><td>\(n \times p\)</td><td>Data matrix with \(n\) rows and \(p\) features.</td></tr>
+            <tr><td>\(w\)</td><td>\(p \times 1\)</td><td>One direction vector, with one weight for each original feature.</td></tr>
+            <tr><td>\(Xw\)</td><td>\(n \times 1\)</td><td>One projected number for every row.</td></tr>
+          </tbody>
+        </table>
+        <p>Each value in \(Xw\) is the coordinate or score of one data point along direction \(w\). If those projected scores are widely spread out, then \(w\) is a good direction for preserving information.</p>
+        <div class="formula">\[
+Xw=
+\begin{bmatrix}
+\text{score of row 1 on direction }w\\
+\text{score of row 2 on direction }w\\
+\vdots\\
+\text{score of row }n\text{ on direction }w
+\end{bmatrix}
+\]</div>
+        <p>The constraint \(\|w\|=1\) prevents a fake solution. Without it, we could make \(Xw\) arbitrarily large just by multiplying \(w\) by a huge number.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Projection along long and short directions">
+          <ellipse cx="210" cy="150" rx="124" ry="42" transform="rotate(-30 210 150)" fill="#f8fbff" stroke="#bfd3ff" stroke-width="2"></ellipse>
+          <line x1="92" y1="218" x2="328" y2="82" stroke="#1f6feb" stroke-width="5"></line>
+          <line x1="170" y1="82" x2="250" y2="218" stroke="#c3342f" stroke-width="4" stroke-dasharray="7 6"></line>
+          <circle cx="136" cy="195" r="6" fill="#18202a"></circle><circle cx="174" cy="168" r="6" fill="#18202a"></circle><circle cx="210" cy="148" r="6" fill="#18202a"></circle><circle cx="250" cy="128" r="6" fill="#18202a"></circle><circle cx="286" cy="104" r="6" fill="#18202a"></circle>
+          <text x="292" y="74" class="axis-label">large spread</text>
+          <text x="252" y="226" class="axis-label">small spread</text>
+        </svg>
+        <p class="caption">The best 1D summary is the direction where projections are most spread out.</p>
+      </div>
+    </section>
+
+
+    <section class="two-col section">
+      <div>
+        <h2>Closest line and closest plane interpretation</h2>
+        <div class="activity"><h3>Closest subspace question</h3><p class="prompt">In 3D data, if we reduce to 2D, what should the chosen plane do?</p><p>It should pass as close as possible to the original data cloud.</p></div>
+        <p>For 2D to 1D reduction, PCA finds the best line. For 3D to 2D reduction, PCA finds the best plane. In general, PCA finds the best lower-dimensional linear subspace.</p>
+        <table>
+          <thead><tr><th>Original dimension</th><th>Reduced dimension</th><th>PCA object</th></tr></thead>
+          <tbody>
+            <tr><td>2D</td><td>1D</td><td>Closest line</td></tr>
+            <tr><td>3D</td><td>2D</td><td>Closest plane</td></tr>
+            <tr><td>\(p\)D</td><td>\(k\)D</td><td>Closest \(k\)-dimensional linear subspace</td></tr>
+          </tbody>
+        </table>
+        <div class="note">This interpretation helps students connect PCA with information loss: the farther points are from the chosen line or plane, the more information is lost.</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Closest line and closest plane intuition">
+          <rect x="54" y="54" width="132" height="188" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="230" y="54" width="132" height="188" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <line x1="76" y1="210" x2="164" y2="88" stroke="#1f6feb" stroke-width="5"></line>
+          <g fill="#18202a"><circle cx="92" cy="188" r="5"></circle><circle cx="112" cy="162" r="5"></circle><circle cx="132" cy="136" r="5"></circle><circle cx="152" cy="108" r="5"></circle></g>
+          <polygon points="248,198 342,162 316,92 222,128" fill="#eaf3ff" stroke="#1f6feb" stroke-width="3"></polygon>
+          <g fill="#18202a"><circle cx="270" cy="176" r="5"></circle><circle cx="294" cy="138" r="5"></circle><circle cx="324" cy="118" r="5"></circle><circle cx="250" cy="130" r="5"></circle></g>
+          <text x="82" y="270" class="axis-label">2D to 1D: line</text><text x="240" y="270" class="axis-label">3D to 2D: plane</text>
+        </svg>
+        <p class="caption">PCA can be seen as finding the closest lower-dimensional flat surface through the centered data.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Why minimum error equals maximum variance</h2>
+      <div class="activity"><h3>Tradeoff question</h3><p class="prompt">If a point is far from the projection line, what happens to reconstruction error?</p><p>It increases because the dropped perpendicular part is large.</p></div>
+      <p>For a centered point \(x\), split it into the part along the PCA direction and the part perpendicular to it:</p>
+      <div class="formula">\[
+x = x_{\parallel} + x_{\perp}
+\]</div>
+      <p>Because these two parts are perpendicular, Pythagoras gives:</p>
+      <div class="formula">\[
+\|x\|^2 = \|x_{\parallel}\|^2 + \|x_{\perp}\|^2
+\]</div>
+      <p>The total \(\|x\|^2\) is fixed for the dataset. So if we make projected variance \(\|x_{\parallel}\|^2\) large, the leftover reconstruction error \(\|x_{\perp}\|^2\) becomes small.</p>
+      <div class="formula">\[
+\text{large projected variance} \Rightarrow \text{small reconstruction error}
+\]</div>
+    </section>
+
+    <section class="section">
+      <h2>Step 1: arrange data as a matrix</h2>
+      <div class="activity"><h3>Matrix question</h3><p class="prompt">In a dataset with 5 students and 3 marks columns, what should a row represent and what should a column represent?</p><p>A row is one observation. A column is one feature.</p></div>
+      <p>We start with a data matrix \(X\):</p>
+      <div class="formula">\[
+X =
+\begin{bmatrix}
+x_{11} & x_{12} & \cdots & x_{1p}\\
+x_{21} & x_{22} & \cdots & x_{2p}\\
+\vdots & \vdots & \ddots & \vdots\\
+x_{n1} & x_{n2} & \cdots & x_{np}
+\end{bmatrix}
+\]</div>
+      <p>\(n\) is the number of rows or observations. \(p\) is the number of original features.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Step 2: mean centering</h2>
+        <div class="activity"><h3>Centering question</h3><p class="prompt">If we move the entire data cloud to the origin, do distances between points change?</p><p>No. The location changes, but the shape and spread remain the same.</p></div>
+        <p>PCA studies variation around the center. So we subtract each feature's mean.</p>
+        <div class="formula">\[
+\bar{x}_j = \frac{1}{n}\sum_{i=1}^{n}x_{ij}
+\]</div>
+        <div class="formula">\[
+x_{ij}^{centered}=x_{ij}-\bar{x}_j
+\]</div>
+        <p>After centering, each feature has mean zero:</p>
+        <div class="formula">\[
+\frac{1}{n}\sum_{i=1}^{n}x_{ij}^{centered}=0
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Before and after centering">
+          <rect x="42" y="52" width="150" height="190" fill="#f8fbff" stroke="#d9e0ea"></rect><rect x="228" y="52" width="150" height="190" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <line x1="54" y1="224" x2="180" y2="224" stroke="#5e6875"></line><line x1="54" y1="224" x2="54" y2="72" stroke="#5e6875"></line>
+          <line x1="240" y1="148" x2="366" y2="148" stroke="#5e6875"></line><line x1="303" y1="224" x2="303" y2="72" stroke="#5e6875"></line>
+          <g fill="#1f6feb"><circle cx="122" cy="116" r="6"></circle><circle cx="142" cy="96" r="6"></circle><circle cx="102" cy="138" r="6"></circle><circle cx="154" cy="122" r="6"></circle></g>
+          <g fill="#1f6feb"><circle cx="292" cy="156" r="6"></circle><circle cx="312" cy="136" r="6"></circle><circle cx="272" cy="178" r="6"></circle><circle cx="324" cy="162" r="6"></circle></g>
+          <circle cx="130" cy="118" r="5" fill="#c3342f"></circle><circle cx="300" cy="158" r="5" fill="#c3342f"></circle>
+          <text x="78" y="270" class="axis-label">before centering</text><text x="260" y="270" class="axis-label">after centering</text>
+        </svg>
+        <p class="caption">Centering moves the average point to the origin. PCA then studies spread around that center.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Step 3: scaling when feature units differ</h2>
+        <div class="activity"><h3>Scale question</h3><p class="prompt">If income is measured in rupees and age is measured in years, which feature may dominate PCA?</p><p>Income, because its numeric spread can be much larger.</p></div>
+        <p>If features have different units or very different ranges, standardize them before PCA.</p>
+        <div class="formula">\[
+z_{ij}=\frac{x_{ij}-\mu_j}{\sigma_j}
+\]</div>
+        <p>This makes each feature have mean \(0\) and standard deviation \(1\). PCA then compares patterns more fairly.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Scaling effect on PCA direction">
+          <rect x="48" y="50" width="140" height="190" fill="#f8fbff" stroke="#d9e0ea"></rect><rect x="232" y="50" width="140" height="190" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <ellipse cx="118" cy="146" rx="58" ry="18" fill="#eaf3ff" stroke="#bfd3ff" transform="rotate(2 118 146)"></ellipse>
+          <ellipse cx="302" cy="146" rx="58" ry="28" fill="#eaf3ff" stroke="#bfd3ff" transform="rotate(-32 302 146)"></ellipse>
+          <line x1="62" y1="146" x2="174" y2="146" stroke="#c3342f" stroke-width="4"></line>
+          <line x1="252" y1="186" x2="352" y2="106" stroke="#1f6feb" stroke-width="4"></line>
+          <text x="68" y="270" class="axis-label">unscaled: big unit dominates</text><text x="252" y="270" class="axis-label">scaled: pattern direction appears</text>
+        </svg>
+        <p class="caption">Scaling can change the principal components because it changes the shape PCA sees.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>What PCA is optimizing</h2>
+      <p>PCA looks for a unit direction \(w\) that maximizes the variance of projected data \(X_cw\):</p>
+      <div class="formula">\[
+\operatorname{Var}(X_cw)=\frac{1}{n-1}(X_cw)^T(X_cw)
+\]</div>
+      <p>Rearrange this expression:</p>
+      <div class="formula">\[
+\operatorname{Var}(X_cw)=w^T\left(\frac{X_c^TX_c}{n-1}\right)w
+\]</div>
+      <p>The matrix inside the parentheses is the covariance matrix. That is why covariance is the next major idea.</p>
+    </section>
+
+    <div class="pager"><a class="button" href="index.html">Back to Overview</a><a class="button primary" href="02-covariance-eigen.html">Next: Covariance</a></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Soft Margin SVM</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">SVM</a>
+      <div class="navlinks">
+        <a class="" href="index.html">Overview</a>
+        <a class="" href="01-svm-geometry.html">Geometry</a>
+        <a class="" href="02-margin-and-scratch-svm.html">Scratch</a>
+        <a class="active" href="03-soft-margin.html">Soft Margin</a>
+        <a class="" href="04-kernels.html">Kernels</a>
+        <a class="" href="05-svm-in-practice.html">Practice</a>
+        <a class="" href="06-support-vector-regression.html">SVR</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Part 3</div>
+    <h1>Soft margin SVM accepts that real data is messy.</h1>
+    <p class="lead">Hard margin is elegant, but real datasets overlap. Soft margin allows controlled violations so the model can generalize better.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Why hard margin fails</h2>
+        <div class="activity"><h3>Reality question</h3><p class="prompt">If one noisy point appears on the wrong side, should the whole boundary twist around it?</p></div>
+        <p>In real data, classes can overlap. A perfectly separating boundary may not exist, or may overfit badly.</p>
+        <p>Soft margin says: allow some points to violate the margin, but charge a penalty.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Overlapping classes">
+          <line x1="58" y1="246" x2="366" y2="246" stroke="#5e6875" stroke-width="2"/><line x1="58" y1="246" x2="58" y2="52" stroke="#5e6875" stroke-width="2"/>
+          <circle cx="132" cy="194" r="8" fill="#2a9d8f" stroke="#18202a"/><circle cx="160" cy="214" r="8" fill="#2a9d8f" stroke="#18202a"/><circle cx="206" cy="170" r="8" fill="#2a9d8f" stroke="#18202a"/><circle cx="232" cy="138" r="8" fill="#2a9d8f" stroke="#18202a"/>
+          <circle cx="252" cy="112" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="282" cy="92" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="304" cy="132" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="196" cy="190" r="8" fill="#e76f51" stroke="#18202a"/>
+          <line x1="118" y1="74" x2="316" y2="246" stroke="#18202a" stroke-width="4"/>
+          <text x="72" y="280" class="axis-label">overlap creates unavoidable violations</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Slack variables</h2>
+      <div class="activity"><h3>Violation question</h3><p class="prompt">How can we measure how much a point violates the margin?</p></div>
+      <p>Soft margin introduces slack variables \(\xi_i\). A slack value measures how much point \(i\) violates the margin condition.</p>
+      <div class="formula">\[
+y_i(w^Tx_i+b)\ge 1-\xi_i
+\qquad
+\xi_i\ge 0
+\]</div>
+      <table><thead><tr><th>Slack value</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>\(\xi_i=0\)</td><td>point is correctly classified and outside margin</td></tr>
+        <tr><td>\(0<\xi_i<1\)</td><td>point is inside margin but still on correct side</td></tr>
+        <tr><td>\(\xi_i\ge 1\)</td><td>point is misclassified or exactly beyond the boundary</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Soft-margin objective</h2>
+      <div class="activity"><h3>Tradeoff question</h3><p class="prompt">Should the model prefer a wide margin or fewer violations?</p></div>
+      <div class="formula">\[
+\min_{w,b}\frac{1}{2}\|w\|^2+C\sum_i\xi_i
+\]</div>
+      <p>The first term wants a wide margin. The second term penalizes violations. \(C\) controls how much violations hurt.</p>
+    </section>
+
+    <section class="section">
+      <h2>The role of C</h2>
+      <div class="activity"><h3>Strictness question</h3><p class="prompt">What happens if mistakes become very expensive?</p></div>
+      <table><thead><tr><th>Value of \(C\)</th><th>Behavior</th><th>Risk</th></tr></thead><tbody>
+        <tr><td>Small \(C\)</td><td>more tolerant, wider margin, allows more violations</td><td>underfitting</td></tr>
+        <tr><td>Large \(C\)</td><td>stricter, tries to reduce training violations</td><td>overfitting</td></tr>
+      </tbody></table>
+      <div class="wide-visual compact-visual">
+        <svg class="plot-wide" viewBox="0 0 760 300" role="img" aria-label="Small C versus large C">
+          <text x="62" y="34" class="plot-title">Small C: tolerant</text><text x="456" y="34" class="plot-title">Large C: strict</text>
+          <rect x="44" y="50" width="300" height="210" fill="#fff" stroke="#d9e0ea"/><rect x="416" y="50" width="300" height="210" fill="#fff" stroke="#d9e0ea"/>
+          <line x1="120" y1="70" x2="276" y2="244" stroke="#18202a" stroke-width="4"/><line x1="488" y1="64" x2="654" y2="250" stroke="#18202a" stroke-width="4"/>
+          <line x1="92" y1="96" x2="248" y2="270" stroke="#18202a" stroke-width="2" stroke-dasharray="6 6"/><line x1="148" y1="44" x2="304" y2="218" stroke="#18202a" stroke-width="2" stroke-dasharray="6 6"/>
+          <line x1="472" y1="82" x2="638" y2="268" stroke="#18202a" stroke-width="2" stroke-dasharray="6 6"/><line x1="504" y1="46" x2="670" y2="232" stroke="#18202a" stroke-width="2" stroke-dasharray="6 6"/>
+          <circle cx="124" cy="194" r="8" fill="#2a9d8f" stroke="#18202a"/><circle cx="180" cy="206" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="246" cy="104" r="8" fill="#e76f51" stroke="#18202a"/>
+          <circle cx="500" cy="196" r="8" fill="#2a9d8f" stroke="#18202a"/><circle cx="560" cy="206" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="620" cy="104" r="8" fill="#e76f51" stroke="#18202a"/>
+          <text x="72" y="282" class="axis-label">allows violation for smoother margin</text><text x="448" y="282" class="axis-label">tries harder to separate training points</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Class imbalance and class weights</h2>
+      <div class="activity"><h3>Imbalance question</h3><p class="prompt">If one class is rarer but important, should mistakes on both classes cost the same?</p></div>
+      <p>SVM can use class weights so minority-class mistakes become more expensive.</p>
+      <div class="codebox">SVC(class_weight="balanced")</div>
+      <p>In sklearn, balanced class weights are roughly inversely proportional to class frequency.</p>
+      <div class="formula">\[
+\text{class weight}_c \propto \frac{1}{\text{frequency of class }c}
+\]</div>
+      <div class="note warning">This does not magically solve imbalance. It changes the cost of errors, so evaluate precision, recall, and F1 carefully.</div>
+    </section>
+
+    <div class="pager"><a class="button" href="02-margin-and-scratch-svm.html">Previous: Scratch</a><a class="button primary" href="04-kernels.html">Next: Kernels</a></div>
+  </main>
+</body>
+</html>

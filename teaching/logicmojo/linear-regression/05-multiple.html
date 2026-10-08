@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multiple Linear Regression</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Linear Regression Math</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-line.html">Line</a>
+        <a href="02-errors-cost.html">Errors</a>
+        <a href="03-ols-gradient.html">Learning</a>
+        <a href="04-metrics.html">Metrics</a>
+        <a class="active" href="05-multiple.html">Multiple LR</a>
+        <a href="06-assumptions.html">Assumptions</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 5</div>
+    <h1>Multiple linear regression</h1>
+    <p class="lead">Real problems rarely depend on one input. Multiple regression lets many features contribute to one prediction.</p>
+
+    <section class="section">
+      <h2>Equation</h2>
+      <div class="formula">\[\hat{y} = \beta_0 + \beta_1x_1 + \beta_2x_2 + \beta_3x_3 + \cdots + \beta_px_p\]</div>
+      <p>Every feature gets its own coefficient. The interpretation is:</p>
+      <div class="note">If x1 increases by one unit while all other features stay constant, the prediction changes by b1 units.</div>
+      <div class="activity">
+        <h3>Feature brainstorm</h3>
+        <p class="prompt">If we are predicting house price, what features should we use?</p>
+        <p>Group answers into numerical, categorical, useful, suspicious, and unavailable-at-prediction-time features.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Advertising example</h2>
+        <div class="formula">\[\widehat{sales} = \beta_0 + \beta_1(TV) + \beta_2(Radio) + \beta_3(Newspaper)\]</div>
+        <table>
+          <thead><tr><th>Coefficient</th><th>Interpretation</th></tr></thead>
+          <tbody>
+            <tr><td>b1 for TV</td><td>Expected sales change for extra TV budget, holding radio and newspaper fixed.</td></tr>
+            <tr><td>b2 for Radio</td><td>Expected sales change for extra radio budget, holding TV and newspaper fixed.</td></tr>
+            <tr><td>b3 for Newspaper</td><td>Expected sales change for extra newspaper budget, holding TV and radio fixed.</td></tr>
+          </tbody>
+        </table>
+        <div class="activity">
+          <h3>Business interpretation</h3>
+          <p class="prompt">If TV coefficient is high but newspaper coefficient is near zero, what should the marketing team consider?</p>
+          <p>Expected direction: TV may be more useful, but check data quality, correlation, budget ranges, and business context before making decisions.</p>
+        </div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Multiple features combine into one prediction">
+          <rect x="42" y="58" width="96" height="52" rx="8" fill="#eef5ff" stroke="#1f6feb"></rect>
+          <rect x="42" y="126" width="96" height="52" rx="8" fill="#ecfdf5" stroke="#11875d"></rect>
+          <rect x="42" y="194" width="96" height="52" rx="8" fill="#fff6e8" stroke="#b85c00"></rect>
+          <text x="76" y="89" class="axis-label">TV</text>
+          <text x="67" y="157" class="axis-label">Radio</text>
+          <text x="54" y="225" class="axis-label">News</text>
+          <line x1="138" y1="84" x2="260" y2="150" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="138" y1="152" x2="260" y2="150" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="138" y1="220" x2="260" y2="150" stroke="#5e6875" stroke-width="2"></line>
+          <rect x="260" y="114" width="112" height="72" rx="8" fill="#f5f7fb" stroke="#5e6875"></rect>
+          <text x="285" y="145" class="axis-label">weighted</text>
+          <text x="286" y="166" class="axis-label">sum + b0</text>
+        </svg>
+        <p class="caption">Multiple regression is a weighted combination of features plus an intercept.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Why it is still linear</h2>
+      <p>The model is linear in its coefficients. Each coefficient multiplies a feature directly. The features can be many, but the coefficient relationship stays additive.</p>
+      <div class="formula">\[\text{linear: } \beta_0 + \beta_1x_1 + \beta_2x_2\]\[\text{not linear in coefficients: } \beta_0 + \sin(\beta_1x_1)\]</div>
+      <p>A polynomial feature such as x^2 can still be used inside linear regression:</p>
+      <div class="formula">\[\hat{y} = \beta_0 + \beta_1x + \beta_2x^2\]</div>
+      <p>This creates a curved relationship in x, but the model is still linear in b0, b1, and b2.</p>
+      <div class="activity">
+        <h3>Pattern recognition</h3>
+        <p class="prompt">Can you think of a relationship that increases first but later slows down?</p>
+        <p>Examples: experience vs salary, ad spend vs sales, study hours vs marks. Use this to motivate polynomial features.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Matrix form, optional</h2>
+      <div class="formula">\[\hat{y} = X\beta\]\[\beta = (X^TX)^{-1}X^Ty\]</div>
+      <p>Use this only if the batch is comfortable with linear algebra. The practical message is enough: linear regression finds the coefficient vector that minimizes squared error.</p>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="04-metrics.html">Previous: Metrics</a>
+      <a class="button primary" href="06-assumptions.html">Next: Assumptions</a>
+    </div>
+  </main>
+</body>
+</html>

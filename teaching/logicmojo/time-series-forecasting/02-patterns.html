@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Time-Series Patterns</title><link rel="stylesheet" href="styles.css">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script><script defer src="interactions.js"></script>
+</head>
+<body data-prev="01-forecasting-contract.html" data-next="03-baselines.html">
+<header class="topbar"><div class="progress"><span style="width:30%"></span></div><nav class="nav"><a class="brand" href="index.html">Time-Series Forecasting</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-forecasting-contract.html">Contract</a><a class="active" href="02-patterns.html">Patterns</a><a href="03-baselines.html">Baselines</a><a href="04-lags-and-acf.html">Lags</a><a href="05-stationarity.html">Stationarity</a><a href="06-smoothing.html">Smoothing</a><a href="07-arima.html">ARIMA</a><a href="08-validation.html">Validation</a><a href="09-ml-workflow.html">ML workflow</a></div></nav></header>
+<main class="page">
+  <div class="eyebrow">Part 2</div>
+  <h1>Separate repetition from movement and surprise.</h1>
+  <p class="lead">A line plot is the first model of the problem. It reveals whether demand moves slowly, repeats on a calendar, changes variability, or experiences unusual events.</p>
+
+  <section class="section">
+    <div class="activity"><h3>Pattern question</h3><p class="prompt">Which part should repeat every seven days? Which part should move slowly? Where would a festival, strike or station closure appear?</p></div>
+    <h2>Four kinds of movement</h2>
+    <div class="grid">
+      <div class="card"><h3>Trend \(T_t\)</h3><p>A sustained long-term increase or decrease in the local level. Population growth, system expansion or gradual adoption could raise bike demand over months.</p><p><strong>Not every upward run is a trend:</strong> it should persist beyond a few adjacent points.</p></div>
+      <div class="card"><h3>Seasonality \(S_t\)</h3><p>A pattern tied to a known and fixed period \(m\): hour of day, day of week, or month of year. Commuter peaks can repeat every 24 hours; weekday structure every 168 hourly observations.</p><p>Its timing is predictable even when its size changes.</p></div>
+      <div class="card"><h3>Cycle</h3><p>A rise and fall without a fixed calendar period. Economic activity, fuel prices or long weather regimes may create multi-month cycles whose duration varies.</p><p>A cycle cannot be located by simply saying “every \(m\) observations.”</p></div>
+      <div class="card"><h3>Remainder \(R_t\)</h3><p>What remains after the estimated trend and seasonal pattern are removed. It contains random noise, measurement errors, unmodeled effects, outliers and structural breaks.</p><p>A large remainder is a question to investigate, not automatically “randomness.”</p></div>
+    </div>
+    <div class="formula">\[y_t=T_t+S_t+R_t\]</div>
+    <p class="intuition"><strong>Important distinction:</strong> seasonality has a stable calendar period; a cycle has no fixed period; the remainder is whatever the chosen decomposition has not explained.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Read before labels</h3><p class="prompt">In the figure below, identify the slowly rising line, the seven-day pattern, and the two observations that the planned structure cannot explain.</p></div>
+    <h2>One series, decomposed consistently</h2>
+    <div class="visual">
+      <svg class="decomposition-svg" viewBox="0 0 1000 690" role="img" aria-labelledby="decomp-title decomp-desc">
+        <title id="decomp-title">Observed demand decomposed into trend, weekly seasonality, and remainder</title>
+        <desc id="decomp-desc">Four aligned panels show the observed series, a rising trend, a repeating seven-day seasonal component, and a remainder containing an unusual spike and dip.</desc>
+        <g class="panel-bg"><rect x="110" y="25" width="870" height="130"/><rect x="110" y="190" width="870" height="130"/><rect x="110" y="355" width="870" height="130"/><rect x="110" y="520" width="870" height="130"/></g>
+        <g class="panel-grid"><path d="M110 90H980 M110 255H980 M110 420H980 M110 585H980"/><path d="M110 155H980 M110 320H980 M110 485H980 M110 650H980"/></g>
+        <g class="panel-labels"><text x="12" y="94" fill="#17202a">Observed</text><text x="12" y="259" fill="#1769aa">Trend</text><text x="12" y="424" fill="#087f6b">Seasonality</text><text x="12" y="589" fill="#c43b36">Remainder</text></g>
+        <polyline class="series observed" points="120,147 138,131 155,127 173,115 191,108 209,67 226,92 244,138 262,130 279,113 297,117 315,98 333,65 350,84 368,130 386,128 403,108 421,105 439,97 457,56 474,77 492,129 510,113 527,109 545,97 563,90 580,49 598,74 616,120 634,112 651,95 669,43 687,79 704,47 722,66 740,111 758,109 775,90 793,87 811,79 828,38 846,59 864,111 882,95 899,91 917,79 935,72 952,65 970,56"/>
+        <polyline class="series trend" points="120,312 138,310 155,308 173,305 191,303 209,301 226,298 244,296 262,294 279,292 297,289 315,287 333,285 350,283 368,280 386,278 403,276 421,273 439,271 457,269 474,267 492,264 510,262 527,260 545,258 563,255 580,253 598,251 616,248 634,246 651,244 669,242 687,239 704,237 722,235 740,233 758,230 775,228 793,226 811,223 828,221 846,219 864,217 882,215 899,212 917,210 935,208 952,205 970,203"/>
+        <polyline class="series seasonality" points="120,447 138,435 155,423 173,416 191,404 209,368 226,386 244,447 262,435 279,423 297,416 315,404 333,368 350,386 368,447 386,435 403,423 421,416 439,404 457,368 474,386 492,447 510,435 527,423 545,416 563,404 580,368 598,386 616,447 634,435 651,423 669,416 687,404 704,368 722,386 740,447 758,435 775,423 793,416 811,404 828,368 846,386 864,447 882,435 899,423 917,416 935,404 952,368 970,386"/>
+        <polyline class="series remainder" points="120,588 138,583 155,591 173,585 191,590 209,582 226,592 244,584 262,589 279,583 297,593 315,585 333,586 350,590 368,582 386,592 403,584 421,588 439,591 457,583 474,589 492,588 510,583 527,591 545,585 563,590 580,582 598,592 616,584 634,589 651,583 669,533 687,585 704,586 722,590 740,582 758,592 775,584 793,588 811,591 828,583 846,589 864,588 882,583 899,591 917,585 935,590 952,619 970,592"/>
+        <g class="axis-labels"><text x="115" y="678">Day 1</text><text x="525" y="678">Day 25</text><text x="930" y="678">Day 49</text></g>
+      </svg>
+      <div class="legend"><span><i class="swatch" style="background:#17202a"></i>Observed</span><span><i class="swatch" style="background:#1769aa"></i>Trend</span><span><i class="swatch" style="background:#087f6b"></i>Seasonality</span><span><i class="swatch" style="background:#c43b36"></i>Remainder</span></div><p class="caption">All four panels use the same 49 simulated days and aligned horizontal axis. The observed series was constructed as trend + weekly seasonal effect + remainder, so the equality can be checked point by point. The isolated spike and dip remain in the remainder.</p></div>
+    <p class="note"><strong>Real decomposition is estimated.</strong> We do not normally know the true components. Moving averages, STL or model-based methods estimate them, and boundary values are often less reliable because fewer neighboring observations exist.</p>
+  </section>
+
+  <section class="section">
+    <h2>What would this mean in the hourly Kaggle data?</h2>
+    <div class="table-wrap"><table><thead><tr><th>Observed pattern</th><th>Likely interpretation</th><th>What to check</th></tr></thead><tbody><tr><td>Morning and evening peaks on working days</td><td>Within-day seasonality and commuter behavior</td><td>Hour × working-day interaction</td></tr><tr><td>Different weekend shape</td><td>Weekly/calendar seasonality</td><td>Day of week, holiday and user type</td></tr><tr><td>Growth from 2011 to 2012</td><td>Long-run trend</td><td>Year and expanding system usage</td></tr><tr><td>Demand collapse during heavy rain</td><td>Weather-driven external effect</td><td>Whether weather is available at forecast time</td></tr><tr><td>One unexplained extreme hour</td><td>Remainder or outlier</td><td>Event, outage, data error or new regime</td></tr></tbody></table></div>
+    <p class="note warning"><strong>Multiple seasonalities:</strong> hourly demand may contain both a daily period \(m=24\) and a weekly period \(m=168\). A single seasonal component may be insufficient.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Scale question</h3><p class="prompt">If weekend demand grows from 20 above average to 60 above average as the system becomes busier, is additive seasonality still natural?</p><button class="reveal-button" data-reveal="multiplicative">Reveal answer</button><div class="answer" id="multiplicative" hidden>No. When seasonal amplitude grows with the level, a multiplicative description or a variance-stabilizing transformation may be more suitable.</div></div>
+    <h2>Additive or multiplicative?</h2>
+    <div class="grid"><div class="card"><h3>Additive</h3><div class="formula">\[y_t=T_t+S_t+R_t\]</div><p>Seasonal swings stay roughly constant in the target's units: every weekend adds about 40 rentals.</p></div><div class="card"><h3>Multiplicative</h3><div class="formula">\[y_t=T_t\times S_t\times R_t\]</div><p>Seasonality scales with the level: weekend demand is about 30% above the current level.</p></div></div>
+    <div class="formula">\[\log y_t=\log T_t+\log S_t+\log R_t\]</div>
+    <p>A logarithm turns multiplicative relationships into additive ones, but it requires positive values and changes how forecasts are interpreted after transforming back.</p>
+    <p class="note"><strong>Before modeling:</strong> verify frequency, duplicates, missing timestamps, time zone, daylight-saving changes, outliers, and whether zeros are real. A clean-looking plot can still hide a broken time index.</p>
+  </section>
+  <div class="pager"><a class="button" href="01-forecasting-contract.html">Previous: Contract</a><a class="button primary" href="03-baselines.html">Next: Baselines</a></div>
+</main>
+</body>
+</html>

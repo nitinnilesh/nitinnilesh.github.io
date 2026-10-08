@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Complete Neural Network Algorithm</title><link rel="stylesheet" href="styles.css"><script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script><script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script><script defer src="interactions.js"></script></head><body data-prev="08-parameter-updates.html"><header class="topbar"><div class="progress"><span style="width:100%"></span></div><nav class="nav"><a class="brand" href="index.html">Neural Networks · Class 1</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-why-a-network.html">Why a network?</a><a href="02-activations.html">Activations</a><a href="03-combining-neurons.html">Architecture</a><a href="04-forward-pass.html">Forward</a><a href="05-loss.html">Loss</a><a href="06-backprop-intuition.html">Backward idea</a><a href="07-backprop-math.html">Backward math</a><a href="08-parameter-updates.html">Updates</a><a class="active" href="09-complete-algorithm.html">Complete</a></div></nav></header><main class="page"><div class="eyebrow">Part 9 · Assemble the pieces</div><h1>A neural network is repeated numerical bookkeeping with learned representations.</h1><p class="lead">There is no extra learning step hidden behind the terminology. Initialize, predict, measure, differentiate, update, and repeat.</p>
+<div class="activity"><h3>Reconstruct the order</h3><p class="prompt">Arrange these operations: update parameters, compute loss, initialize parameters, backward pass, forward pass.</p><button class="reveal-button" data-reveal="algorithm-order" aria-expanded="false">Reveal answer</button><div class="answer" id="algorithm-order" hidden>Initialize once. Then repeat: forward pass → compute loss → backward pass → update parameters.</div></div>
+<section class="section"><h2>The complete training algorithm</h2><div class="step-list"><div class="step"><strong>Prepare data:</strong> split training and validation data, then fit preprocessing on training data only.</div><div class="step"><strong>Initialize:</strong> create small random weights and suitable biases.</div><div class="step"><strong>Forward pass:</strong> calculate hidden scores, hidden activations, output score, and probabilities.</div><div class="step"><strong>Loss:</strong> summarize prediction error with binary cross-entropy.</div><div class="step"><strong>Backward pass:</strong> apply the chain rule from output to input and compute every gradient.</div><div class="step"><strong>Update:</strong> subtract learning-rate-scaled gradients from parameters.</div><div class="step"><strong>Monitor:</strong> repeat while tracking training and validation loss and useful classification metrics.</div></div></section>
+<section class="section"><h2>Minimal NumPy map</h2><div class="codebox"># Initialize once
+W1 = small_random_values((n_features, n_hidden))
+b1 = np.zeros((1, n_hidden))
+W2 = small_random_values((n_hidden, 1))
+b2 = np.zeros((1, 1))
+
+for epoch in range(n_epochs):
+    # Forward
+    Z1 = X @ W1 + b1
+    A1 = np.tanh(Z1)
+    Z2 = A1 @ W2 + b2
+    A2 = sigmoid(Z2)
+
+    # Mean BCE loss
+    loss = binary_cross_entropy(Y, A2)
+
+    # Backward: 1/m is included here exactly once
+    dZ2 = (A2 - Y) / m
+    dW2 = A1.T @ dZ2
+    db2 = np.sum(dZ2, axis=0, keepdims=True)
+    dA1 = dZ2 @ W2.T
+    dZ1 = dA1 * (1 - A1**2)
+    dW1 = X.T @ dZ1
+    db1 = np.sum(dZ1, axis=0, keepdims=True)
+
+    # Update
+    W1 -= learning_rate * dW1
+    b1 -= learning_rate * db1
+    W2 -= learning_rate * dW2
+    b2 -= learning_rate * db2</div><p>Frameworks such as PyTorch automate gradient calculation, but the mathematical sequence remains the same.</p></section>
+<section class="section"><h2>A debugging checklist</h2><div class="grid two"><div class="card"><h3>Shapes</h3><ul><li>Does every matrix multiplication have matching inner dimensions?</li><li>Does each gradient match its parameter’s shape?</li><li>Are labels shaped <code>m × 1</code>?</li></ul></div><div class="card"><h3>Numerics</h3><ul><li>Are probabilities clipped for hand-written BCE?</li><li>Is averaging by <em>m</em> applied exactly once?</li><li>Are input feature scales reasonable?</li></ul></div><div class="card"><h3>Learning</h3><ul><li>Does loss decrease on a tiny training set?</li><li>Do parameters actually change?</li><li>Can the model overfit a handful of examples?</li></ul></div><div class="card"><h3>Evaluation</h3><ul><li>Is preprocessing fitted only on training data?</li><li>Are validation examples excluded from updates?</li><li>Is the threshold chosen for the real metric or cost?</li></ul></div></div></section>
+<section class="section"><h2>Retrieval questions</h2><ol><li>Why does stacking only linear transformations still produce a linear transformation?</li><li>What two jobs does an activation function perform in training?</li><li>What is the difference between <code>Z[1]</code> and <code>A[1]</code>?</li><li>Why does sigmoid plus BCE produce <code>dZ[2] = A[2] − Y</code>?</li><li>Why do output weights appear when error moves into the hidden layer?</li><li>Why do bias gradients sum over rows?</li><li>What is the difference between backpropagation and gradient descent?</li><li>Why is all-zero hidden-weight initialization a problem?</li></ol></section>
+<section class="section"><h2>What Class 1 has built</h2><div class="formula">\[\text{features}\xrightarrow{\text{affine + activation}}\text{learned features}\xrightarrow{\text{affine + sigmoid}}\text{probability}\xrightarrow{\text{BCE}}\text{loss}\]</div><p>You can now explain and implement a one-hidden-layer binary classifier from first principles. Class 2 can extend this foundation to deeper networks, mini-batches, multiclass softmax, initialization strategies, regularization, optimizers, and framework implementations.</p><p class="intuition"><strong>The durable mental model:</strong> the forward pass builds a prediction; the loss measures it; backpropagation computes sensitivities; the optimizer uses them to improve the next prediction.</p></section><div class="pager"><a class="button" href="08-parameter-updates.html">Previous: Updates</a><a class="button primary" href="index.html">Return to overview</a></div></main></body></html>

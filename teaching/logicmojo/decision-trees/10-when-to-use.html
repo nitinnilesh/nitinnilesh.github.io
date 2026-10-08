@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>When to Use Decision Trees</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-tree-intuition.html">Intuition</a><a class="" href="02-entropy-gini.html">Impurity</a><a class="" href="03-information-gain.html">Gain</a><a class="" href="04-mixed-splits.html">Mixed Data</a><a class="" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="" href="07-regression-trees.html">Regression</a><a class="" href="08-evaluation-tuning.html">Evaluation</a><a class="" href="09-practical-guide.html">Practice</a><a class="active" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Part 10</div>
+    <h1>Use a tree when threshold rules and interactions match the problem—and its instability is acceptable.</h1>
+    <p class="lead">Model choice depends on data geometry, sample size, error costs, explanation needs, extrapolation, probability quality, and operational constraints.</p>
+
+    <section class="section">
+      <h2>Strong reasons to try a tree</h2>
+      <div class="activity"><h3>Model-choice question</h3><p class="prompt">Does the problem naturally sound like “if this, and then that”?</p></div>
+      <div class="grid two">
+        <div class="card"><h3>Threshold effects</h3><p>Risk changes after meaningful cutoffs rather than smoothly and linearly.</p></div>
+        <div class="card"><h3>Feature interactions</h3><p>One feature matters differently depending on another feature's value.</p></div>
+        <div class="card"><h3>Limited preprocessing</h3><p>Numeric scaling is unnecessary and nonlinear relationships emerge automatically.</p></div>
+        <div class="card"><h3>Compact rule explanation</h3><p>A shallow validated tree can communicate a prediction path clearly.</p></div>
+        <div class="card"><h3>Mixed operational data</h3><p>After suitable categorical handling, trees work naturally with tabular features.</p></div>
+        <div class="card"><h3>Fast prediction</h3><p>A fitted tree evaluates only a short sequence of node questions.</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Situations where one tree struggles</h2>
+      <table><thead><tr><th>Situation</th><th>Why a single tree struggles</th><th>Consider</th></tr></thead><tbody>
+        <tr><td>Smooth additive relationship</td><td>Stepwise regions approximate a smooth surface inefficiently.</td><td>Linear, generalized additive, spline, or kernel models.</td></tr>
+        <tr><td>Need extrapolation</td><td>Regression trees repeat existing leaf means outside training ranges.</td><td>Models with a defensible functional trend.</td></tr>
+        <tr><td>Small noisy dataset</td><td>Early splits can change sharply with a few rows.</td><td>Regularized linear models, resampling, or ensembles.</td></tr>
+        <tr><td>High-dimensional sparse text</td><td>Many binary split candidates and unstable local structure.</td><td>Naive Bayes or linear models as strong baselines.</td></tr>
+        <tr><td>Stable probabilities required</td><td>Leaf frequencies are coarse and can be extreme.</td><td>Calibration or probabilistic models.</td></tr>
+        <tr><td>Rotated linear boundary</td><td>Axis-aligned cuts may need a staircase of many leaves.</td><td>Logistic regression or SVM.</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Practical application patterns</h2>
+      <table><thead><tr><th>Application</th><th>Why trees may help</th><th>Nuance</th></tr></thead><tbody>
+        <tr><td>Customer churn</td><td>Thresholds and interactions among tenure, usage, and support.</td><td>Class imbalance, intervention cost, and temporal leakage.</td></tr>
+        <tr><td>Credit operations</td><td>Rules are inspectable and nonlinear interactions are common.</td><td>Regulation, fairness, proxy variables, calibration, and appeal rights.</td></tr>
+        <tr><td>Fraud triage</td><td>Local threshold combinations can flag unusual behavior.</td><td>Extreme imbalance, adversarial adaptation, and precision workload.</td></tr>
+        <tr><td>Medical risk support</td><td>Interactions can be displayed as simple pathways.</td><td>Clinical validation, missingness, subgroup safety, and no autonomous diagnosis.</td></tr>
+        <tr><td>House pricing</td><td>Captures neighborhoods, thresholds, and interactions.</td><td>Poor extrapolation and potential spatial leakage.</td></tr>
+        <tr><td>Quality control</td><td>Sensor thresholds can map naturally to operational rules.</td><td>Drift, measurement error, and asymmetric failure costs.</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Compare with familiar models</h2>
+      <div class="table-wrap"><table><thead><tr><th>Property</th><th>Decision tree</th><th>Linear/logistic regression</th><th>KNN</th><th>SVM</th></tr></thead><tbody>
+        <tr><td>Learned shape</td><td>Axis-aligned regions</td><td>Global linear effect unless transformed</td><td>Local neighborhoods</td><td>Maximum-margin boundary; kernels can curve</td></tr>
+        <tr><td>Scaling</td><td>Usually unnecessary</td><td>Useful for regularization/optimization</td><td>Essential</td><td>Usually essential</td></tr>
+        <tr><td>Interactions</td><td>Automatic through paths</td><td>Must be added explicitly</td><td>Implicit locally</td><td>Possible through kernels/features</td></tr>
+        <tr><td>Extrapolation</td><td>Poor for regression</td><td>Continues fitted trend</td><td>Predicts from observed neighbors</td><td>Depends on formulation/kernel</td></tr>
+        <tr><td>Interpretation</td><td>Rules are direct when shallow</td><td>Coefficients describe global effects</td><td>Explain by neighbors</td><td>Margin/support vectors; kernels are less direct</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="section">
+      <h2>The important nuances</h2>
+      <ul>
+        <li>A tree is nonlinear overall but each numeric node is an axis-aligned one-feature split.</li>
+        <li>High training accuracy can be evidence of memorization, not quality.</li>
+        <li>A readable tree is not automatically fair, causal, stable, or correct.</li>
+        <li>Impurity reduction and evaluation metrics solve different problems.</li>
+        <li>Different but nearly equivalent trees can arise from ties or small sample changes.</li>
+        <li>Categorical encoding determines which questions the implementation can ask.</li>
+        <li>Regression leaves return local constants and therefore do not extrapolate smooth trends.</li>
+        <li>Class weighting changes split calculations, not merely the final threshold.</li>
+        <li>Feature importance measures use inside one fitted model, not the effect of an intervention.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Why ensembles usually predict better</h2>
+      <div class="activity"><h3>Ensemble question</h3><p class="prompt">If one tree has high variance, what happens when many diverse trees vote or average?</p></div>
+      <table><thead><tr><th>Method</th><th>Core idea</th><th>Connection to one tree</th></tr></thead><tbody>
+        <tr><td>Bagging</td><td>Fit trees on bootstrap samples and average.</td><td>Reduces variance.</td></tr>
+        <tr><td>Random forest</td><td>Bagging plus random feature subsets at each split.</td><td>Decorrelates trees to improve averaging.</td></tr>
+        <tr><td>Gradient boosting</td><td>Add shallow trees sequentially to repair current errors.</td><td>Uses trees as flexible weak learners.</td></tr>
+      </tbody></table>
+      <p>A single small tree remains valuable for learning, auditing, and baseline explanations. Ensembles often improve accuracy at the cost of direct visual simplicity.</p>
+    </section>
+
+    <section class="section">
+      <h2>Final decision checklist</h2>
+      <ol>
+        <li>Do threshold rules and interactions plausibly describe the problem?</li>
+        <li>Is a piecewise-constant regression output acceptable?</li>
+        <li>Can categories and missingness be handled without leakage?</li>
+        <li>Are leaf probabilities supported and calibrated well enough?</li>
+        <li>Does validation show stable performance across folds and groups?</li>
+        <li>Can the organization accept tree instability after retraining?</li>
+        <li>Have fairness, error cost, drift, and monitoring been addressed?</li>
+        <li>Does a simpler baseline or an ensemble perform materially better?</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>The complete mental model</h2>
+      <div class="formula">\[
+      \boxed{\text{Choose the question that most improves local homogeneity, then repeat.}}
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> classification makes labels more alike; regression makes target numbers closer together. Regularization stops the repeated questions before they become memorized exceptions.</p>
+    </section>
+
+    <section class="section">
+      <h2>References and further reading</h2>
+      <ul class="sources">
+        <li><a href="https://cs229.stanford.edu/notes2022fall/decision-trees.pdf">Stanford CS229: Decision Trees</a></li>
+        <li><a href="https://www.cs.cmu.edu/~ggordon/10601/slides/Lec17_DecisionTrees.pdf">CMU 10-601: Decision Trees lecture</a></li>
+        <li><a href="https://www.cs.cmu.edu/~bhiksha/courses/10-601/decisiontrees/">CMU 10-601: Decision-tree materials</a></li>
+        <li><a href="https://scikit-learn.org/stable/modules/tree.html">Scikit-learn User Guide: Decision Trees</a></li>
+        <li><a href="https://scikit-learn.org/stable/auto_examples/tree/plot_cost_complexity_pruning.html">Scikit-learn: Cost-complexity pruning example</a></li>
+      </ul>
+    </section>
+
+    <div class="pager"><a class="button" href="09-practical-guide.html">Previous: Practice</a><a class="button primary" href="index.html">Back to Overview</a></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{%- assign sorted_teachings = site.teachings | sort: "importance" -%}
+
+<div class="teaching-grid">
+  {%- for course in sorted_teachings -%}
+    <article class="teaching-card">
+      <div class="teaching-card__meta">
+        {%- if course.term %}<span>{{ course.term }}</span>{% endif -%}
+        {%- if course.year %}<span>{{ course.year }}</span>{% endif -%}
+      </div>
+      <h2><a href="{{ course.url | relative_url }}">{{ course.title }}</a></h2>
+      <p>{{ course.description }}</p>
+      <div class="teaching-card__footer">
+        <span>{{ course.lessons | size }} topic packs</span>
+        <a class="teaching-card__link" href="{{ course.url | relative_url }}">View course <span aria-hidden="true">&rarr;</span></a>
+      </div>
+    </article>
+  {%- endfor -%}
+</div>

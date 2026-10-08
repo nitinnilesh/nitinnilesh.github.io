@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Exponential Smoothing</title><link rel="stylesheet" href="styles.css">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script><script defer src="interactions.js"></script>
+</head>
+<body data-prev="05-stationarity.html" data-next="06c-arima-pre.html">
+<header class="topbar"><div class="progress"><span style="width:70%"></span></div><nav class="nav"><a class="brand" href="index.html">Time-Series Forecasting</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-forecasting-contract.html">Contract</a><a href="02-patterns.html">Patterns</a><a href="03-baselines.html">Baselines</a><a href="04-lags-and-acf.html">Lags</a><a href="05-stationarity.html">Stationarity</a><a class="active" href="06-smoothing.html">Smoothing</a><a href="07-arima.html">ARIMA</a><a href="08-validation.html">Validation</a><a href="09-ml-workflow.html">ML workflow</a></div></nav></header>
+<main class="page">
+  <div class="eyebrow">Part 6</div>
+  <h1>Update a small state whenever new data arrives.</h1>
+  <p class="lead">Exponential smoothing represents the series through evolving level, trend and seasonal states. Each new forecast error updates those states; older observations receive geometrically declining influence.</p>
+  <p class="companion-link"><a class="button primary" href="06b-smoothing-20-steps.html">Open the spelled-out 20-step lesson</a></p>
+
+  <section class="section">
+    <div class="activity"><h3>Signal question</h3><p class="prompt">Demand was 100, 104, 98, 103, 97, 105, and 101. Is the underlying level moving dramatically, or are the observations fluctuating around a quieter signal?</p></div>
+    <h2>What does smoothing do?</h2>
+    <p>A time series mixes useful structure with short-term randomness, measurement error, and unusual events. Smoothing reduces the influence of those temporary movements so that the current level, trend, and seasonal pattern become easier to estimate.</p>
+    <p class="intuition"><strong>Smoothing is controlled memory:</strong> when a new observation arrives, the model decides how much to revise its previous belief. It should react to genuine change without chasing every noisy point.</p>
+    <div class="grid">
+      <div class="card"><h3>Too reactive</h3><p>Using only the newest observation treats every spike as a new normal.</p></div>
+      <div class="card"><h3>Too resistant</h3><p>Using the entire historical average may ignore a genuine recent shift in demand.</p></div>
+    </div>
+
+    <h3>Begin with a moving average</h3>
+    <p>A three-period moving average gives equal weight to the latest three observations:</p>
+    <div class="formula">\[M_t=\frac{Y_t+Y_{t-1}+Y_{t-2}}{3}\]</div>
+    <p>If the observations are 100, 110, and 105, then \(M_t=105\). This reduces noise, but an observation has full weight inside the window and suddenly receives zero weight after leaving it.</p>
+    <p>Exponential smoothing replaces that hard cutoff with gradually declining weights. Every past observation can contribute, but recent evidence matters more.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Memory question</h3><p class="prompt">Should a sudden jump redefine the current level immediately, or should previous observations resist it?</p></div>
+    <h2>Simple exponential smoothing</h2>
+    <div class="formula">\[\ell_t=\alpha y_t+(1-\alpha)\ell_{t-1},\qquad 0\leq\alpha\leq1\]</div>
+    <div class="formula">\[\widehat y_{t+h\mid t}=\ell_t\qquad(h\geq1)\]</div>
+    <p>Think of \(\ell_{t-1}\) as yesterday's best belief about the current level and \(y_t\) as fresh evidence. The update takes a weighted average: the first term accepts a fraction \(\alpha\) of the new evidence, while the second retains a fraction \(1-\alpha\) of the old belief.</p>
+    <div class="formula">\[\ell_t=\ell_{t-1}+\alpha\underbrace{(y_t-\ell_{t-1})}_{\text{latest forecast error}}\]</div>
+    <p class="intuition"><strong>Walk toward the observation:</strong> start at the old level, measure how wrong it was, and move \(\alpha\) of that distance. With \(\alpha=0\), ignore the new point. With \(\alpha=1\), jump fully to it. Intermediate values trade stability for responsiveness.</p>
+    <p>Repeated substitution reveals why the method is called <em>exponential</em> smoothing:</p>
+    <div class="formula">\[\ell_t=\alpha y_t+\alpha(1-\alpha)y_{t-1}+\alpha(1-\alpha)^2y_{t-2}+\cdots\]</div>
+    <div class="visual"><div class="control"><label for="alpha-slider">Smoothing parameter: <span id="alpha-value">0.25</span></label><input id="alpha-slider" type="range" min="2" max="98" value="25"></div><canvas id="smoothing-chart" class="chart" width="900" height="440" aria-label="Demand and exponentially smoothed level"></canvas><div class="legend"><span><i class="swatch" style="background:#17202a"></i>Observed demand</span><span><i class="swatch" style="background:#6346b8"></i>Estimated level</span></div><p class="caption">The simulated demand level shifts upward midway through the series. The violet line is the estimated level \(\ell_t\), not a trend forecast. Raise \(\alpha\) to react faster and smooth less.</p></div>
+    <div class="grid"><div class="card"><h3>Small \(\alpha\)</h3><p>Long memory, stable level, slower reaction to genuine change.</p></div><div class="card"><h3>Large \(\alpha\)</h3><p>Short memory, rapid reaction, greater sensitivity to noise and outliers.</p></div></div>
+    <p class="note"><strong>Why every observation still matters:</strong> an observation \(j\) steps old receives weight \(\alpha(1-\alpha)^j\). The weights shrink geometrically rather than suddenly becoming zero at a fixed window boundary.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Calculate the update</h3><p class="prompt">The previous level is 100, the new observation is 120 and \(\alpha=0.3\). What is the updated level and next forecast?</p></div>
+    <h2>A two-step SES example</h2>
+    <div class="formula">\[\ell_1=0.3(120)+0.7(100)=106\]</div>
+    <p>Every future forecast from this origin is 106 because SES has only a level state:</p>
+    <div class="formula">\[\widehat y_{2\mid1}=\widehat y_{3\mid1}=\cdots=106\]</div>
+    <p>If the next observation is \(y_2=90\), the forecast error is \(e_2=90-106=-16\), and the new level becomes:</p>
+    <div class="formula">\[\ell_2=0.3(90)+0.7(106)=101.2\]</div>
+    <p class="intuition"><strong>Error-correction view:</strong> the same update can be written \(\ell_t=\ell_{t-1}+\alpha(y_t-\ell_{t-1})\). Move the old level by a fraction \(\alpha\) of its latest error.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Capability question</h3><p class="prompt">Why will SES produce a flat future path even when the historical series rises?</p><button class="reveal-button" data-reveal="flat-ses">Reveal answer</button><div class="answer" id="flat-ses" hidden>Its only state is the current level. It contains no trend state to carry growth into the future.</div></div>
+    <h2>Add a trend with Holt's method</h2>
+    <div class="formula">\[\begin{aligned}\ell_t&=\alpha y_t+(1-\alpha)(\ell_{t-1}+b_{t-1})\\b_t&=\beta(\ell_t-\ell_{t-1})+(1-\beta)b_{t-1}\\\widehat y_{t+h\mid t}&=\ell_t+h b_t\end{aligned}\]</div>
+    <p>The level update compares the observation with the previously projected level. The trend update blends the newest estimated change with the previous trend. Parameter \(\beta\) controls how quickly the trend changes.</p>
+    <h3>Worked Holt update</h3>
+    <p>Suppose yesterday's level was \(\ell_{t-1}=100\), the estimated increase was \(b_{t-1}=5\), today's observation is \(y_t=112\), and \(\alpha=0.4,\ \beta=0.3\).</p>
+    <ol class="steps"><li>Project the old state into today: \(100+5=105\).</li><li>Blend the observation with that projection: \(\ell_t=0.4(112)+0.6(105)=107.8\).</li><li>The newly observed level change is \(107.8-100=7.8\). Smooth it with the old trend: \(b_t=0.3(7.8)+0.7(5)=5.84\).</li><li>Forecast: \(\widehat y_{t+1\mid t}=107.8+5.84=113.64\), while \(\widehat y_{t+2\mid t}=107.8+2(5.84)=119.48\).</li></ol>
+    <p class="intuition"><strong>What changed?</strong> SES would forecast the same level at every horizon. Holt carries the estimated slope forward, so the path rises by \(5.84\) per step.</p>
+    <p class="note"><strong>Damped trend:</strong> long straight-line extrapolation can become implausible. A damping parameter \(\phi\), usually between 0 and 1, gradually reduces the trend contribution at longer horizons.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Seasonal-state question</h3><p class="prompt">What additional memory does a weekly bike-demand model need beyond level and trend?</p></div>
+    <h2>Additive Holt-Winters</h2>
+    <div class="formula">\[\begin{aligned}\ell_t&=\alpha(y_t-s_{t-m})+(1-\alpha)(\ell_{t-1}+b_{t-1})\\b_t&=\beta(\ell_t-\ell_{t-1})+(1-\beta)b_{t-1}\\s_t&=\gamma(y_t-\ell_{t-1}-b_{t-1})+(1-\gamma)s_{t-m}\end{aligned}\]</div>
+    <div class="formula">\[\widehat y_{t+h\mid t}=\ell_t+h b_t+s_{t+h-m(k+1)},\qquad k=\left\lfloor\frac{h-1}{m}\right\rfloor\]</div>
+    <p>For daily data with weekly seasonality, \(m=7\). The final term retrieves the latest estimated seasonal effect for the forecasted weekday. Parameter \(\gamma\) determines how quickly that seasonal pattern changes.</p>
+    <h3>Worked additive Holt-Winters update</h3>
+    <p>Assume weekly seasonality with \(m=7\). Before observing today, \(\ell_{t-1}=100\), \(b_{t-1}=2\), and today's weekday usually contributes \(s_{t-7}=15\) rentals. We observe \(y_t=120\), with \(\alpha=0.4,\ \beta=0.2,\ \gamma=0.3\).</p>
+    <ol class="steps"><li>Remove the old seasonal effect: \(y_t-s_{t-7}=120-15=105\).</li><li>Update the nonseasonal level: \(\ell_t=0.4(105)+0.6(100+2)=103.2\).</li><li>Update trend: \(b_t=0.2(103.2-100)+0.8(2)=2.24\).</li><li>Today's new seasonal evidence is \(120-100-2=18\). Blend it with the old weekday effect: \(s_t=0.3(18)+0.7(15)=15.9\).</li><li>For the same weekday one week ahead, \(\widehat y_{t+7\mid t}=103.2+7(2.24)+15.9=134.78\).</li></ol>
+    <p class="intuition"><strong>Three memories cooperate:</strong> level says where the series is, trend says how fast it is moving, and the seasonal state says how this weekday normally differs from the underlying level.</p>
+    <div class="table-wrap"><table><thead><tr><th>Method</th><th>State represented</th><th>Forecast shape</th></tr></thead><tbody><tr><td>SES</td><td>Level</td><td>Flat beyond the origin</td></tr><tr><td>Holt</td><td>Level + trend</td><td>Trending path</td></tr><tr><td>Holt-Winters</td><td>Level + trend + seasonality</td><td>Trending repeating path</td></tr></tbody></table></div>
+    <p class="note"><strong>Fitting:</strong> software estimates smoothing parameters and initial states by minimizing in-sample forecast errors. Model choice still belongs to rolling-origin validation; the smallest training SSE is not enough.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Forecast-shape question</h3><p class="prompt">Without looking at the labels, which forecast below has only a level, which carries a slope, and which remembers a repeating calendar pattern?</p></div>
+    <h2>One family, three forecast shapes</h2>
+    <svg class="smoothing-methods-svg" viewBox="0 0 1000 520" role="img" aria-labelledby="smooth-title smooth-desc">
+      <title id="smooth-title">Forecast shapes from SES, Holt, and Holt-Winters</title>
+      <desc id="smooth-desc">Three aligned panels show a flat level forecast, a trending forecast, and a trending seasonal forecast after a common forecast origin.</desc>
+      <g class="panel-bg"><rect x="150" y="25" width="820" height="125"/><rect x="150" y="190" width="820" height="125"/><rect x="150" y="355" width="820" height="125"/></g>
+      <g class="panel-grid"><path d="M150 88H970 M150 253H970 M150 418H970"/><path class="origin" d="M600 25V480"/></g>
+      <g class="panel-labels"><text x="18" y="86">SES</text><text x="18" y="107">Level only</text><text x="18" y="251">Holt</text><text x="18" y="272">Level + trend</text><text x="18" y="416">Holt-Winters</text><text x="18" y="437">Level + trend + season</text></g>
+      <g class="history"><polyline points="165,105 205,84 245,96 285,76 325,92 365,70 405,83 445,66 485,80 525,61 565,74 600,62"/><polyline points="165,275 205,268 245,263 285,251 325,247 365,236 405,231 445,218 485,213 525,204 565,199 600,190"/><polyline points="165,447 205,421 245,437 285,395 325,421 365,382 405,408 445,370 485,396 525,358 565,385 600,355"/></g>
+      <g class="forecast"><polyline class="ses" points="600,62 650,62 700,62 750,62 800,62 850,62 900,62 950,62"/><polyline class="holt" points="600,190 650,180 700,170 750,160 800,150 850,140 900,130 950,120"/><polyline class="winters" points="600,355 650,376 700,338 750,364 800,326 850,352 900,314 950,340"/></g>
+      <g class="axis-labels"><text x="530" y="505">History</text><text x="620" y="505">Forecast</text><text x="606" y="18">Origin</text></g>
+    </svg>
+    <p class="caption">The forecast shape follows directly from the states the model stores. A model cannot extrapolate a component it does not represent.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Seasonal-scale question</h3><p class="prompt">If Saturday consistently adds 50 rentals, should we model the season additively? What if Saturday is consistently 30% above the current level?</p></div>
+    <h2>Additive or multiplicative seasonality?</h2>
+    <div class="grid">
+      <div class="card"><h3>Additive</h3><div class="formula">\[Y_t\approx \ell_t+b_t+s_t\]</div><p>Seasonal effects stay roughly constant in target units. Saturday might add about 50 rentals whether the underlying level is 200 or 500.</p><div class="formula">\[\widehat Y_{t+h\mid t}=\ell_t+hb_t+s_{\text{matching season}}\]</div></div>
+      <div class="card"><h3>Multiplicative</h3><div class="formula">\[Y_t\approx(\ell_t+b_t)s_t\]</div><p>Seasonality scales with the series. A Saturday factor of 1.30 means approximately 30% above the underlying level.</p><div class="formula">\[\widehat Y_{t+h\mid t}=(\ell_t+hb_t)s_{\text{matching season}}\]</div></div>
+    </div>
+    <p class="note warning"><strong>Practical distinction:</strong> use additive seasonality when seasonal amplitude is stable in units; consider multiplicative seasonality when the swings grow with the level. Multiplicative models require positive values. A log transformation can often turn multiplicative structure into additive structure.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Model-selection question</h3><p class="prompt">Should we choose \(\alpha\), \(\beta\), and \(\gamma\) because the fitted line looks smooth, or because the resulting forecasts perform well at historical forecast origins?</p><button class="reveal-button" data-reveal="smoothing-fit">Reveal answer</button><div class="answer" id="smoothing-fit" hidden>Use numerical optimization to estimate parameters, then compare candidate model structures with rolling-origin validation at the deployment horizon. Visual smoothness alone is not a forecasting objective.</div></div>
+    <h2>How smoothing models are fitted and chosen</h2>
+    <ol class="steps">
+      <li><strong>Select the state structure.</strong> Level only, level plus trend, or level plus trend and seasonality.</li>
+      <li><strong>Choose the seasonal period.</strong> Daily data may use \(m=7\); hourly demand may need \(m=24\) or \(m=168\).</li>
+      <li><strong>Initialize the states.</strong> Estimate the starting level, trend, and one seasonal effect for each position in a cycle.</li>
+      <li><strong>Estimate smoothing parameters.</strong> Software usually selects \(\alpha\), \(\beta\), \(\gamma\), and possibly damping \(\phi\) by minimizing a likelihood or one-step training errors.</li>
+      <li><strong>Validate the whole model.</strong> Compare SES, Holt, damped Holt, and Holt-Winters on identical rolling forecast origins and horizons.</li>
+      <li><strong>Inspect residuals.</strong> Remaining trend, seasonality, or autocorrelation means the state structure has not captured all predictable information.</li>
+    </ol>
+    <div class="table-wrap"><table><thead><tr><th>Observed series behavior</th><th>First model to try</th></tr></thead><tbody>
+      <tr><td>Changing local level, no persistent trend or seasonality</td><td>Simple exponential smoothing</td></tr>
+      <tr><td>Level plus persistent growth or decline</td><td>Holt or damped Holt</td></tr>
+      <tr><td>Level, trend, and fixed seasonal swings</td><td>Additive Holt-Winters</td></tr>
+      <tr><td>Seasonal swings proportional to level</td><td>Multiplicative Holt-Winters or a log-scale additive model</td></tr>
+    </tbody></table></div>
+    <p class="intuition"><strong>Final intuition:</strong> exponential smoothing is a small adaptive memory. Each observation asks whether the level moved, whether the slope changed, and whether this seasonal position behaved differently from usual.</p>
+  </section>
+  <div class="pager"><a class="button" href="05-stationarity.html">Previous: Stationarity</a><a class="button primary" href="06c-arima-pre.html">Next: ARIMA Pre</a></div>
+</main>
+</body>
+</html>

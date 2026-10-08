@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KNN Basics</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">KNN</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a class="active" href="01-knn-basics.html">Basics</a>
+        <a href="02-distance-metrics.html">Distances</a>
+        <a href="03-choosing-k.html">Choosing K</a>
+        <a href="04-knn-imputation.html">Imputation</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 1</div>
+    <h1>KNN for classification and regression</h1>
+    <p class="lead">KNN makes predictions from local evidence. First understand the idea, then the steps, then how classification and regression use the same neighbor logic.</p>
+
+    <section class="section">
+      <h2>What is KNN?</h2>
+      <p>K Nearest Neighbors stores the training data. For a new point, it calculates distance to known points, finds the closest \(K\), and combines their target values.</p>
+      <div class="mini-flow">
+        <span>Store training data</span>
+        <span>Receive new point</span>
+        <span>Calculate distances</span>
+        <span>Pick K nearest</span>
+        <span>Vote or average</span>
+      </div>
+      <div class="note">There is no coefficient fitting step like linear or logistic regression. KNN learns by remembering examples.</div>
+    </section>
+
+    <section class="section">
+      <h2>Algorithm procedure</h2>
+      <ol>
+        <li>Choose \(K\).</li>
+        <li>Choose a distance or similarity measure.</li>
+        <li>Scale features if needed.</li>
+        <li>For the new point, compute distance to all training points.</li>
+        <li>Sort by distance and take the closest \(K\).</li>
+        <li>Predict using majority vote or average.</li>
+      </ol>
+      <div class="note">For binary classification, odd values of \(K\) reduce ties. If ties still occur, libraries usually break ties using class ordering or nearest-distance rules, so it is better to choose \(K\) and evaluation carefully.</div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>KNN for classification</h2>
+        <p>For classification, KNN uses majority vote among neighbors.</p>
+        <div class="formula">\[
+\hat{y}=\operatorname{mode}(y_1,y_2,\ldots,y_K)
+\]</div>
+        <table>
+          <thead><tr><th>Neighbor</th><th>Class</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Churn</td></tr>
+            <tr><td>2</td><td>No churn</td></tr>
+            <tr><td>3</td><td>Churn</td></tr>
+            <tr><td>4</td><td>Churn</td></tr>
+            <tr><td>5</td><td>No churn</td></tr>
+          </tbody>
+        </table>
+        <p>For \(K=5\), churn wins \(3\) vs \(2\), so the predicted class is churn.</p>
+        <p>KNN can also produce a simple probability estimate from vote fraction:</p>
+        <div class="formula">\[
+\hat{P}(y=\text{Churn}\mid x)=\frac{\text{churn neighbors}}{K}=\frac{3}{5}=0.60
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="KNN classification vote">
+          <circle cx="210" cy="150" r="82" fill="none" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 6"></circle>
+          <circle cx="210" cy="150" r="10" fill="#18202a"></circle>
+          <circle cx="172" cy="120" r="10" fill="#c3342f"></circle>
+          <circle cx="250" cy="116" r="10" fill="#1f6feb"></circle>
+          <circle cx="160" cy="180" r="10" fill="#c3342f"></circle>
+          <circle cx="232" cy="204" r="10" fill="#c3342f"></circle>
+          <circle cx="286" cy="168" r="10" fill="#1f6feb"></circle>
+          <text x="226" y="154" class="axis-label">query</text>
+          <text x="132" y="256" class="axis-label">3 red vs 2 blue</text>
+        </svg>
+        <p class="caption">Classification predicts the majority class among the \(K\) nearest neighbors.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Probability estimates and tie-breaking</h2>
+      <div class="activity">
+        <h3>Vote question</h3>
+        <p class="prompt">If 4 neighbors vote as 2 churn and 2 no churn, is the model truly confident?</p>
+        <p>No. Equal votes indicate uncertainty, and the final class depends on the tie-breaking rule.</p>
+      </div>
+      <p>KNN classification can estimate class probability using the fraction of neighbors from each class.</p>
+      <div class="formula">\[
+\hat{P}(y=c\mid x)=\frac{1}{K}\sum_{i\in N_K(x)} \mathbf{1}(y_i=c)
+\]</div>
+      <p>For example, if 3 out of 5 neighbors are churn customers, then the local probability estimate is:</p>
+      <div class="formula">\[
+\hat{P}(y=\text{Churn}\mid x)=\frac{3}{5}=0.60
+\]</div>
+      <p>These probabilities are not learned from a smooth equation. They are local vote fractions, so they can change sharply when the neighborhood changes.</p>
+      <div class="note">Ties are one reason binary KNN often uses odd values of \(K\). In multiclass problems, ties can still happen and are usually resolved by nearest-distance rules or library-specific class ordering.</div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>KNN for regression</h2>
+        <p>For regression, KNN averages the target values of the nearest neighbors.</p>
+        <div class="formula">\[
+\hat{y}=\frac{1}{K}\sum_{i\in N_K(x)}y_i
+\]</div>
+        <p>If the nearest house prices are:</p>
+        <div class="formula">\[
+40,\ 44,\ 46,\ 50,\ 55
+\]</div>
+        <div class="formula">\[
+\hat{y}=\frac{40+44+46+50+55}{5}=47
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="KNN regression average">
+          <line x1="54" y1="240" x2="366" y2="240" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="54" y1="240" x2="54" y2="54" stroke="#5e6875" stroke-width="2"></line>
+          <circle cx="118" cy="210" r="8" fill="#1f6feb"></circle>
+          <circle cx="162" cy="192" r="8" fill="#1f6feb"></circle>
+          <circle cx="208" cy="178" r="8" fill="#1f6feb"></circle>
+          <circle cx="250" cy="146" r="8" fill="#1f6feb"></circle>
+          <circle cx="296" cy="116" r="8" fill="#1f6feb"></circle>
+          <circle cx="230" cy="164" r="11" fill="#18202a"></circle>
+          <line x1="230" y1="164" x2="230" y2="240" stroke="#18202a" stroke-dasharray="5 5"></line>
+          <text x="240" y="160" class="axis-label">prediction = local average</text>
+        </svg>
+        <p class="caption">Regression predicts a local average rather than a class vote.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>KNN decision boundary</h2>
+      <div class="activity">
+        <h3>Boundary question</h3>
+        <p class="prompt">If KNN predicts from nearby examples, does it need to draw one straight line between classes?</p>
+        <p>No. KNN can create curved and local boundaries because each region is decided by nearby points.</p>
+      </div>
+      <div class="two-col">
+        <div>
+          <p>Linear and logistic regression usually learn one global shape from the data. KNN does not learn a single equation for the boundary. The boundary appears from repeated local voting across the feature space.</p>
+          <table>
+            <thead><tr><th>Model</th><th>Boundary intuition</th></tr></thead>
+            <tbody>
+              <tr><td>Logistic regression</td><td>Usually one linear boundary unless features are transformed.</td></tr>
+              <tr><td>KNN</td><td>Many local voting regions; boundary can be nonlinear.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Linear boundary compared with local KNN boundary">
+            <rect x="52" y="52" width="310" height="196" fill="#f8fbff" stroke="#d9e0ea"></rect>
+            <path d="M72 204 C112 110, 158 226, 214 142 C256 78, 300 128, 342 74" fill="none" stroke="#6741d9" stroke-width="4"></path>
+            <line x1="86" y1="232" x2="336" y2="72" stroke="#11875d" stroke-width="3" stroke-dasharray="7 6"></line>
+            <circle cx="102" cy="92" r="7" fill="#c3342f"></circle>
+            <circle cx="142" cy="132" r="7" fill="#c3342f"></circle>
+            <circle cx="188" cy="84" r="7" fill="#c3342f"></circle>
+            <circle cx="246" cy="202" r="7" fill="#1f6feb"></circle>
+            <circle cx="292" cy="176" r="7" fill="#1f6feb"></circle>
+            <circle cx="326" cy="220" r="7" fill="#1f6feb"></circle>
+            <text x="184" y="270" class="axis-label">purple: local KNN boundary</text>
+            <text x="164" y="36" class="axis-label">green: one linear boundary</text>
+          </svg>
+          <p class="caption">KNN boundaries come from local neighborhoods, so they can bend around data patterns.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>What is stored as the trained KNN model?</h2>
+      <div class="activity">
+        <h3>Model storage question</h3>
+        <p class="prompt">If KNN has no learned slope or coefficient, what must it remember to predict later?</p>
+        <p>It must remember the training examples and the rule for measuring similarity.</p>
+      </div>
+      <p>In linear regression and logistic regression, training mainly learns parameters such as coefficients and intercept.</p>
+      <div class="formula">\[
+\text{Linear/logistic model} \approx \{\beta_0,\beta_1,\ldots,\beta_p\}
+\]</div>
+      <p>KNN is different. A fitted KNN model mainly stores the training examples, their labels, and the rules needed to compare future points.</p>
+      <div class="formula">\[
+\text{KNN model} \approx \{X_{train},\ y_{train},\ K,\ d(\cdot,\cdot),\ \text{preprocessing}\}
+\]</div>
+      <table>
+        <thead><tr><th>Stored item</th><th>Why it is needed</th></tr></thead>
+        <tbody>
+          <tr><td>\(X_{train}\)</td><td>New points are compared with past feature values.</td></tr>
+          <tr><td>\(y_{train}\)</td><td>Neighbor labels or target values are used for voting/averaging.</td></tr>
+          <tr><td>\(K\)</td><td>Controls how many neighbors are used.</td></tr>
+          <tr><td>Distance metric</td><td>Defines what “near” means.</td></tr>
+          <tr><td>Scaler/encoder</td><td>Future data must be transformed exactly like training data.</td></tr>
+        </tbody>
+      </table>
+      <div class="note warning">When saving a KNN model, the file can be larger than a regression model because it may contain the training data. This also means privacy and storage should be considered.</div>
+    </section>
+
+    <section class="section">
+      <h2>When do we use KNN?</h2>
+      <div class="activity">
+        <h3>Where would KNN fit?</h3>
+        <p class="prompt">Would KNN make sense for recommending similar users, similar products, or similar documents?</p>
+        <p>Yes, because similarity is the central idea in those problems.</p>
+      </div>
+      <table>
+        <thead><tr><th>Use KNN when</th><th>Be careful when</th></tr></thead>
+        <tbody>
+          <tr><td>Similar examples should have similar labels.</td><td>There are many irrelevant features.</td></tr>
+          <tr><td>The dataset is not too large.</td><td>Prediction latency must be extremely low.</td></tr>
+          <tr><td>The decision boundary may be nonlinear.</td><td>Features have very different scales.</td></tr>
+          <tr><td>You need a simple baseline.</td><td>Data is high-dimensional and sparse.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>How do we evaluate KNN?</h2>
+      <div class="activity">
+        <h3>Metric question</h3>
+        <p class="prompt">If missing a churn customer is costly, should accuracy be the only metric?</p>
+        <p>No. Recall, precision, F1, and confusion matrix become important when mistakes have different costs.</p>
+      </div>
+      <table>
+        <thead><tr><th>Problem type</th><th>Useful metrics</th><th>What they tell us</th></tr></thead>
+        <tbody>
+          <tr><td>Classification</td><td>Accuracy, precision, recall, F1, confusion matrix</td><td>How often classes are predicted correctly and which errors happen.</td></tr>
+          <tr><td>Imbalanced classification</td><td>Recall, precision, F1, ROC-AUC, PR-AUC</td><td>Whether minority-class cases are being found.</td></tr>
+          <tr><td>Regression</td><td>MAE, MSE, RMSE, \(R^2\)</td><td>How far numeric predictions are from actual values.</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Use validation or cross-validation to tune \(K\), distance, and weights. Keep the test set untouched until the final check.</div>
+    </section>
+
+    <section class="section">
+      <h2>KNN compared with earlier models</h2>
+      <table>
+        <thead><tr><th>Property</th><th>Linear/logistic regression</th><th>KNN</th></tr></thead>
+        <tbody>
+          <tr><td>Training</td><td>Learns coefficients</td><td>Stores examples</td></tr>
+          <tr><td>Prediction</td><td>Fast equation calculation</td><td>Neighbor search can be slower</td></tr>
+          <tr><td>Boundary shape</td><td>Usually global and simple</td><td>Local and flexible</td></tr>
+          <tr><td>Feature scaling</td><td>Helpful for optimization/regularization</td><td>Essential for meaningful distances</td></tr>
+          <tr><td>Interpretability</td><td>Coefficients can be inspected</td><td>Explain using nearest examples</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Training cost vs prediction cost</h2>
+      <p>KNN is lazy: training is almost just storing data, but prediction requires distance calculations.</p>
+      <table>
+        <thead><tr><th>Stage</th><th>What happens</th><th>Cost intuition</th></tr></thead>
+        <tbody>
+          <tr><td>Training</td><td>Store training examples</td><td>Cheap</td></tr>
+          <tr><td>Prediction</td><td>Compare new point with many training examples</td><td>Can be expensive</td></tr>
+        </tbody>
+      </table>
+      <div class="formula">\[
+\text{brute-force prediction cost per query} \approx O(n\cdot p)
+\]</div>
+      <p>where \(n\) is number of training rows and \(p\) is number of features.</p>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="index.html">Back to Overview</a>
+      <a class="button primary" href="02-distance-metrics.html">Next: Distances</a>
+    </div>
+  </main>
+</body>
+</html>

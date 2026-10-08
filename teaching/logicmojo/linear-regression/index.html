@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linear Regression Math Teaching Pack</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Linear Regression Math</a>
+      <div class="navlinks">
+        <a class="active" href="index.html">Overview</a>
+        <a href="session-1/index.html">Session 1</a>
+        <a href="session-2/index.html">Session 2</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Two 3-hour classes</div>
+        <h1>Math concepts to teach before students trust linear regression.</h1>
+        <p class="lead">This mini-site is now divided into two instructor slide packs: Session 1 covers simple linear regression and the math of fitting a line; Session 2 covers evaluation, multiple regression, and practical model risks.</p>
+        <div class="pill-row">
+          <span class="pill">Simple regression</span>
+          <span class="pill">OLS</span>
+          <span class="pill">Gradient descent</span>
+          <span class="pill">R2 and RMSE</span>
+          <span class="pill">Multicollinearity</span>
+        </div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Scatter points with a fitted regression line">
+          <line x1="44" y1="250" x2="386" y2="250" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="44" y1="250" x2="44" y2="38" stroke="#5e6875" stroke-width="2"></line>
+          <text x="196" y="286" class="axis-label">input feature x</text>
+          <text x="7" y="135" class="axis-label" transform="rotate(-90 7 135)">target y</text>
+          <line x1="64" y1="226" x2="370" y2="70" stroke="#1f6feb" stroke-width="4"></line>
+          <circle cx="82" cy="219" r="6" fill="#11875d"></circle>
+          <circle cx="125" cy="189" r="6" fill="#11875d"></circle>
+          <circle cx="168" cy="180" r="6" fill="#11875d"></circle>
+          <circle cx="210" cy="139" r="6" fill="#11875d"></circle>
+          <circle cx="258" cy="130" r="6" fill="#11875d"></circle>
+          <circle cx="304" cy="96" r="6" fill="#11875d"></circle>
+          <circle cx="344" cy="88" r="6" fill="#11875d"></circle>
+        </svg>
+        <p class="caption">Classroom hook: every dot is reality, the line is our simplified explanation of reality.</p>
+      </div>
+    </section>
+
+    <section class="page">
+      <div class="grid">
+        <a class="card" href="session-1/index.html">
+          <span class="num">1</span>
+          <h3>Session 1</h3>
+          <p>Simple linear regression: ML motivation, applications, line equation, residuals, cost functions, OLS, and gradient descent.</p>
+        </a>
+        <a class="card" href="session-2/index.html">
+          <span class="num">2</span>
+          <h3>Session 2</h3>
+          <p>Multiple linear regression: evaluation metrics, business workflow, coefficients, assumptions, multicollinearity, scaling, and regularization teaser.</p>
+        </a>
+      </div>
+
+      <section class="section">
+        <h2>Suggested order for two classes</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Math focus</th>
+              <th>Student outcome</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Class 1</td>
+              <td>Line equation, slope/intercept, residuals, RSS, MSE, OLS intuition, gradient descent intuition.</td>
+              <td>They can explain what the line means and why one line is better than another.</td>
+            </tr>
+            <tr>
+              <td>Class 2</td>
+              <td>Metrics, R2, multiple regression equation, coefficient interpretation, assumptions, multicollinearity, polynomial idea.</td>
+              <td>They can build and judge a regression model like a practical ML workflow.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

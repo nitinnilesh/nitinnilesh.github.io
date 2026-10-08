@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bootstrap Sampling</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
+    <a class="brand" href="index.html">Random Forests</a>
+    <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-why-ensemble.html">Why ensemble</a><a class="active" href="02-bootstrap.html">Bootstrap</a><a class="" href="03-bagging.html">Bagging</a><a class="" href="04-feature-randomness.html">Features</a><a class="" href="05-classification.html">Classification</a><a class="" href="06-regression.html">Regression</a><a class="" href="07-oob.html">OOB</a><a class="" href="08-variance.html">Variance</a><a class="" href="09-tuning.html">Tuning</a><a class="" href="10-interpretation.html">Interpretation</a><a class="" href="11-practical-guide.html">Practice</a></div>
+  </nav></header>
+  <main class="page">
+    <div class="eyebrow">Part 2</div>
+    <h1>Bootstrap sampling creates different training worlds for different trees.</h1>
+    <p class="lead">A bootstrap sample draws rows with replacement until it has the same size as the original dataset. Some rows repeat; some are left out.</p>
+
+<section class="section"><h2>Sampling with replacement</h2><div class="activity"><h3>Prediction question</h3><p class="prompt">For rows A, B, C, and D, what could a four-draw bootstrap sample look like?</p></div><p>After drawing a row, we put it back before the next draw. One possible sample is:</p><div class="codebox">Original rows: A  B  C  D<br>Bootstrap sample: C  A  C  D<br><br>C appears twice; B is absent.</div><p class="intuition"><strong>Intuition:</strong> each tree gets a slightly different view of the same training set. This is the source of row-level diversity in bagging.</p><div class="visual"><svg class="plot-wide" viewBox="0 0 760 260" role="img" aria-label="Bootstrap sample with repeated and absent rows"><text x="24" y="28" class="plot-title">Original dataset</text><g fill="#f7f5ff" stroke="#6741d9"><rect x="24" y="48" width="120" height="44" rx="6"/><rect x="164" y="48" width="120" height="44" rx="6"/><rect x="304" y="48" width="120" height="44" rx="6"/><rect x="444" y="48" width="120" height="44" rx="6"/></g><g text-anchor="middle" font-size="15"><text x="84" y="76">A</text><text x="224" y="76">B</text><text x="364" y="76">C</text><text x="504" y="76">D</text></g><text x="24" y="144" class="plot-title">Bootstrap draws</text><g fill="#eef9f4" stroke="#11875d"><rect x="24" y="164" width="120" height="44" rx="6"/><rect x="164" y="164" width="120" height="44" rx="6"/><rect x="304" y="164" width="120" height="44" rx="6"/><rect x="444" y="164" width="120" height="44" rx="6"/></g><g text-anchor="middle" font-size="15"><text x="84" y="192">C</text><text x="224" y="192">A</text><text x="364" y="192">C</text><text x="504" y="192">D</text></g><text x="610" y="77" class="axis-label">B is absent</text><text x="610" y="193" class="axis-label">C repeats</text></svg></div></section>
+<section class="section"><h2>Why about 36.8% are out of bag</h2><div class="activity"><h3>Probability question</h3><p class="prompt">In \(n\) draws, what is the chance that one particular row is never selected?</p></div><p>On one draw, the chance of missing a particular row is \(1-1/n\). Missing it on all \(n\) independent draws gives:</p><div class="formula">\[P(\text{row is OOB})=\left(1-\frac{1}{n}\right)^n\xrightarrow[n\to\infty]{}e^{-1}\approx0.368\]</div><p class="intuition"><strong>Intuition:</strong> roughly 36.8% of the original rows are not used by any one tree. They can later act as that tree's unseen mini-test set.</p><div class="explorer"><label for="oob-size">Dataset size \(n\): <span id="oob-size-value">100</span></label><input id="oob-size" type="range" min="2" max="500" value="100"><p>OOB probability: <strong id="oob-probability">0.366</strong></p><p>Expected unique fraction: <strong id="unique-probability">0.634</strong></p></div></section>
+<section class="section"><h2>Small-sample warning</h2><p>For a small dataset, 36.8% is an expectation, not a guarantee. A particular bootstrap sample may leave out more or fewer rows. Across many trees, however, each row is usually OOB for a useful number of trees.</p></section>
+    <div class="pager"><a class="button" href="01-why-ensemble.html">Previous: Why ensemble</a><a class="button primary" href="03-bagging.html">Next: Bagging</a></div>
+  </main>
+</body>
+</html>

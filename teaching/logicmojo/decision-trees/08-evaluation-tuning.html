@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evaluation and Hyperparameter Tuning</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-tree-intuition.html">Intuition</a><a class="" href="02-entropy-gini.html">Impurity</a><a class="" href="03-information-gain.html">Gain</a><a class="" href="04-mixed-splits.html">Mixed Data</a><a class="" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="" href="07-regression-trees.html">Regression</a><a class="active" href="08-evaluation-tuning.html">Evaluation</a><a class="" href="09-practical-guide.html">Practice</a><a class="" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Part 8</div>
+    <h1>The split criterion trains the tree; evaluation metrics decide whether it is useful.</h1>
+    <p class="lead">Separate model fitting from business evaluation, tune complexity with validation folds, and reserve the test set for one final estimate.</p>
+
+    <section class="section">
+      <h2>Three different questions</h2>
+      <table><thead><tr><th>Stage</th><th>Question</th><th>Typical tool</th></tr></thead><tbody>
+        <tr><td>Split selection</td><td>Which local question best improves node purity?</td><td>Entropy, Gini, or squared error.</td></tr>
+        <tr><td>Model selection</td><td>Which depth and leaf size generalize best?</td><td>Validation or cross-validation.</td></tr>
+        <tr><td>Business evaluation</td><td>Are the resulting errors acceptable?</td><td>Precision, recall, costs, MAE, calibration, fairness checks.</td></tr>
+      </tbody></table>
+      <p class="intuition"><strong>Intuition:</strong> high information gain does not guarantee that the completed model meets the real-world objective.</p>
+    </section>
+
+    <section class="section">
+      <h2>Train, validation, and test</h2>
+      <div class="activity"><h3>Data-use question</h3><p class="prompt">If we try twenty depths and keep the one with the best test score, is the test set still untouched?</p></div>
+      <div class="mini-flow"><span>Training data<br>fit candidate trees</span><span>Validation folds<br>choose settings</span><span>Refit chosen setup</span><span>Test data<br>evaluate once</span><span>Monitor after launch</span></div>
+      <div class="note warning">Repeatedly choosing settings from test performance leaks test information into model selection and makes the final score optimistic.</div>
+    </section>
+
+    <section class="section">
+      <h2>K-fold cross-validation</h2>
+      <div class="formula">\[
+      CV(\lambda)=\frac{1}{K}\sum_{k=1}^{K}Metric_k(\lambda)
+      \]</div>
+      <table><thead><tr><th>Symbol</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>\(K\)</td><td>Number of validation folds.</td></tr>
+        <tr><td>\(\lambda\)</td><td>A candidate hyperparameter setting such as depth and leaf size.</td></tr>
+        <tr><td>\(Metric_k\)</td><td>Score on fold \(k\) after fitting on all other folds.</td></tr>
+      </tbody></table>
+      <p class="intuition"><strong>Intuition:</strong> each row gets a turn as validation evidence, producing a less lucky estimate than one small validation split.</p>
+      <p>Use stratified folds for classification when class proportions should remain similar. Use ordinary K-fold for standard regression, and time-aware splits for temporal data.</p>
+    </section>
+
+    <section class="section">
+      <h2>Tune related controls together</h2>
+      <div class="codebox">param_grid = {
+  "max_depth": [2, 3, 5, None],
+  "min_samples_leaf": [1, 5, 15],
+  "min_samples_split": [2, 10, 30],
+  "ccp_alpha": [0.0, 0.001, 0.01]
+}</div>
+      <p>Depth and leaf-size settings interact. A large `min_samples_leaf` may regularize an otherwise deep tree, so evaluating them independently can miss useful combinations.</p>
+      <div class="note">Prefer the simplest setting whose cross-validation score is meaningfully competitive, especially when explanation stability matters.</div>
+    </section>
+
+    <section class="section">
+      <h2>Classification metrics follow error cost</h2>
+      <div class="activity"><h3>Loan decision question</h3><p class="prompt">Is a false approval equally costly as a false decline?</p></div>
+      <table><thead><tr><th>Metric</th><th>Useful when</th></tr></thead><tbody>
+        <tr><td>Accuracy</td><td>Classes and mistake costs are reasonably balanced.</td></tr>
+        <tr><td>Precision</td><td>False positive decisions are costly.</td></tr>
+        <tr><td>Recall</td><td>Missing positive cases is costly.</td></tr>
+        <tr><td>F1</td><td>A single balance between precision and recall is needed.</td></tr>
+        <tr><td>ROC-AUC</td><td>Ranking quality across thresholds matters and imbalance is not extreme.</td></tr>
+        <tr><td>PR-AUC</td><td>Positive-class retrieval matters in an imbalanced problem.</td></tr>
+        <tr><td>Expected cost</td><td>The organization can assign costs or utilities to each outcome.</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Class imbalance changes both fitting and evaluation</h2>
+      <p>With class weights \(w_k\), class proportions inside a node become weighted proportions:</p>
+      <div class="formula">\[
+      p_{mk}=\frac{\sum_{i\in Q_m}w_{y_i}\mathbf{1}(y_i=k)}{\sum_{i\in Q_m}w_{y_i}}
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> a minority-class row can count as more than one unit when impurity and split improvements are calculated.</p>
+      <ul>
+        <li>Use stratified train/test and cross-validation splits.</li>
+        <li>Compare baseline, class-weighted, and sampling strategies inside validation only.</li>
+        <li>Report minority precision, recall, F1, PR-AUC, and confusion counts.</li>
+        <li>Choose the probability threshold from business costs, not automatically 0.5.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Probability quality</h2>
+      <div class="activity"><h3>Calibration question</h3><p class="prompt">If a leaf contains 2 positive rows and 0 negative rows, is 100% a reliable probability estimate?</p></div>
+      <p>It is the empirical leaf proportion, but its uncertainty is enormous. Deep trees often produce coarse and extreme probabilities.</p>
+      <table><thead><tr><th>Check</th><th>Why</th></tr></thead><tbody>
+        <tr><td>Calibration curve</td><td>Compares predicted probability with observed frequency.</td></tr>
+        <tr><td>Brier score</td><td>Measures squared probability error.</td></tr>
+        <tr><td>Log loss</td><td>Strongly penalizes confident wrong probabilities.</td></tr>
+        <tr><td>Leaf support</td><td>Shows how many examples produced the probability.</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Regression metrics</h2>
+      <table><thead><tr><th>Metric</th><th>Expression</th><th>Interpretation</th></tr></thead><tbody>
+        <tr><td>MAE</td><td>\(\frac{1}{n}\sum|y_i-\hat y_i|\)</td><td>Average absolute miss in target units.</td></tr>
+        <tr><td>RMSE</td><td>\(\sqrt{\frac{1}{n}\sum(y_i-\hat y_i)^2}\)</td><td>Emphasizes larger misses.</td></tr>
+        <tr><td>\(R^2\)</td><td>\(1-\frac{SS_{res}}{SS_{tot}}\)</td><td>Improvement over predicting the target mean.</td></tr>
+      </tbody></table>
+      <p class="intuition"><strong>Intuition:</strong> MAE asks, “How far away are predictions on average?” RMSE asks the same question but makes large misses hurt more. \(R^2\) compares the tree with the simple baseline that predicts the training-target mean for every row.</p>
+      <p>Inspect residuals by target range and important groups. One average metric can hide systematically poor regions.</p>
+    </section>
+
+    <section class="section">
+      <h2>Report variability, not only the mean</h2>
+      <p>Cross-validation results should include fold-to-fold variation:</p>
+      <div class="formula">\[
+      \text{mean score}\ \pm\ \text{standard deviation across folds}
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> two models with the same average may differ greatly in stability. A tree whose score changes sharply across folds may be sensitive to the sample.</p>
+    </section>
+
+    <div class="pager"><a class="button" href="07-regression-trees.html">Previous: Regression Trees</a><a class="button primary" href="09-practical-guide.html">Next: Practice</a></div>
+  </main>
+</body>
+</html>

@@ -175,6 +175,9 @@ collections:
   projects:
     output: true
     permalink: /projects/:path/
+  teachings:
+    output: true
+    permalink: /teaching/:path/
   featured_media:
     output: true
     permalink: /featured_media/:path/

@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KNN Distance Metrics</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">KNN</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-knn-basics.html">Basics</a>
+        <a class="active" href="02-distance-metrics.html">Distances</a>
+        <a href="03-choosing-k.html">Choosing K</a>
+        <a href="04-knn-imputation.html">Imputation</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 2</div>
+    <h1>Distance metrics decide who counts as a neighbor</h1>
+    <p class="lead">KNN is only as good as the similarity measure. Change the distance metric, and the nearest neighbors can change.</p>
+
+    <section class="section">
+      <h2>Choose distance based on the data</h2>
+      <div class="activity">
+        <h3>Similarity question</h3>
+        <p class="prompt">Should two documents be compared by word-count magnitude, or by whether they point in a similar topic direction?</p>
+        <p>For text and embeddings, direction is often more useful, so cosine similarity is commonly preferred.</p>
+      </div>
+      <table>
+        <thead><tr><th>Data type</th><th>Useful distance or similarity</th><th>Reason</th></tr></thead>
+        <tbody>
+          <tr><td>Dense numeric features</td><td>Euclidean or Manhattan</td><td>Coordinates have direct numeric meaning.</td></tr>
+          <tr><td>Features with outliers</td><td>Manhattan</td><td>Absolute differences can be less dominated by large squared gaps.</td></tr>
+          <tr><td>Text vectors or embeddings</td><td>Cosine similarity/distance</td><td>Direction often matters more than magnitude.</td></tr>
+          <tr><td>Categorical values</td><td>Hamming distance or careful encoding</td><td>Categories do not have natural numeric distance.</td></tr>
+          <tr><td>Mixed data</td><td>Preprocessing plus a suitable metric</td><td>Numeric, categorical, and text features may need different handling.</td></tr>
+        </tbody>
+      </table>
+      <div class="note">The distance metric is part of the model design. Changing it can change the neighbors, the prediction, and the business interpretation.</div>
+    </section>
+
+    <section class="section">
+      <h2>Euclidean distance</h2>
+      <p>Euclidean distance is straight-line distance.</p>
+      <div class="formula">\[
+d(x,z)=\sqrt{\sum_{j=1}^{p}(x_j-z_j)^2}
+\]</div>
+      <div class="formula">\[
+x=(2,3),\quad z=(5,7)
+\]</div>
+      <div class="formula">\[
+d(x,z)=\sqrt{(2-5)^2+(3-7)^2}=\sqrt{9+16}=5
+\]</div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Manhattan distance</h2>
+        <p>Manhattan distance adds absolute coordinate differences.</p>
+        <div class="formula">\[
+d(x,z)=\sum_{j=1}^{p}|x_j-z_j|
+\]</div>
+        <div class="formula">\[
+d(x,z)=|2-5|+|3-7|=3+4=7
+\]</div>
+        <p>It is useful when movement happens along grid-like paths or when absolute changes are easier to interpret.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Euclidean vs Manhattan distance">
+          <line x1="60" y1="242" x2="360" y2="242" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="60" y1="242" x2="60" y2="54" stroke="#5e6875" stroke-width="2"></line>
+          <circle cx="120" cy="204" r="8" fill="#1f6feb"></circle>
+          <circle cx="300" cy="84" r="8" fill="#c3342f"></circle>
+          <line x1="120" y1="204" x2="300" y2="84" stroke="#11875d" stroke-width="4"></line>
+          <polyline points="120,204 300,204 300,84" fill="none" stroke="#b85c00" stroke-width="4" stroke-dasharray="7 6"></polyline>
+          <text x="174" y="132" class="axis-label">Euclidean</text>
+          <text x="236" y="226" class="axis-label">Manhattan</text>
+        </svg>
+        <p class="caption">Euclidean goes straight. Manhattan moves across axes.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Minkowski distance</h2>
+      <p>Minkowski distance generalizes Euclidean and Manhattan distance.</p>
+      <div class="formula">\[
+d(x,z)=\left(\sum_{j=1}^{p}|x_j-z_j|^q\right)^{1/q}
+\]</div>
+      <table>
+        <thead><tr><th>\(q\)</th><th>Distance</th></tr></thead>
+        <tbody>
+          <tr><td>\(q=1\)</td><td>Manhattan distance</td></tr>
+          <tr><td>\(q=2\)</td><td>Euclidean distance</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Cosine similarity</h2>
+        <p>Cosine similarity measures angle, not magnitude. It is common for text, documents, embeddings, and high-dimensional sparse data.</p>
+        <div class="formula">\[
+\cos(\theta)=\frac{x\cdot z}{\|x\|\|z\|}
+\]</div>
+        <p>Cosine distance is often written as:</p>
+        <div class="formula">\[
+d_{\cos}(x,z)=1-\cos(\theta)
+\]</div>
+        <p>Two vectors pointing in the same direction have high similarity even if their lengths differ.</p>
+        <h3>Working example</h3>
+        <div class="formula">\[
+x=(1,2,2),\qquad z=(2,0,1)
+\]</div>
+        <div class="formula">\[
+x\cdot z=(1)(2)+(2)(0)+(2)(1)=4
+\]</div>
+        <div class="formula">\[
+\|x\|=\sqrt{1^2+2^2+2^2}=3,\qquad
+\|z\|=\sqrt{2^2+0^2+1^2}=\sqrt{5}
+\]</div>
+        <div class="formula">\[
+\cos(\theta)=\frac{4}{3\sqrt{5}}\approx 0.596
+\qquad
+d_{\cos}=1-0.596=0.404
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Cosine similarity angle">
+          <line x1="80" y1="230" x2="360" y2="230" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="80" y1="230" x2="80" y2="52" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="80" y1="230" x2="300" y2="96" stroke="#1f6feb" stroke-width="5"></line>
+          <line x1="80" y1="230" x2="250" y2="150" stroke="#c3342f" stroke-width="5"></line>
+          <path d="M126 202 A54 54 0 0 1 136 194" fill="none" stroke="#18202a" stroke-width="2"></path>
+          <text x="132" y="216" class="axis-label">angle</text>
+          <text x="304" y="94" class="axis-label">doc A</text>
+          <text x="254" y="150" class="axis-label">doc B</text>
+        </svg>
+        <p class="caption">Cosine asks whether vectors point in a similar direction.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Feature scaling is not optional</h2>
+      <div class="activity">
+        <h3>Scaling question</h3>
+        <p class="prompt">If income has values in lakhs and age has values below 100, which feature will dominate Euclidean distance?</p>
+        <p>Income, unless we scale the features.</p>
+      </div>
+      <p>KNN uses distances, so large-scale features can dominate.</p>
+      <table>
+        <thead><tr><th>Feature</th><th>Scale</th><th>Risk</th></tr></thead>
+        <tbody>
+          <tr><td>Age</td><td>18 to 65</td><td>Moderate contribution</td></tr>
+          <tr><td>Annual income</td><td>200000 to 5000000</td><td>Dominates distance</td></tr>
+        </tbody>
+      </table>
+      <div class="formula">\[
+x_j^{scaled}=\frac{x_j-\mu_j}{\sigma_j}
+\]</div>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 300" role="img" aria-label="Effect of feature scaling on nearest neighbors">
+          <rect x="40" y="42" width="380" height="210" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <rect x="480" y="42" width="380" height="210" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <text x="132" y="28" class="axis-label">Before scaling: income dominates</text>
+          <text x="584" y="28" class="axis-label">After scaling: both features matter</text>
+          <line x1="72" y1="226" x2="390" y2="226" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="72" y1="226" x2="72" y2="70" stroke="#5e6875" stroke-width="2"></line>
+          <circle cx="250" cy="146" r="10" fill="#18202a"></circle>
+          <circle cx="242" cy="82" r="8" fill="#c3342f"></circle>
+          <circle cx="260" cy="212" r="8" fill="#c3342f"></circle>
+          <circle cx="126" cy="150" r="8" fill="#1f6feb"></circle>
+          <circle cx="360" cy="142" r="8" fill="#1f6feb"></circle>
+          <text x="158" y="272" class="axis-label">x-axis spread controls distance</text>
+          <line x1="512" y1="226" x2="830" y2="226" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="512" y1="226" x2="512" y2="70" stroke="#5e6875" stroke-width="2"></line>
+          <circle cx="690" cy="146" r="10" fill="#18202a"></circle>
+          <circle cx="650" cy="106" r="8" fill="#c3342f"></circle>
+          <circle cx="724" cy="110" r="8" fill="#1f6feb"></circle>
+          <circle cx="642" cy="184" r="8" fill="#1f6feb"></circle>
+          <circle cx="748" cy="198" r="8" fill="#c3342f"></circle>
+          <circle cx="690" cy="146" r="70" fill="none" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 6"></circle>
+          <text x="604" y="272" class="axis-label">neighborhood becomes more balanced</text>
+        </svg>
+        <p class="caption">Scaling changes the geometry of the feature space, so the nearest neighbors can change.</p>
+      </div>
+      <div class="note warning">Without scaling, KNN may become “nearest income neighbors” rather than truly similar people.</div>
+    </section>
+
+    <section class="section">
+      <h2>Irrelevant features can break neighborhoods</h2>
+      <div class="activity">
+        <h3>Feature question</h3>
+        <p class="prompt">If we add a random customer ID number as a feature, should it help us find similar customers?</p>
+        <p>No. It can distort distance even though it has no useful meaning.</p>
+      </div>
+      <p>KNN assumes that distance in feature space represents real similarity. Irrelevant or noisy features add extra distance without adding signal.</p>
+      <div class="formula">\[
+d(x,z)=\sqrt{(\text{useful gap})^2+(\text{noise gap})^2}
+\]</div>
+      <p>If the noise gap is large, it can dominate the useful gap and make the wrong points appear nearest.</p>
+      <table>
+        <thead><tr><th>Feature</th><th>Useful for similarity?</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>Age, income, usage frequency</td><td>Often yes</td><td>Scale and validate.</td></tr>
+          <tr><td>Random ID, row number, accidental codes</td><td>No</td><td>Remove before KNN.</td></tr>
+          <tr><td>Highly duplicated or redundant columns</td><td>Maybe harmful</td><td>Check validation performance.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Use pipelines to avoid leakage</h2>
+      <div class="activity">
+        <h3>Leakage question</h3>
+        <p class="prompt">Should the scaler learn mean and standard deviation from the full dataset before train-test split?</p>
+        <p>No. The validation/test data should stay unseen while preprocessing is learned.</p>
+      </div>
+      <p>For KNN, preprocessing is part of the model. A good workflow is:</p>
+      <div class="mini-flow">
+        <span>Split data</span>
+        <span>Fit scaler on train</span>
+        <span>Transform validation/test</span>
+        <span>Fit KNN on train</span>
+        <span>Evaluate</span>
+      </div>
+      <p>In practice, use a pipeline so scaling, encoding, and KNN are tuned together without leaking information from validation or test data.</p>
+    </section>
+
+    <section class="section">
+      <h2>Other important concepts</h2>
+      <table>
+        <thead><tr><th>Concept</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td>Irrelevant features</td><td>They add noise to distances.</td></tr>
+          <tr><td>High dimensions</td><td>Distances become less meaningful. This is part of the curse of dimensionality.</td></tr>
+          <tr><td>Categorical variables</td><td>Need encoding or special distance measures.</td></tr>
+          <tr><td>Outliers</td><td>Can affect local neighborhoods, especially for small \(K\).</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="01-knn-basics.html">Previous: Basics</a>
+      <a class="button primary" href="03-choosing-k.html">Next: Choosing K</a>
+    </div>
+  </main>
+</body>
+</html>

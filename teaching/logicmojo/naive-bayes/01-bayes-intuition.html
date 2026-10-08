@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bayes Intuition</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Naive Bayes</a>
+      <div class="navlinks">
+        <a class="" href="index.html">Overview</a>
+        <a class="active" href="01-bayes-intuition.html">Bayes</a>
+        <a class="" href="02-text-naive-bayes.html">Text NB</a>
+        <a class="" href="03-smoothing-log-space.html">Smoothing</a>
+        <a class="" href="04-variants-evaluation.html">Variants</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Part 1</div>
+    <h1>Bayes rule turns evidence into belief.</h1>
+    <p class="lead">Naive Bayes starts with a prior belief about classes, then updates that belief after seeing features or words.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Prior probability</h2>
+        <div class="activity">
+          <h3>Before seeing the message</h3>
+          <p class="prompt">If 80 out of 100 messages are normal and 20 are spam, what should be the model&rsquo;s first guess?</p>
+        </div>
+        <p>The prior is the model&rsquo;s starting belief before looking at the message.</p>
+        <div class="formula">\[
+P(c)=\frac{\text{number of training examples in class }c}{\text{total number of training examples}}
+\]</div>
+        <table>
+          <thead><tr><th>Class</th><th>Count</th><th>Prior</th></tr></thead>
+          <tbody>
+            <tr><td>ham</td><td>80</td><td>\(P(ham)=0.80\)</td></tr>
+            <tr><td>spam</td><td>20</td><td>\(P(spam)=0.20\)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Prior probability bar chart">
+          <text x="38" y="35" class="plot-title">Prior probability</text>
+          <line x1="70" y1="250" x2="360" y2="250" stroke="#5e6875" stroke-width="2"/>
+          <line x1="70" y1="250" x2="70" y2="60" stroke="#5e6875" stroke-width="2"/>
+          <rect x="120" y="90" width="72" height="160" fill="#0f766e" opacity="0.85"/>
+          <rect x="250" y="210" width="72" height="40" fill="#e76f51" opacity="0.9"/>
+          <text x="141" y="275" font-size="14" fill="#18202a">ham</text>
+          <text x="274" y="275" font-size="14" fill="#18202a">spam</text>
+          <text x="132" y="82" font-size="14" fill="#0f766e">0.80</text>
+          <text x="263" y="202" font-size="14" fill="#9f341f">0.20</text>
+        </svg>
+        <p class="caption">Prior is the base rate. It matters before we look at words.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Likelihood</h2>
+      <div class="activity"><h3>Evidence question</h3><p class="prompt">If we already know a message is spam, how likely is the word &ldquo;free&rdquo;?</p></div>
+      <p>A likelihood measures how expected the evidence is under a class.</p>
+      <div class="formula">\[
+P(\text{free}\mid spam)
+\]</div>
+      <p>This does not mean &ldquo;probability of spam given free&rdquo;. It means &ldquo;probability of seeing the word free if the class is spam&rdquo;.</p>
+      <table>
+        <thead><tr><th>Quantity</th><th>Question it answers</th></tr></thead>
+        <tbody>
+          <tr><td>\(P(spam)\)</td><td>How common is spam before seeing this message?</td></tr>
+          <tr><td>\(P(free \mid spam)\)</td><td>If this is spam, how expected is the word free?</td></tr>
+          <tr><td>\(P(spam \mid free)\)</td><td>After seeing free, how likely is spam?</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Bayes rule</h2>
+      <div class="activity"><h3>Turn it around</h3><p class="prompt">Training gives us \(P(word\mid class)\), but prediction needs \(P(class\mid word)\). What connects them?</p></div>
+      <div class="formula">\[
+P(c\mid d)=\frac{P(c)P(d\mid c)}{P(d)}
+\]</div>
+      <table>
+        <thead><tr><th>Part</th><th>Name</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>\(P(c\mid d)\)</td><td>Posterior</td><td>Belief about class after seeing document.</td></tr>
+          <tr><td>\(P(c)\)</td><td>Prior</td><td>Belief about class before seeing document.</td></tr>
+          <tr><td>\(P(d\mid c)\)</td><td>Likelihood</td><td>How expected the document is if class is known.</td></tr>
+          <tr><td>\(P(d)\)</td><td>Evidence</td><td>Overall probability of this document.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Why the denominator can be ignored</h2>
+      <div class="activity"><h3>Comparison question</h3><p class="prompt">When comparing spam vs ham for the same message, does \(P(d)\) change?</p></div>
+      <p>No. The message is fixed, so \(P(d)\) is the same for every class. For choosing the winning class, we can compare only the numerator.</p>
+      <div class="formula">\[
+\hat{c}=\arg\max_c P(c\mid d)=\arg\max_c P(c)P(d\mid c)
+\]</div>
+      <div class="note">We are not saying \(P(d)\) is unimportant mathematically. We are saying it is the same multiplier for every class during argmax classification.</div>
+    </section>
+
+    <section class="section">
+      <h2>Generative intuition</h2>
+      <div class="activity"><h3>Reverse story</h3><p class="prompt">Could we imagine the class being chosen first, and then the words being generated from that class?</p></div>
+      <p>Naive Bayes is often explained as a generative classifier. It imagines this process:</p>
+      <div class="mini-flow">
+        <span>Choose class</span><span>Pick word 1</span><span>Pick word 2</span><span>Pick word 3</span><span>Observe document</span>
+      </div>
+      <p>Prediction reverses the story: after observing the document, the model asks which class most likely generated it.</p>
+    </section>
+
+    <section class="section">
+      <h2>Generative vs discriminative models</h2>
+      <div class="activity"><h3>Modeling question</h3><p class="prompt">Should a model directly learn the class boundary, or should it learn how each class could have produced the data?</p></div>
+      <p>This is the key difference between discriminative and generative models.</p>
+      <table>
+        <thead><tr><th>Model type</th><th>What it learns</th><th>Question it asks</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td>Discriminative</td><td>\(P(y\mid x)\)</td><td>Given this input, which class is it?</td><td>Logistic Regression, SVM, many neural classifiers</td></tr>
+          <tr><td>Generative</td><td>\(P(x\mid y)\) and \(P(y)\)</td><td>If this class were true, how likely is this input?</td><td>Naive Bayes, Gaussian Mixture Models, Hidden Markov Models</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Short version: discriminative models learn the boundary. Generative models learn the class-wise data story.</div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>How Naive Bayes is generative</h2>
+        <div class="activity"><h3>Story question</h3><p class="prompt">Imagine this email was spam. Are these words likely? Now imagine it was ham. Are these words likely?</p></div>
+        <p>Naive Bayes imagines that the class is chosen first, and then the words are generated from that class.</p>
+        <ol>
+          <li>Choose a class using \(P(c)\).</li>
+          <li>Generate words using \(P(w\mid c)\).</li>
+          <li>For a new message, choose the class that makes the words most expected.</li>
+        </ol>
+        <div class="formula">\[
+\hat{c}=\arg\max_c P(c)P(x\mid c)
+\]</div>
+        <p>For text, the naive assumption turns \(P(x\mid c)\) into a product of word likelihoods.</p>
+        <div class="formula">\[
+P(x\mid c)\approx\prod_{i=1}^{n}P(w_i\mid c)
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Generative Naive Bayes story">
+          <text x="36" y="34" class="plot-title">Generative story</text>
+          <rect x="44" y="62" width="136" height="50" rx="8" fill="#eefcf9" stroke="#a9ded4"/>
+          <text x="72" y="92" font-size="15" font-weight="700" fill="#0f766e">Choose class</text>
+          <path d="M 182 87 L 244 87" stroke="#5e6875" stroke-width="2" marker-end="url(#arrow1)"/>
+          <rect x="248" y="62" width="136" height="50" rx="8" fill="#fff3ef" stroke="#f1b2a0"/>
+          <text x="276" y="92" font-size="15" font-weight="700" fill="#9f341f">Generate words</text>
+          <rect x="70" y="160" width="280" height="50" rx="8" fill="#ffffff" stroke="#d9e0ea"/>
+          <text x="102" y="191" font-size="16" fill="#18202a">free lottery prize</text>
+          <path d="M 316 114 L 230 158" stroke="#5e6875" stroke-width="2" marker-end="url(#arrow1)"/>
+          <defs><marker id="arrow1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#5e6875"/></marker></defs>
+          <text x="62" y="252" font-size="13" fill="#5e6875">Prediction reverses the story: which class most likely produced these words?</text>
+        </svg>
+        <p class="caption">Naive Bayes learns a simple class-wise word-generation model.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Worked comparison example</h2>
+      <div class="activity"><h3>Evidence question</h3><p class="prompt">If ham is more common, can spam words still overcome the ham prior?</p></div>
+      <p>Suppose:</p>
+      <div class="formula">\[
+P(spam)=0.20
+\qquad
+P(ham)=0.80
+\]</div>
+      <p>And the model has learned these word likelihoods:</p>
+      <table>
+        <thead><tr><th>Word</th><th>\(P(w\mid spam)\)</th><th>\(P(w\mid ham)\)</th></tr></thead>
+        <tbody>
+          <tr><td>free</td><td>0.20</td><td>0.01</td></tr>
+          <tr><td>lottery</td><td>0.10</td><td>0.005</td></tr>
+          <tr><td>prize</td><td>0.15</td><td>0.01</td></tr>
+        </tbody>
+      </table>
+      <p>For the message <strong>free lottery prize</strong>:</p>
+      <div class="formula">\[
+score(spam)=0.20\times0.20\times0.10\times0.15=0.0006
+\]</div>
+      <div class="formula">\[
+score(ham)=0.80\times0.01\times0.005\times0.01=0.0000004
+\]</div>
+      <p>Even though ham has the larger prior, the words are much more likely under spam. So the predicted class is:</p>
+      <div class="formula">\[
+\hat{c}=spam
+\]</div>
+    </section>
+
+    <section class="section">
+      <h2>What can we do with a generative model?</h2>
+      <div class="activity"><h3>Beyond prediction</h3><p class="prompt">If the model learns \(P(w\mid spam)\) and \(P(w\mid ham)\), what else can we inspect?</p></div>
+      <table>
+        <thead><tr><th>Use</th><th>What it means in Naive Bayes</th></tr></thead>
+        <tbody>
+          <tr><td>Inspect class behavior</td><td>Find words with high \(P(w\mid spam)\) or high \(P(w\mid ham)\).</td></tr>
+          <tr><td>Explain predictions</td><td>Show which words contributed evidence toward each class.</td></tr>
+          <tr><td>Generate examples conceptually</td><td>Sample likely words from a class to imagine spam-like or ham-like messages.</td></tr>
+          <tr><td>Use priors explicitly</td><td>Adjust \(P(c)\) if real-world class frequencies or business needs differ.</td></tr>
+          <tr><td>Handle missing features naturally</td><td>Score the observed features and ignore missing ones when appropriate.</td></tr>
+        </tbody>
+      </table>
+      <div class="note warning">Naive Bayes is generative, but basic text Naive Bayes is not a modern text generator. It can describe class-wise word probabilities; it does not generate fluent language like an LLM.</div>
+    </section>
+
+    <div class="pager"><a class="button" href="index.html">Previous: Overview</a><a class="button primary" href="02-text-naive-bayes.html">Next: Text NB</a></div>
+  </main>
+</body>
+</html>

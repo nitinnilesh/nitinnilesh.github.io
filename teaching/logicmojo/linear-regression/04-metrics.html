@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Evaluation Metrics</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Linear Regression Math</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-line.html">Line</a>
+        <a href="02-errors-cost.html">Errors</a>
+        <a href="03-ols-gradient.html">Learning</a>
+        <a class="active" href="04-metrics.html">Metrics</a>
+        <a href="05-multiple.html">Multiple LR</a>
+        <a href="06-assumptions.html">Assumptions</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 4</div>
+    <h1>Regression evaluation metrics</h1>
+    <p class="lead">Metrics translate model mistakes into numbers. Students should learn both the formula and the sentence they would say to a business user.</p>
+
+    <section class="section">
+      <h2>Error metrics</h2>
+      <table>
+        <thead><tr><th>Metric</th><th>Formula</th><th>Best classroom explanation</th></tr></thead>
+        <tbody>
+          <tr><td>MAE</td><td>\(\frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|\)</td><td>On average, how far are predictions from actual values?</td></tr>
+          <tr><td>MSE</td><td>\(\frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2\)</td><td>Average squared error, useful for optimization but harder to interpret.</td></tr>
+          <tr><td>RMSE</td><td>\(\sqrt{\mathrm{MSE}}\)</td><td>Typical prediction error in the same unit as y.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Metric choice question</h3>
+        <p class="prompt">If a house-price model has RMSE = 5 lakh, is that good or bad?</p>
+        <p>Expected answer: it depends on the price range. 5 lakh error is different for 20 lakh homes versus 5 crore homes.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>R2 score</h2>
+        <p>R2 measures how much variation in the target is explained by the model compared with a baseline that always predicts the mean.</p>
+        <div class="formula">\[R^2 = 1 - \frac{SS_{res}}{SS_{tot}}\]</div>
+        <ul class="checklist">
+          <li><strong>SS_res</strong>: unexplained error left by the model.</li>
+          <li><strong>SS_tot</strong>: total variation around the mean.</li>
+          <li>R2 = 1 means perfect prediction.</li>
+          <li>R2 = 0 means no better than predicting the average.</li>
+          <li>R2 can be negative when the model is worse than the average baseline.</li>
+        </ul>
+        <div class="activity">
+          <h3>Baseline challenge</h3>
+          <p class="prompt">If our model gets R2 = 0, what simple prediction is it roughly matching?</p>
+          <p>Expected answer: always predicting the average target value.</p>
+        </div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Model compared with mean baseline">
+          <line x1="44" y1="250" x2="386" y2="250" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="44" y1="250" x2="44" y2="38" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="60" y1="158" x2="370" y2="158" stroke="#b85c00" stroke-width="3" stroke-dasharray="8 6"></line>
+          <line x1="64" y1="226" x2="370" y2="70" stroke="#1f6feb" stroke-width="4"></line>
+          <circle cx="82" cy="219" r="6" fill="#11875d"></circle>
+          <circle cx="125" cy="189" r="6" fill="#11875d"></circle>
+          <circle cx="168" cy="180" r="6" fill="#11875d"></circle>
+          <circle cx="210" cy="139" r="6" fill="#11875d"></circle>
+          <circle cx="258" cy="130" r="6" fill="#11875d"></circle>
+          <circle cx="304" cy="96" r="6" fill="#11875d"></circle>
+          <text x="270" y="150" class="axis-label">mean baseline</text>
+          <text x="276" y="88" class="axis-label">model</text>
+        </svg>
+        <p class="caption">R2 asks: how much better is the regression line than the average line?</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Adjusted R2</h2>
+      <p>R2 usually increases when more features are added, even if the feature is not useful. Adjusted R2 penalizes unnecessary features.</p>
+      <div class="formula">\[\mathrm{Adjusted}\ R^2 = 1 - \frac{(1 - R^2)(n - 1)}{n - p - 1}\]</div>
+      <p>Here, n is number of rows and p is number of predictors.</p>
+      <div class="note warning">For beginners, teach adjusted R2 after R2 is comfortable. Do not let it distract from MAE, RMSE, and test-set evaluation.</div>
+      <div class="activity">
+        <h3>Feature debate</h3>
+        <p class="prompt">Should we add every column we have into a regression model?</p>
+        <p>Let students argue yes/no. Then introduce noise, overfitting, interpretability, and adjusted R2.</p>
+      </div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="03-ols-gradient.html">Previous: Learning</a>
+      <a class="button primary" href="05-multiple.html">Next: Multiple regression</a>
+    </div>
+  </main>
+</body>
+</html>
