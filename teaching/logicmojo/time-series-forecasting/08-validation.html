@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Time-Series Validation and Losses</title><link rel="stylesheet" href="styles.css">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script><script defer src="interactions.js"></script>
+</head>
+<body data-prev="07b-sarima-pre.html" data-next="09-ml-workflow.html">
+<header class="topbar"><div class="progress"><span style="width:90%"></span></div><nav class="nav"><a class="brand" href="index.html">Time-Series Forecasting</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-forecasting-contract.html">Contract</a><a href="02-patterns.html">Patterns</a><a href="03-baselines.html">Baselines</a><a href="04-lags-and-acf.html">Lags</a><a href="05-stationarity.html">Stationarity</a><a href="06-smoothing.html">Smoothing</a><a href="06c-arima-pre.html">ARIMA Pre</a><a href="07-arima.html">ARIMA</a><a href="07b-sarima-pre.html">SARIMA Pre</a><a class="active" href="08-validation.html">Validation</a><a href="09-ml-workflow.html">ML workflow</a></div></nav></header>
+<main class="page">
+  <div class="eyebrow">Part 8</div>
+  <h1>Evaluate by repeatedly pretending to live in the past.</h1>
+  <p class="lead">A trustworthy comparison reproduces the forecast origin, horizon, information availability and retraining schedule of deployment. A metric then translates each forecast error into a business-relevant score.</p>
+
+  <section class="section">
+    <div class="activity"><h3>Validation question</h3><p class="prompt">If the deployed model retrains monthly and predicts seven days ahead, should validation fit once and score every later day as a one-step forecast?</p><button class="reveal-button" data-reveal="deployment-match">Reveal answer</button><div class="answer" id="deployment-match" hidden>No. Reproduce monthly refits and evaluate complete seven-day forecast paths. A sequence of easier one-step forecasts answers a different question.</div></div>
+    <h2>Expanding-window backtesting</h2>
+    <div class="visual timeline"><div class="fold"><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="valid">Valid</span><span></span><span></span><span></span><span></span><span></span></div><div class="fold"><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="valid">Valid</span><span></span><span></span><span></span><span></span></div><div class="fold"><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="valid">Valid</span><span></span><span></span><span></span></div><div class="fold"><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="train">Train</span><span class="valid">Valid</span><span></span><span></span></div><div class="legend"><span><i class="swatch" style="background:#1769aa"></i>Training history</span><span><i class="swatch" style="background:#a96700"></i>Next validation origin</span></div></div>
+    <div class="grid"><div class="card"><h3>Expanding window</h3><p>Retains all history. Useful when older observations remain informative and the production model continually accumulates data.</p></div><div class="card"><h3>Sliding window</h3><p>Keeps only the most recent \(w\) observations. Useful when old regimes may be misleading.</p></div></div>
+    <p class="note warning"><strong>Fold isolation:</strong> transformations, imputers, scalers, feature selection, lag creation and model fitting must use each fold's training window only.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Error-cost question</h3><p class="prompt">Should a model treat an error of 40 rentals as four times or sixteen times as serious as an error of 10?</p></div>
+    <h2>Training loss defines what “best fit” means</h2>
+    <p>A loss function scores one prediction. Training minimizes the total or average loss. The evaluation metric can match the loss, but it does not have to; choose both deliberately.</p>
+    <div class="grid">
+      <div class="card"><h3>Squared-error loss</h3><div class="formula">\[L(y,\widehat y)=(y-\widehat y)^2\]</div><p>Large errors receive quadratically more weight. The optimal constant prediction is the mean.</p></div>
+      <div class="card"><h3>Absolute-error loss</h3><div class="formula">\[L(y,\widehat y)=|y-\widehat y|\]</div><p>Every extra unit of error has equal cost. The optimal constant prediction is the median.</p></div>
+      <div class="card"><h3>Huber loss</h3><div class="formula">\[L_\delta(e)=\begin{cases}\frac12e^2,&|e|\leq\delta\\\delta(|e|-\frac12\delta),&|e|>\delta\end{cases}\]</div><p>Quadratic near zero and linear for large errors; less dominated by outliers than squared error.</p></div>
+      <div class="card"><h3>Quantile or pinball loss</h3><div class="formula">\[L_\tau(e)=\begin{cases}\tau e,&e\geq0\\(\tau-1)e,&e<0\end{cases},\quad e=y-\widehat y\]</div><p>Learns a conditional quantile. Use \(\tau>0.5\) when underforecasting is more costly or to construct prediction intervals.</p></div>
+      <div class="card"><h3>Poisson deviance</h3><div class="formula">\[D=2\left[y\log\!\left(\frac{y}{\widehat y}\right)-(y-\widehat y)\right]\]</div><p>Designed for nonnegative count outcomes, with \(\widehat y>0\) and \(y\log(y/\widehat y)=0\) when \(y=0\).</p></div>
+    </div>
+    <p class="intuition"><strong>Loss is a modeling decision:</strong> squared loss targets the conditional mean; absolute loss targets the median; quantile loss targets the chosen quantile. They can produce different forecasts from the same data.</p>
+  </section>
+
+  <section class="section">
+    <h2>Evaluation metrics answer different questions</h2>
+    <div class="grid">
+      <div class="card"><h3>MAE</h3><div class="formula">\[\operatorname{MAE}=\frac1n\sum_{i=1}^{n}|y_i-\widehat y_i|\]</div><p>Average absolute miss in rental units. Easy to communicate and relatively robust.</p></div>
+      <div class="card"><h3>RMSE</h3><div class="formula">\[\operatorname{RMSE}=\sqrt{\frac1n\sum_{i=1}^{n}(y_i-\widehat y_i)^2}\]</div><p>Same target units as MAE, but gives large misses more influence.</p></div>
+      <div class="card"><h3>MAPE</h3><div class="formula">\[\operatorname{MAPE}=\frac{100}{n}\sum_{i=1}^{n}\left|\frac{y_i-\widehat y_i}{y_i}\right|\]</div><p>Percentage interpretation, but undefined at zero and unstable near zero.</p></div>
+      <div class="card"><h3>MASE</h3><div class="formula">\[\operatorname{MASE}=\frac{\frac1n\sum|y_i-\widehat y_i|}{\frac1{T-1}\sum_{t=2}^{T}|y_t-y_{t-1}|}\]</div><p>Scales test MAE by a training-set naive error. Below 1 beats that benchmark.</p></div>
+    </div>
+    <p class="note">For seasonal data, replace the MASE denominator with the training error from an appropriate seasonal-naive forecast. Always state the scale used.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Relative-error question</h3><p class="prompt">Are errors \(10\to20\) and \(100\to110\) equally serious? RMSE says both miss by 10. Would a relative-demand metric agree?</p></div>
+    <h2>RMSLE: the Kaggle competition metric</h2>
+    <div class="formula">\[\operatorname{RMSLE}=\sqrt{\frac1n\sum_{i=1}^{n}\left[\log(1+\widehat y_i)-\log(1+y_i)\right]^2}\]</div>
+    <p>The \(+1\) allows zero counts. Predictions must be nonnegative. RMSLE measures distance after logarithmic compression, so proportional errors matter more than equal absolute errors.</p>
+    <div class="table-wrap"><table><thead><tr><th>Actual \(y\)</th><th>Forecast \(\widehat y\)</th><th>Absolute error</th><th>Absolute log error</th></tr></thead><tbody><tr><td>10</td><td>20</td><td>10</td><td>\(\left|\log(21)-\log(11)\right|\approx0.647\)</td></tr><tr><td>100</td><td>110</td><td>10</td><td>\(\left|\log(111)-\log(101)\right|\approx0.094\)</td></tr></tbody></table></div>
+    <p>Both forecasts miss by 10 bikes, but doubling a small demand level is much more serious on the log scale than moving from 100 to 110.</p>
+    <div class="grid"><div class="card"><h3>Why it helps</h3><p>Reduces domination by a few extremely busy hours, works naturally with right-skewed counts, and emphasizes relative accuracy.</p></div><div class="card"><h3>What to watch</h3><p>It can hide large absolute capacity errors at busy hours. A production team may still need MAE, peak-hour error and service-level costs.</p></div></div>
+    <p class="note warning"><strong>Training on \(\log(1+y)\):</strong> minimizing MSE on the transformed target resembles RMSLE optimization, but exponentiating a mean log forecast does not automatically recover the mean count. Back-transformation bias and nonnegative predictions need attention.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Uncertainty question</h3><p class="prompt">Should a 14-day-ahead interval usually be as narrow as tomorrow's interval?</p><button class="reveal-button" data-reveal="interval">Reveal answer</button><div class="answer" id="interval" hidden>No. More unknown innovations accumulate with horizon, so well-calibrated intervals generally widen, though their exact shape depends on the model.</div></div>
+    <h2>A point forecast is incomplete</h2>
+    <div class="formula">\[\text{point forecast}\quad\widehat y_{t+h\mid t}\qquad\text{and interval}\quad[L_{t+h},U_{t+h}]\]</div>
+    <p>A nominal 90% prediction interval should contain roughly 90% of future outcomes under conditions represented by evaluation. Check empirical coverage and average width across backtest origins.</p>
+    <p class="intuition"><strong>Fair comparison:</strong> evaluate every candidate on the same origins, horizons, information, metrics and baseline. Also report scores by horizon and by operational segment such as peak hour versus off-peak.</p>
+  </section>
+  <div class="pager"><a class="button" href="07b-sarima-pre.html">Previous: SARIMA Pre</a><a class="button primary" href="09-ml-workflow.html">Next: ML workflow</a></div>
+</main>
+</body>
+</html>

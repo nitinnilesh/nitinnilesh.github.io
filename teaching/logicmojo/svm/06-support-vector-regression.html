@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Support Vector Regression</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">SVM</a>
+      <div class="navlinks">
+        <a class="" href="index.html">Overview</a>
+        <a class="" href="01-svm-geometry.html">Geometry</a>
+        <a class="" href="02-margin-and-scratch-svm.html">Scratch</a>
+        <a class="" href="03-soft-margin.html">Soft Margin</a>
+        <a class="" href="04-kernels.html">Kernels</a>
+        <a class="" href="05-svm-in-practice.html">Practice</a>
+        <a class="active" href="06-support-vector-regression.html">SVR</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Part 6</div>
+    <h1>Support Vector Regression fits a function with a tolerance tube.</h1>
+    <p class="lead">SVR uses the same support-vector philosophy for regression: instead of separating classes with a margin, it fits a line or curve and ignores small errors inside an epsilon tube.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>From classification to regression</h2>
+        <div class="activity"><h3>Regression question</h3><p class="prompt">If SVM creates a safety margin for classification, what should the margin idea become for regression?</p></div>
+        <p>In classification, SVM wants a boundary with a wide margin between classes. In regression, SVR wants a function where most points fall inside a tolerance band.</p>
+        <p>This tolerance band is called the epsilon tube.</p>
+        <div class="formula">\[
+f(x)=w^Tx+b
+\]</div>
+        <div class="formula">\[
+\text{epsilon tube}: \quad f(x)-\epsilon \le y \le f(x)+\epsilon
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="SVR epsilon tube">
+          <line x1="58" y1="246" x2="366" y2="246" stroke="#5e6875" stroke-width="2"/><line x1="58" y1="246" x2="58" y2="50" stroke="#5e6875" stroke-width="2"/>
+          <path d="M76 210 C140 176, 196 156, 348 92" stroke="#18202a" stroke-width="4" fill="none"/>
+          <path d="M76 184 C140 150, 196 130, 348 66" stroke="#6741d9" stroke-width="2" stroke-dasharray="7 6" fill="none"/>
+          <path d="M76 236 C140 202, 196 182, 348 118" stroke="#6741d9" stroke-width="2" stroke-dasharray="7 6" fill="none"/>
+          <path d="M76 184 C140 150, 196 130, 348 66 L348 118 C196 182, 140 202, 76 236 Z" fill="#f7f5ff" opacity="0.75"/>
+          <circle cx="92" cy="214" r="7" fill="#2a9d8f" stroke="#18202a"/><circle cx="130" cy="172" r="7" fill="#2a9d8f" stroke="#18202a"/><circle cx="178" cy="166" r="7" fill="#2a9d8f" stroke="#18202a"/><circle cx="230" cy="142" r="7" fill="#2a9d8f" stroke="#18202a"/><circle cx="280" cy="122" r="7" fill="#2a9d8f" stroke="#18202a"/><circle cx="328" cy="70" r="7" fill="#e76f51" stroke="#18202a"/><circle cx="206" cy="218" r="7" fill="#e76f51" stroke="#18202a"/>
+          <text x="250" y="88" class="axis-label">f(x)+epsilon</text><text x="250" y="136" class="axis-label">f(x)-epsilon</text><text x="88" y="282" class="axis-label">only points outside the tube are penalized</text>
+        </svg>
+        <p class="caption">SVR cares about errors outside the epsilon tube.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Epsilon-insensitive loss</h2>
+      <div class="activity"><h3>Loss question</h3><p class="prompt">Should a prediction error of 0.01 and 0.50 be treated the same in regression?</p></div>
+      <p>SVR says small errors are acceptable. If the error is within \(\epsilon\), the loss is zero.</p>
+      <div class="formula">\[
+L_{\epsilon}(y,f(x))=\max(0, |y-f(x)|-\epsilon)
+\]</div>
+      <table><thead><tr><th>Error size</th><th>SVR loss</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>\(|y-f(x)|\le\epsilon\)</td><td>0</td><td>prediction is good enough</td></tr>
+        <tr><td>\(|y-f(x)|>\epsilon\)</td><td>\(|y-f(x)|-\epsilon\)</td><td>only extra error beyond tolerance is penalized</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>SVR objective</h2>
+      <div class="activity"><h3>Optimization question</h3><p class="prompt">What does SVR balance: flatness of the function or prediction errors outside the tube?</p></div>
+      <p>For linear SVR, the objective has the same spirit as SVM classification.</p>
+      <div class="formula">\[
+\min_{w,b}\frac{1}{2}\|w\|^2 + C\sum_i(\xi_i+\xi_i^*)
+\]</div>
+      <p>Subject to:</p>
+      <div class="formula">\[
+y_i-w^Tx_i-b \le \epsilon + \xi_i
+\]</div>
+      <div class="formula">\[
+w^Tx_i+b-y_i \le \epsilon + \xi_i^*
+\]</div>
+      <div class="formula">\[
+\xi_i,\xi_i^*\ge 0
+\]</div>
+      <table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>\(\frac{1}{2}\|w\|^2\)</td><td>keeps the regression function flat/simple</td></tr>
+        <tr><td>\(\epsilon\)</td><td>width of the no-penalty tube</td></tr>
+        <tr><td>\(\xi_i,\xi_i^*\)</td><td>errors above or below the tube</td></tr>
+        <tr><td>\(C\)</td><td>cost of errors outside the tube</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Support vectors in regression</h2>
+      <div class="activity"><h3>Support-vector question</h3><p class="prompt">In classification, support vectors touch the margin. In regression, which points become support vectors?</p></div>
+      <p>In SVR, support vectors are the points on or outside the epsilon tube. Points well inside the tube usually do not affect the final function much.</p>
+      <div class="note">This is the regression version of the same idea: only critical points support the solution.</div>
+    </section>
+
+    <section class="section">
+      <h2>Meaning of C and epsilon</h2>
+      <div class="activity"><h3>Tuning question</h3><p class="prompt">What happens when the tube is very wide or very narrow?</p></div>
+      <table><thead><tr><th>Parameter</th><th>Small value</th><th>Large value</th></tr></thead><tbody>
+        <tr><td>\(\epsilon\)</td><td>narrow tube, more points penalized, more sensitive</td><td>wide tube, fewer points penalized, smoother fit</td></tr>
+        <tr><td>\(C\)</td><td>more tolerant of outside-tube errors</td><td>stricter about outside-tube errors</td></tr>
+      </tbody></table>
+      <div class="note warning">A very small \(\epsilon\) and very large \(C\) can overfit noise. Tune both with validation.</div>
+    </section>
+
+    <section class="section">
+      <h2>Kernel SVR</h2>
+      <div class="activity"><h3>Nonlinear regression question</h3><p class="prompt">What if the target changes nonlinearly with the input?</p></div>
+      <p>SVR can use the same kernels as SVM classification.</p>
+      <table><thead><tr><th>Kernel</th><th>Regression behavior</th></tr></thead><tbody>
+        <tr><td>linear</td><td>fits a straight regression function</td></tr>
+        <tr><td>polynomial</td><td>fits polynomial-like curves</td></tr>
+        <tr><td>RBF</td><td>fits smooth nonlinear curves using local similarity</td></tr>
+      </tbody></table>
+      <div class="formula">\[
+K(x_i,x_j)=\exp(-\gamma\|x_i-x_j\|^2)
+\]</div>
+      <p>For RBF SVR, \(\gamma\) again controls locality. Large \(\gamma\) can create a wiggly regression curve.</p>
+    </section>
+
+    <section class="section">
+      <h2>Working example idea</h2>
+      <div class="activity"><h3>Example question</h3><p class="prompt">How would SVR fit a noisy nonlinear curve?</p></div>
+      <p>For a teaching notebook or live coding, use a small synthetic regression dataset:</p>
+      <div class="codebox">X = sorted random values from 0 to 6<br>y = sin(X) + small noise<br><br>Pipeline([<br>&nbsp;&nbsp;("scaler", StandardScaler()),<br>&nbsp;&nbsp;("svr", SVR(kernel="rbf", C=10, epsilon=0.1, gamma="scale"))<br>])</div>
+      <p>Then plot the fitted curve and the epsilon tube around it.</p>
+    </section>
+
+    <section class="section">
+      <h2>SVR data engineering workflow</h2>
+      <div class="activity"><h3>Workflow question</h3><p class="prompt">What changes when we move from SVM classification to SVR regression?</p></div>
+      <ol>
+        <li>Use a regression target instead of class labels.</li>
+        <li>Handle missing values and encode categorical variables.</li>
+        <li>Scale features before SVR.</li>
+        <li>Tune \(C\), \(\epsilon\), kernel, and \(\gamma\).</li>
+        <li>Evaluate using regression metrics.</li>
+      </ol>
+      <table><thead><tr><th>Metric</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>MAE</td><td>average absolute error, easy to explain</td></tr>
+        <tr><td>RMSE</td><td>penalizes large errors more strongly</td></tr>
+        <tr><td>\(R^2\)</td><td>variance explained compared with predicting the mean</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>SVR vs linear regression</h2>
+      <div class="activity"><h3>Comparison question</h3><p class="prompt">When would SVR be more attractive than ordinary linear regression?</p></div>
+      <table><thead><tr><th>Model</th><th>Loss idea</th><th>Shape</th><th>Good when</th></tr></thead><tbody>
+        <tr><td>Linear Regression</td><td>squared error for all points</td><td>linear unless features are engineered</td><td>relationship is simple and interpretability matters</td></tr>
+        <tr><td>SVR</td><td>ignores errors inside epsilon tube</td><td>linear or nonlinear with kernels</td><td>small/medium data, nonlinear patterns, tolerance to small errors</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>When to use SVR</h2>
+      <div class="activity"><h3>Model-choice question</h3><p class="prompt">What kind of regression problem is a good candidate for SVR?</p></div>
+      <ul>
+        <li>small to medium-sized regression dataset</li>
+        <li>numeric features that can be scaled cleanly</li>
+        <li>nonlinear relationship where RBF kernel may help</li>
+        <li>need a model that tolerates small errors inside a chosen band</li>
+      </ul>
+      <div class="note warning">SVR can be slow on large datasets. It is also sensitive to feature scaling and hyperparameter choices.</div>
+    </section>
+
+    <section class="section">
+      <h2>Final SVR mental model</h2>
+      <div class="activity"><h3>One-line summary</h3><p class="prompt">How would you explain SVR in one sentence?</p></div>
+      <p>SVR fits a simple or kernel-based regression function and only worries about errors that fall outside an acceptable epsilon tube.</p>
+      <div class="formula">\[
+L_{\epsilon}(y,f(x))=\max(0, |y-f(x)|-\epsilon)
+\]</div>
+    </section>
+
+    <div class="pager"><a class="button" href="05-svm-in-practice.html">Previous: Practice</a><a class="button primary" href="index.html">Back to Overview</a></div>
+  </main>
+</body>
+</html>

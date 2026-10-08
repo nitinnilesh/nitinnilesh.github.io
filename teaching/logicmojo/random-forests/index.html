@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Random Forests: Complete Teaching Material</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
+    <a class="brand" href="index.html">Random Forests</a>
+    <div class="navlinks"><a class="active" href="index.html">Overview</a><a class="" href="01-why-ensemble.html">Why ensemble</a><a class="" href="02-bootstrap.html">Bootstrap</a><a class="" href="03-bagging.html">Bagging</a><a class="" href="04-feature-randomness.html">Features</a><a class="" href="05-classification.html">Classification</a><a class="" href="06-regression.html">Regression</a><a class="" href="07-oob.html">OOB</a><a class="" href="08-variance.html">Variance</a><a class="" href="09-tuning.html">Tuning</a><a class="" href="10-interpretation.html">Interpretation</a><a class="" href="11-practical-guide.html">Practice</a></div>
+  </nav></header>
+  <main class="page">
+    <div class="eyebrow">Random Forests</div>
+    <h1>One decision tree is a useful opinion. A forest makes that opinion more dependable.</h1>
+    <p class="lead">A progressive path from ensemble intuition to bootstrap sampling, bagging, random feature selection, classification, regression, OOB evaluation, variance mathematics, tuning, and practical model choice.</p>
+
+<section class="two-col section"><div>
+  <h2>The central question</h2>
+  <div class="activity"><h3>Opening question</h3><p class="prompt">If a small change in the training data can change one tree, how could several trees make a more stable prediction?</p></div>
+  <p>Random Forest combines two sources of randomness: each tree sees a bootstrap sample of the rows, and each node considers only a random subset of features. The trees become different enough that their mistakes can cancel when their predictions are aggregated.</p>
+  <div class="formula">\[\hat f(x)=\frac{1}{B}\sum_{b=1}^B f_b(x)\]</div>
+  <p class="intuition"><strong>Intuition:</strong> one tree may be wrong for a particular row. If the other trees are not wrong in exactly the same way, averaging or voting makes the final answer steadier.</p>
+</div><div class="visual">
+  <svg class="plot" viewBox="0 0 440 320" role="img" aria-label="Many trees combine into one forest prediction">
+    <line x1="82" y1="66" x2="82" y2="264" stroke="#d9e0ea"/><line x1="218" y1="66" x2="218" y2="264" stroke="#d9e0ea"/><line x1="354" y1="66" x2="354" y2="264" stroke="#d9e0ea"/>
+    <g stroke="#6741d9" fill="#f7f5ff"><rect x="35" y="38" width="94" height="38" rx="6"/><rect x="171" y="38" width="94" height="38" rx="6"/><rect x="307" y="38" width="94" height="38" rx="6"/></g>
+    <g fill="#18202a" font-size="13" text-anchor="middle"><text x="82" y="62">Tree 1</text><text x="218" y="62">Tree 2</text><text x="354" y="62">Tree 3</text></g>
+    <g stroke="#5e6875"><line x1="82" y1="76" x2="82" y2="116"/><line x1="82" y1="116" x2="52" y2="156"/><line x1="82" y1="116" x2="112" y2="156"/><line x1="218" y1="76" x2="218" y2="116"/><line x1="218" y1="116" x2="188" y2="156"/><line x1="218" y1="116" x2="248" y2="156"/><line x1="354" y1="76" x2="354" y2="116"/><line x1="354" y1="116" x2="324" y2="156"/><line x1="354" y1="116" x2="384" y2="156"/></g>
+    <g fill="#eef9f4" stroke="#11875d"><rect x="26" y="156" width="52" height="34" rx="5"/><rect x="86" y="156" width="52" height="34" rx="5"/><rect x="162" y="156" width="52" height="34" rx="5"/><rect x="222" y="156" width="52" height="34" rx="5"/><rect x="298" y="156" width="52" height="34" rx="5"/><rect x="358" y="156" width="52" height="34" rx="5"/></g>
+    <g fill="#18202a" font-size="12" text-anchor="middle"><text x="52" y="178">Yes</text><text x="112" y="178">No</text><text x="188" y="178">Yes</text><text x="248" y="178">Yes</text><text x="324" y="178">No</text><text x="384" y="178">Yes</text></g>
+    <path d="M52 190 C120 224 192 224 220 256 M188 190 C214 214 220 236 220 256 M384 190 C318 224 248 224 220 256" fill="none" stroke="#1f6feb" stroke-width="2"/>
+    <rect x="164" y="256" width="112" height="40" rx="6" fill="#f4f8ff" stroke="#1f6feb"/><text x="220" y="281" text-anchor="middle" font-size="13">Forest: Yes</text>
+  </svg><p class="caption">The forest aggregates many different tree opinions.</p>
+</div></section>
+<section class="section"><h2>Roadmap</h2><div class="grid"><a class="card" href="01-why-ensemble.html"><div class="num">1</div><h3>Why an ensemble</h3><p>Single-tree instability, ensemble learning, and diversity.</p></a><a class="card" href="02-bootstrap.html"><div class="num">2</div><h3>Bootstrap sampling</h3><p>Sampling with replacement and the 63.2% / 36.8% result.</p></a><a class="card" href="03-bagging.html"><div class="num">3</div><h3>Bagging</h3><p>Bootstrap aggregating, voting, averaging, and a worked example.</p></a><a class="card" href="04-feature-randomness.html"><div class="num">4</div><h3>Random features</h3><p>Why feature subsets decorrelate trees.</p></a><a class="card" href="05-classification.html"><div class="num">5</div><h3>Classification</h3><p>A forest vote, class probabilities, and a loan example.</p></a><a class="card" href="06-regression.html"><div class="num">6</div><h3>Regression</h3><p>Averaging tree predictions and a house-price example.</p></a><a class="card" href="07-oob.html"><div class="num">7</div><h3>Out-of-bag evaluation</h3><p>Use rows excluded from each bootstrap sample.</p></a><a class="card" href="08-variance.html"><div class="num">8</div><h3>Variance mathematics</h3><p>Strength, correlation, and the ensemble variance equation.</p></a><a class="card" href="09-tuning.html"><div class="num">9</div><h3>Tuning and evaluation</h3><p>Hyperparameters, metrics, imbalance, and validation.</p></a><a class="card" href="10-interpretation.html"><div class="num">10</div><h3>Interpretation</h3><p>MDI, permutation importance, correlation, and caution.</p></a><a class="card" href="11-practical-guide.html"><div class="num">11</div><h3>Practice and model choice</h3><p>Workflow, limitations, and Random Forest versus boosting.</p></a></div></section>
+<section class="section"><h2>Three definitions to keep separate</h2><table><thead><tr><th>Idea</th><th>What is randomized?</th><th>What is combined?</th></tr></thead><tbody>
+  <tr><td>Ensemble</td><td>Not necessarily randomized</td><td>Predictions from several models</td></tr>
+  <tr><td>Bagging</td><td>Bootstrap samples of rows</td><td>Predictions from base learners</td></tr>
+  <tr><td>Random Forest</td><td>Bootstrap rows plus feature subsets at each split</td><td>Predictions from decision trees</td></tr>
+</tbody></table><p class="intuition"><strong>Memory hook:</strong> ensemble is the umbrella; bagging is a way to create an ensemble; Random Forest is bagged decision trees with extra feature randomness.</p></section>
+<section class="section"><h2>References</h2><ul class="sources"><li><a href="https://scikit-learn.org/stable/modules/ensemble.html">Scikit-learn ensemble guide</a></li><li><a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">RandomForestClassifier documentation</a></li><li><a href="https://scikit-learn.org/stable/modules/permutation_importance.html">Permutation importance documentation</a></li><li><a href="https://doi.org/10.1023/A:1010933404324">Breiman, Random Forests (2001)</a></li></ul></section>
+    <div class="pager"><span></span><a class="button primary" href="01-why-ensemble.html">Next: Why ensemble</a></div>
+  </main>
+</body>
+</html>

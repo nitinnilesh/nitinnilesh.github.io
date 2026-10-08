@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entropy and Gini Impurity</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-tree-intuition.html">Intuition</a><a class="active" href="02-entropy-gini.html">Impurity</a><a class="" href="03-information-gain.html">Gain</a><a class="" href="04-mixed-splits.html">Mixed Data</a><a class="" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="" href="07-regression-trees.html">Regression</a><a class="" href="08-evaluation-tuning.html">Evaluation</a><a class="" href="09-practical-guide.html">Practice</a><a class="" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Part 2</div>
+    <h1>Impurity tells a tree how mixed the labels are.</h1>
+    <p class="lead">Entropy describes expected uncertainty; Gini describes how often a label drawn from the node would disagree with another draw. Both are low for pure nodes and high for mixed nodes.</p>
+
+    <section class="section">
+      <h2>Begin with purity</h2>
+      <div class="activity"><h3>Prediction question</h3><p class="prompt">Which leaf gives a safer prediction: 10 approvals and 0 declines, or 5 approvals and 5 declines?</p></div>
+      <div class="three-col">
+        <div class="card"><h3>10 / 0</h3><p>Pure. The next label is completely predictable from this node.</p></div>
+        <div class="card"><h3>9 / 1</h3><p>Mostly pure. There is a small amount of uncertainty.</p></div>
+        <div class="card"><h3>5 / 5</h3><p>Maximally mixed for two classes. Either label is equally plausible.</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Surprise before entropy</h2>
+      <div class="activity"><h3>Information question</h3><p class="prompt">Which event is more informative: something expected with probability 0.9, or something rare with probability 0.1?</p></div>
+      <div class="formula">\[
+      I(\text{event})=-\log_2 P(\text{event})
+      \]</div>
+      <table><thead><tr><th>Probability</th><th>Surprise</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>1</td><td>\(-\log_2(1)=0\) bits</td><td>Certain; learning it adds no information.</td></tr>
+        <tr><td>0.5</td><td>\(-\log_2(0.5)=1\) bit</td><td>One fair yes/no question resolves it.</td></tr>
+        <tr><td>0.125</td><td>\(-\log_2(0.125)=3\) bits</td><td>Rare and therefore more surprising.</td></tr>
+      </tbody></table>
+      <p class="intuition"><strong>Intuition:</strong> information is large when reality gives us something we did not expect.</p>
+    </section>
+
+    <section class="section">
+      <h2>Entropy is average surprise</h2>
+      <div class="formula">\[
+      H(Y)=-\sum_{k=1}^{K}p_k\log_2(p_k)
+      \]</div>
+      <table><thead><tr><th>Symbol</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>\(Y\)</td><td>The target label at the current node.</td></tr>
+        <tr><td>\(K\)</td><td>Number of target classes.</td></tr>
+        <tr><td>\(p_k\)</td><td>Fraction of node samples belonging to class \(k\).</td></tr>
+        <tr><td>\(H(Y)\)</td><td>Expected number of bits needed to identify the label.</td></tr>
+      </tbody></table>
+      <p class="intuition"><strong>Intuition:</strong> entropy averages the surprise of every possible class, weighted by how often that class occurs.</p>
+    </section>
+
+    <section class="section">
+      <h2>Meet the complete cricket dataset</h2>
+      <div class="activity"><h3>Choose the first question</h3><p class="prompt">Before calculating anything, scan all 14 days. Would you first ask about Weather, Temperature, Humidity, or Wind?</p></div>
+      <p>Each row describes the conditions on one day. The four input features are <strong>Weather</strong>, <strong>Temperature</strong>, <strong>Humidity</strong>, and <strong>Wind</strong>. The target <strong>Play cricket?</strong> records whether cricket was played.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Day</th><th>Weather</th><th>Temperature</th><th>Humidity</th><th>Wind</th><th>Play cricket?</th></tr></thead>
+        <tbody>
+          <tr><td>D1</td><td>Sunny</td><td>Hot</td><td>High</td><td>Weak</td><td>No</td></tr>
+          <tr><td>D2</td><td>Sunny</td><td>Hot</td><td>High</td><td>Strong</td><td>No</td></tr>
+          <tr><td>D3</td><td>Overcast</td><td>Hot</td><td>High</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>D4</td><td>Rain</td><td>Mild</td><td>High</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>D5</td><td>Rain</td><td>Cool</td><td>Normal</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>D6</td><td>Rain</td><td>Cool</td><td>Normal</td><td>Strong</td><td>No</td></tr>
+          <tr><td>D7</td><td>Overcast</td><td>Cool</td><td>Normal</td><td>Strong</td><td>Yes</td></tr>
+          <tr><td>D8</td><td>Sunny</td><td>Mild</td><td>High</td><td>Weak</td><td>No</td></tr>
+          <tr><td>D9</td><td>Sunny</td><td>Cool</td><td>Normal</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>D10</td><td>Rain</td><td>Mild</td><td>Normal</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>D11</td><td>Sunny</td><td>Mild</td><td>Normal</td><td>Strong</td><td>Yes</td></tr>
+          <tr><td>D12</td><td>Overcast</td><td>Mild</td><td>High</td><td>Strong</td><td>Yes</td></tr>
+          <tr><td>D13</td><td>Overcast</td><td>Hot</td><td>Normal</td><td>Weak</td><td>Yes</td></tr>
+          <tr><td>D14</td><td>Rain</td><td>Mild</td><td>High</td><td>Strong</td><td>No</td></tr>
+        </tbody>
+      </table></div>
+      <p class="intuition"><strong>How to read it:</strong> Weather has three possible values, while the other inputs each have two or three values. All inputs are categorical in this teaching example. Counting the target column gives 9 Yes days and 5 No days.</p>
+      <div class="note">The goal is to learn a sequence of questions that predicts <strong>Play cricket?</strong>. We will first measure the uncertainty in all 14 labels, then test which feature reduces it the most.</div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Cricket target: calculate every term</h2>
+        <p>From the complete table above, the dataset contains 9 \(Play=Yes\) days and 5 \(Play=No\) days.</p>
+        <div class="formula">\[
+        p_{Yes}=\frac{9}{14},\qquad p_{No}=\frac{5}{14}
+        \]</div>
+        <div class="formula">\[
+        \begin{aligned}
+        H(Play)&=-\frac{9}{14}\log_2\frac{9}{14}-\frac{5}{14}\log_2\frac{5}{14}\\
+        &\approx 0.940\text{ bits}
+        \end{aligned}
+        \]</div>
+        <p class="intuition"><strong>Intuition:</strong> the node is fairly mixed, so its entropy is close to the binary maximum of 1 bit.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Binary entropy curve">
+          <line x1="58" y1="242" x2="372" y2="242" stroke="#5e6875" stroke-width="2"/><line x1="58" y1="242" x2="58" y2="48" stroke="#5e6875" stroke-width="2"/>
+          <path d="M58 242 C92 152 132 94 178 66 C194 56 206 52 215 52 C224 52 236 56 252 66 C298 94 338 152 372 242" fill="none" stroke="#6741d9" stroke-width="4"/>
+          <line x1="215" y1="52" x2="215" y2="242" stroke="#d9e0ea" stroke-dasharray="5 5"/>
+          <circle cx="260" cy="64" r="7" fill="#e76f51"/><text x="270" y="58" class="axis-label">9/14 → H ≈ 0.94</text>
+          <text x="48" y="264" class="axis-label">0</text><text x="207" y="264" class="axis-label">0.5</text><text x="366" y="264" class="axis-label">1</text>
+          <text x="170" y="288" class="axis-label">P(Yes)</text><text x="12" y="150" class="axis-label" transform="rotate(-90 12 150)">Entropy</text>
+        </svg>
+        <p class="caption">Binary entropy is zero at pure endpoints and largest at a 50/50 mixture.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Explore entropy</h2>
+      <div class="activity"><h3>Before moving the slider</h3><p class="prompt">What should happen to entropy as one class moves from 50% toward 100%?</p></div>
+      <div class="explorer">
+        <label for="entropy-slider">Class 1 proportion: <span id="entropy-p1">0.50</span></label>
+        <input id="entropy-slider" type="range" min="0" max="100" value="50" step="1">
+        <div class="probability-bar" aria-label="Class proportions"><span id="entropy-class-1" style="width:50%">50%</span><span id="entropy-class-0" style="width:50%">50%</span></div>
+        <p>Class 0 proportion: <strong id="entropy-p0">0.50</strong></p>
+        <p>Entropy: <strong id="entropy-value">1.000 bits</strong></p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Gini impurity</h2>
+      <div class="activity"><h3>Alternative question</h3><p class="prompt">Can we measure mixture without logarithms?</p></div>
+      <div class="formula">\[
+      Gini(Y)=1-\sum_{k=1}^{K}p_k^2
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> imagine randomly assigning a label according to the node's class proportions. Gini is the probability that this random label disagrees with the true class.</p>
+      <div class="formula">\[
+      Gini(9\ Yes,5\ No)=1-\left(\frac{9}{14}\right)^2-\left(\frac{5}{14}\right)^2\approx0.459
+      \]</div>
+    </section>
+
+    <section class="section">
+      <h2>Entropy versus Gini</h2>
+      <table><thead><tr><th>Property</th><th>Entropy</th><th>Gini</th></tr></thead><tbody>
+        <tr><td>Formula</td><td>\(-\sum p_k\log_2p_k\)</td><td>\(1-\sum p_k^2\)</td></tr>
+        <tr><td>Binary maximum</td><td>1 at 50/50</td><td>0.5 at 50/50</td></tr>
+        <tr><td>Pure node</td><td>0</td><td>0</td></tr>
+        <tr><td>Interpretation</td><td>Expected uncertainty in bits</td><td>Expected disagreement under proportion-based random labelling</td></tr>
+        <tr><td>Typical result</td><td colspan="2">Often chooses similar splits; neither is universally superior.</td></tr>
+      </tbody></table>
+      <div class="note">Do not compare their raw magnitudes directly. Their scales differ. Compare how much each criterion decreases after a candidate split.</div>
+    </section>
+
+    <section class="section">
+      <h2>Edge cases</h2>
+      <ul>
+        <li>We define \(0\log_2(0)=0\), so an absent class contributes nothing.</li>
+        <li>Entropy handles any number of classes; binary entropy is only the easiest visualization.</li>
+        <li>Sample or class weights replace simple counts with weighted counts.</li>
+        <li>Impurity describes the current training node. It does not directly report future accuracy.</li>
+      </ul>
+    </section>
+
+    <div class="pager"><a class="button" href="01-tree-intuition.html">Previous: Intuition</a><a class="button primary" href="03-information-gain.html">Next: Information Gain</a></div>
+  </main>
+</body>
+</html>

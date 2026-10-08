@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bias and Variance Tradeoff</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Polynomial Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-introduction.html">Intro</a>
+        <a href="02-simulation-generalization.html">Simulation</a>
+        <a class="active" href="03-bias-variance.html">Bias-Variance</a>
+        <a href="04-validation-cross-validation.html">Validation</a>
+        <a href="05-regularization.html">Regularization</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 3</div>
+    <h1>Bias, variance, underfitting, and overfitting</h1>
+    <p class="lead">Polynomial regression is a perfect place to teach the central ML tension: simple models miss patterns, while very flexible models chase noise.</p>
+
+    <section class="section">
+      <h2>What is bias?</h2>
+      <p>Bias is error caused by a model being too simple or making assumptions that are too restrictive.</p>
+      <div class="formula">\[\text{high bias} \Rightarrow \text{model cannot capture the true pattern}\]</div>
+      <p>A degree-1 line trying to fit a clear curve usually has high bias.</p>
+      <p>A useful mental model: imagine training the same type of model on many different datasets sampled from the same real-world process. Bias measures how far the average prediction is from the true pattern.</p>
+      <div class="note">Bias is not about social or ethical bias here. In this context, bias means systematic prediction error from an overly simple model.</div>
+    </section>
+
+    <section class="section">
+      <h2>What is variance?</h2>
+      <p>Variance is error caused by a model being too sensitive to the particular training sample.</p>
+      <div class="formula">\[\text{high variance} \Rightarrow \text{model changes a lot when training data changes}\]</div>
+      <p>A very high-degree polynomial can bend around small random noise. If we collect a slightly different dataset, the fitted curve may look very different.</p>
+      <p>Using the same repeated-datasets mental model, variance measures how spread out the different model predictions are at the same input value.</p>
+      <div class="activity">
+        <h3>Sensitivity check</h3>
+        <p class="prompt">If removing one training point changes the curve dramatically, what does that suggest?</p>
+        <p>It suggests high variance. The model is too sensitive to the exact sample.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Repeated samples intuition</h2>
+      <p>Bias and variance are easier to understand when we imagine several possible training datasets from the same source. Each dataset gives a slightly different fitted model.</p>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 330" role="img" aria-label="Repeated datasets and model variance">
+          <g transform="translate(44,0)">
+            <text x="96" y="30" class="axis-label">High bias</text>
+            <line x1="42" y1="260" x2="230" y2="260" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="260" x2="42" y2="54" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 214 C96 104, 168 84, 222 214" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <line x1="58" y1="184" x2="222" y2="154" stroke="#c3342f" stroke-width="4"></line>
+            <line x1="58" y1="190" x2="222" y2="160" stroke="#c3342f" stroke-width="3" opacity="0.55"></line>
+            <line x1="58" y1="178" x2="222" y2="148" stroke="#c3342f" stroke-width="3" opacity="0.55"></line>
+            <text x="54" y="300" class="axis-label">similar wrong models</text>
+          </g>
+          <g transform="translate(344,0)">
+            <text x="88" y="30" class="axis-label">Good balance</text>
+            <line x1="42" y1="260" x2="230" y2="260" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="260" x2="42" y2="54" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 214 C96 104, 168 84, 222 214" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <path d="M58 212 C96 112, 168 88, 222 216" fill="none" stroke="#11875d" stroke-width="4"></path>
+            <path d="M58 218 C96 106, 168 92, 222 210" fill="none" stroke="#11875d" stroke-width="3" opacity="0.55"></path>
+            <path d="M58 208 C96 116, 168 86, 222 220" fill="none" stroke="#11875d" stroke-width="3" opacity="0.55"></path>
+            <text x="56" y="300" class="axis-label">similar useful models</text>
+          </g>
+          <g transform="translate(644,0)">
+            <text x="92" y="30" class="axis-label">High variance</text>
+            <line x1="42" y1="260" x2="230" y2="260" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="42" y1="260" x2="42" y2="54" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 214 C96 104, 168 84, 222 214" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <path d="M58 208 C78 282, 96 84, 118 118 C142 154, 154 54, 178 92 C196 124, 206 250, 222 210" fill="none" stroke="#b85c00" stroke-width="4"></path>
+            <path d="M58 226 C86 138, 104 238, 124 108 C150 38, 170 164, 190 84 C206 74, 216 184, 222 230" fill="none" stroke="#b85c00" stroke-width="3" opacity="0.45"></path>
+            <text x="48" y="300" class="axis-label">different unstable models</text>
+          </g>
+        </svg>
+        <p class="caption">Bias asks whether the average model is wrong. Variance asks whether the fitted model changes too much across samples.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Underfitting and overfitting</h2>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 360" role="img" aria-label="Underfitting balanced fitting and overfitting">
+          <g transform="translate(0,0)">
+            <text x="116" y="30" class="axis-label">Underfitting</text>
+            <line x1="48" y1="282" x2="254" y2="282" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="48" y1="282" x2="48" y2="60" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M66 226 C112 110, 172 86, 232 224" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <line x1="66" y1="210" x2="232" y2="146" stroke="#c3342f" stroke-width="4"></line>
+            <text x="78" y="320" class="axis-label">high bias, low variance</text>
+          </g>
+          <g transform="translate(300,0)">
+            <text x="114" y="30" class="axis-label">Good balance</text>
+            <line x1="48" y1="282" x2="254" y2="282" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="48" y1="282" x2="48" y2="60" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M66 226 C112 110, 172 86, 232 224" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <path d="M66 224 C112 112, 172 88, 232 226" fill="none" stroke="#11875d" stroke-width="4"></path>
+            <text x="82" y="320" class="axis-label">lower total error</text>
+          </g>
+          <g transform="translate(600,0)">
+            <text x="120" y="30" class="axis-label">Overfitting</text>
+            <line x1="48" y1="282" x2="254" y2="282" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="48" y1="282" x2="48" y2="60" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M66 226 C112 110, 172 86, 232 224" fill="none" stroke="#9ca3af" stroke-width="3"></path>
+            <path d="M66 218 C78 270, 94 88, 112 120 C136 170, 146 72, 168 88 C190 106, 194 256, 232 214" fill="none" stroke="#b85c00" stroke-width="4"></path>
+            <text x="76" y="320" class="axis-label">low bias, high variance</text>
+          </g>
+          <g fill="#18202a">
+            <circle cx="70" cy="218" r="4"></circle><circle cx="112" cy="126" r="4"></circle><circle cx="154" cy="92" r="4"></circle><circle cx="194" cy="130" r="4"></circle><circle cx="232" cy="218" r="4"></circle>
+            <circle cx="370" cy="218" r="4"></circle><circle cx="412" cy="126" r="4"></circle><circle cx="454" cy="92" r="4"></circle><circle cx="494" cy="130" r="4"></circle><circle cx="532" cy="218" r="4"></circle>
+            <circle cx="670" cy="218" r="4"></circle><circle cx="712" cy="126" r="4"></circle><circle cx="754" cy="92" r="4"></circle><circle cx="794" cy="130" r="4"></circle><circle cx="832" cy="218" r="4"></circle>
+          </g>
+        </svg>
+        <p class="caption">Underfitting misses the pattern. Overfitting follows noise. A useful model captures the signal and ignores random fluctuations.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Bias-variance decomposition</h2>
+      <p>For squared error, prediction error at a fixed input value \(x\) can be understood as three parts:</p>
+      <div class="formula">\[
+\mathbb{E}\left[(y-\hat{f}(x))^2\right]
+=
+\text{Bias}^2
++
+\text{Variance}
++
+\text{Irreducible noise}
+\]</div>
+      <p>The expectation symbol \(\mathbb{E}\) simply means average. So the left side asks:</p>
+      <div class="formula">\[
+\text{If we trained this model many times on many slightly different datasets, how wrong would it be on average?}
+\]</div>
+      <p>The formula is not saying one single prediction error has three visible parts. It is saying that if we repeat the whole training process many times and predict at the same \(x\), the model's average squared error comes from three sources.</p>
+      <div class="formula">\[
+\text{Average prediction error}
+=
+\text{error from simplicity}
++
+\text{error from instability}
++
+\text{unavoidable randomness}
+\]</div>
+      <table>
+        <thead><tr><th>Part</th><th>Meaning</th><th>Polynomial regression example</th></tr></thead>
+        <tbody>
+          <tr><td>Bias squared</td><td>Error from wrong or too-simple model assumptions.</td><td>Degree 1 line for a curved relationship.</td></tr>
+          <tr><td>Variance</td><td>Error from sensitivity to training data.</td><td>Degree 15 curve changes wildly with small data changes.</td></tr>
+          <tr><td>Irreducible noise</td><td>Randomness no model can remove.</td><td>Measurement error, missing factors, natural randomness.</td></tr>
+        </tbody>
+      </table>
+      <div class="grid">
+        <div class="card">
+          <h3>Bias</h3>
+          <p>The model is consistently wrong because its shape is too simple. A straight line trying to fit a curve will keep missing the curve even if we collect a new sample.</p>
+        </div>
+        <div class="card">
+          <h3>Variance</h3>
+          <p>The model changes too much depending on the exact training data. A very wiggly polynomial may look completely different if a few points change.</p>
+        </div>
+        <div class="card">
+          <h3>Irreducible noise</h3>
+          <p>Some error remains because the world is partly unpredictable or because important information is missing from the dataset.</p>
+        </div>
+      </div>
+      <div class="activity">
+        <h3>Formula translation</h3>
+        <p class="prompt">Which part of the formula increases when a model starts memorizing small random ups and downs in the training data?</p>
+        <p>Variance increases because the model has become too sensitive to the sample.</p>
+      </div>
+      <div class="note warning">The goal is not to make bias zero or variance zero. The goal is to minimize total expected error.</div>
+    </section>
+
+    <section class="section">
+      <h2>Why is there a tradeoff?</h2>
+      <p>As degree increases, the model becomes more flexible. Flexibility reduces bias because the model can express more shapes. But flexibility can increase variance because the model can also fit random noise.</p>
+      <div class="visual compact-visual">
+        <svg class="plot tradeoff-plot" viewBox="0 0 520 320" role="img" aria-label="Bias variance tradeoff curves">
+          <line x1="70" y1="250" x2="438" y2="250" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="70" y1="250" x2="70" y2="54" stroke="#5e6875" stroke-width="2"></line>
+          <text x="218" y="292" class="axis-label">model complexity / polynomial degree</text>
+          <text x="24" y="62" class="axis-label">error</text>
+
+          <path d="M86 76 C170 92, 274 158, 420 224" fill="none" stroke="#b85c00" stroke-width="4"></path>
+          <path d="M86 226 C178 214, 280 152, 420 72" fill="none" stroke="#1f6feb" stroke-width="4"></path>
+          <path d="M86 108 C150 156, 210 194, 258 196 C318 194, 366 154, 420 98" fill="none" stroke="#11875d" stroke-width="5"></path>
+
+          <line x1="258" y1="250" x2="258" y2="196" stroke="#c3342f" stroke-width="3" stroke-dasharray="7 6"></line>
+          <circle cx="258" cy="196" r="6" fill="#c3342f"></circle>
+          <text x="272" y="198" class="axis-label">best balance</text>
+
+          <circle cx="96" cy="28" r="5" fill="#b85c00"></circle>
+          <text x="108" y="32" class="axis-label">bias^2 decreases</text>
+          <circle cx="228" cy="28" r="5" fill="#1f6feb"></circle>
+          <text x="240" y="32" class="axis-label">variance increases</text>
+          <circle cx="372" cy="28" r="5" fill="#11875d"></circle>
+          <text x="384" y="32" class="axis-label">total error</text>
+
+          <text x="90" y="268" class="axis-label">underfit</text>
+          <text x="382" y="268" class="axis-label">overfit</text>
+        </svg>
+        <p class="caption">As polynomial degree increases, bias usually goes down, variance usually goes up, and total expected error is minimized at a middle level of complexity.</p>
+      </div>
+      <div class="activity">
+        <h3>Degree selection</h3>
+        <p class="prompt">If degree 1 underfits and degree 15 overfits, how should we choose the degree?</p>
+        <p>Use validation data or cross-validation instead of choosing by training error.</p>
+      </div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="02-simulation-generalization.html">Previous: Simulation</a>
+      <a class="button primary" href="04-validation-cross-validation.html">Next: Validation</a>
+    </div>
+  </main>
+</body>
+</html>

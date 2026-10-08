@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Polynomial Regression - 3 Hour Session</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="../linear-regression/index.html">Regression Math</a>
+      <div class="navlinks">
+        <a class="active" href="index.html">Polynomial Session</a>
+        <a href="01-introduction.html">Intro</a>
+        <a href="02-simulation-generalization.html">Simulation</a>
+        <a href="03-bias-variance.html">Bias-Variance</a>
+        <a href="04-validation-cross-validation.html">Validation</a>
+        <a href="05-regularization.html">Regularization</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">3 hour session</div>
+    <h1>Polynomial regression: flexibility, generalization, and control.</h1>
+    <p class="lead">This session begins with a simple question: what if the relationship is clearly not a straight line? From there, students learn polynomial features, model complexity, bias-variance tradeoff, validation, cross-validation, and regularization.</p>
+
+    <section class="section">
+      <h2>Teaching story</h2>
+      <div class="mini-flow">
+        <span>Straight line fails</span>
+        <span>Add curved features</span>
+        <span>Model becomes flexible</span>
+        <span>Validation detects risk</span>
+        <span>Regularization controls it</span>
+      </div>
+      <div class="activity">
+        <h3>Opening question</h3>
+        <p class="prompt">Can every useful prediction problem be solved with a straight line?</p>
+        <p>Use examples like house size vs price, experience vs salary, medicine dosage vs response, and ad spend vs sales. Many relationships increase, slow down, saturate, or bend.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Session roadmap</h2>
+      <div class="grid">
+        <a class="card" href="01-introduction.html">
+          <span class="num">1</span>
+          <h3>Polynomial regression</h3>
+          <p>What it is, why it is needed, how it handles non-linear data, and why it is still a linear model in the coefficients.</p>
+        </a>
+        <a class="card" href="02-simulation-generalization.html">
+          <span class="num">2</span>
+          <h3>Simulation and generalization</h3>
+          <p>Create curved data, compare degree 1, 2, 5, and 12 models, and separate training fit from future performance.</p>
+        </a>
+        <a class="card" href="03-bias-variance.html">
+          <span class="num">3</span>
+          <h3>Bias and variance</h3>
+          <p>Understand underfitting, overfitting, the tradeoff, and why model complexity can both help and hurt.</p>
+        </a>
+        <a class="card" href="04-validation-cross-validation.html">
+          <span class="num">4</span>
+          <h3>Validation and cross-validation</h3>
+          <p>Train, validation, test splits; choosing polynomial degrees to try; K-fold cross-validation; and model selection using validation error.</p>
+        </a>
+        <a class="card" href="05-regularization.html">
+          <span class="num">5</span>
+          <h3>Regularization</h3>
+          <p>Ridge, Lasso, Elastic Net, lambda, coefficient shrinkage, and simulations for controlling overfitting.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Reference anchors for the session</h2>
+      <p>These are the big ideas the session will keep returning to:</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Curve fitting is broader than regression</h3>
+          <p>A fitted curve can summarize a relationship, interpolate between known observations, or support prediction. Regression focuses on learning from noisy data rather than forcing an exact pass through every point.</p>
+        </div>
+        <div class="card">
+          <h3>Polynomial regression is multiple regression</h3>
+          <p>After creating \(x,x^2,x^3,\ldots\), the model becomes ordinary linear regression on transformed columns.</p>
+        </div>
+        <div class="card">
+          <h3>Complexity needs control</h3>
+          <p>Higher degree can reduce bias, but it can also increase variance. Validation and regularization decide how much flexibility is useful.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Suggested 3 hour pacing</h2>
+      <table>
+        <thead><tr><th>Time</th><th>Focus</th><th>Class mode</th></tr></thead>
+        <tbody>
+          <tr><td>0:00-0:35</td><td>Motivation, polynomial equation, non-linear data</td><td>Visual explanation and questions</td></tr>
+          <tr><td>0:35-1:05</td><td>Data simulation and model degrees</td><td>Compare fits and discuss generalization</td></tr>
+          <tr><td>1:05-1:45</td><td>Bias, variance, underfitting, overfitting</td><td>Concept visuals and quick checks</td></tr>
+          <tr><td>1:45-2:20</td><td>Validation, model selection, K-fold CV</td><td>Workflow and algorithm walkthrough</td></tr>
+          <tr><td>2:20-3:00</td><td>Regularization, lambda, Ridge/Lasso simulation</td><td>Coefficient shrinkage story and wrap-up</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Useful reading links</h2>
+      <table>
+        <thead><tr><th>Link</th><th>Use in class</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://pvgisours.tistory.com/51">Features and Polynomial Regression notes</a></td><td>Feature scaling, square-root features, and feature engineering examples.</td></tr>
+          <tr><td><a href="https://en.wikipedia.org/wiki/Curve_fitting">Curve fitting</a></td><td>Context for fitting, interpolation, smoothing, least-squares approximation, and extrapolation risk.</td></tr>
+          <tr><td><a href="https://en.wikipedia.org/wiki/Polynomial_regression">Polynomial regression</a></td><td>Definition, matrix form, and why the method is linear in estimated coefficients.</td></tr>
+          <tr><td><a href="https://mlu-explain.github.io/bias-variance/">Bias-variance tradeoff</a></td><td>Interactive intuition for repeated model fits, systematic error, variance, and the U-shaped error curve.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="../linear-regression/session-2/index.html">Previous Topic</a>
+      <a class="button primary" href="01-introduction.html">Start Session</a>
+    </div>
+  </main>
+</body>
+</html>

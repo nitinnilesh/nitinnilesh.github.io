@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Find Jobs and Read JDs</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="interactions.js"></script>
+</head>
+<body data-prev="05-linkedin-resume.html" data-next="07-outreach.html">
+<header class="topbar"><div class="progress"><span style="width:70%"></span></div><nav class="nav"><a class="brand" href="index.html">ML Interview Preparation</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-role-and-interview-map.html">Target</a><a href="02-ml-revision.html">Revision</a><a href="03-answering-questions.html">Answers</a><a href="04-ml-system-design.html">System design</a><a href="05-linkedin-resume.html">Profile</a><a class="active" href="06-jobs-and-jd.html">Jobs</a><a href="07-outreach.html">Outreach</a><a href="08-mock-interviews.html">Mocks</a><a href="09-coding-preparation.html">Coding</a></div></nav></header>
+
+<main class="page">
+<div class="eyebrow">Part 6 · Discover, verify and decode opportunities</div>
+<h1>Find work that matches your evidence, not only your keywords.</h1>
+<p class="lead">Your resume records proof. Your LinkedIn profile makes that proof discoverable. A useful job search converts both into role families, title variants, skills, domains and constraints, then searches several channels deliberately.</p>
+
+<section class="section">
+  <div class="activity"><h3>Before opening a job board</h3><p class="prompt">If a recruiter searched for five reasonable versions of your target role, which words in your profile would make you appear?</p><button class="reveal-button" data-reveal="fingerprint-answer">Reveal answer</button><div class="answer" id="fingerprint-answer" hidden>A searchable profile needs a target role, adjacent titles, demonstrated technical skills, business problems, domains, level and location preferences. “Interested in AI” is too broad to retrieve the right opportunities.</div></div>
+  <h2>Build a search fingerprint from your evidence</h2>
+  <table><thead><tr><th>Profile signal</th><th>Question</th><th>Example</th></tr></thead><tbody>
+    <tr><td>Primary role</td><td>What role can I defend today?</td><td>Machine Learning Engineer</td></tr>
+    <tr><td>Adjacent roles</td><td>Which nearby titles use the same evidence?</td><td>Applied Scientist, Data Scientist–ML, AI Engineer</td></tr>
+    <tr><td>Problems</td><td>What have I actually solved?</td><td>Forecasting, ranking, churn, anomaly detection</td></tr>
+    <tr><td>Methods</td><td>Which methods can I explain and implement?</td><td>Gradient boosting, NLP, experimentation, time series</td></tr>
+    <tr><td>Production evidence</td><td>Can I move beyond a notebook?</td><td>APIs, batch pipelines, monitoring, cloud, SQL</td></tr>
+    <tr><td>Domain evidence</td><td>Where does my experience reduce hiring risk?</td><td>Fintech, healthcare, retail, logistics</td></tr>
+    <tr><td>Constraints</td><td>What must be true for the role to work?</td><td>India, remote eligibility, experience level, compensation</td></tr>
+  </tbody></table>
+  <p class="intuition"><strong>Use evidence twice:</strong> put it in the profile so recruiters can find you, and put it in your searches so you can find employers asking for it.</p>
+</section>
+
+<section class="section">
+  <h2>Expand titles without losing the role</h2>
+  <p>Companies name similar work differently. Search the work described in your resume, not only the title printed on it.</p>
+  <div class="grid four">
+    <div class="card"><h3>Model-building</h3><p>Data Scientist, Applied Scientist, Decision Scientist, Research Engineer.</p></div>
+    <div class="card"><h3>Product ML</h3><p>Machine Learning Engineer, AI Engineer, Applied ML Engineer.</p></div>
+    <div class="card"><h3>Production ML</h3><p>MLOps Engineer, ML Platform Engineer, ML Infrastructure Engineer.</p></div>
+    <div class="card"><h3>Specialist ML</h3><p>NLP Engineer, Computer Vision Engineer, Forecasting Scientist.</p></div>
+  </div>
+  <div class="codebox">PRIMARY: "machine learning engineer"
+ADJACENT: "applied scientist" OR "AI engineer" OR "data scientist"
+EVIDENCE: Python AND SQL AND (NLP OR "time series")
+CONSTRAINTS: India OR Remote; 2–5 years; posted in the last 7 days
+EXCLUSIONS: internship, sales, annotation, seniority above your target</div>
+  <p class="note"><strong>Search broad, apply narrow.</strong> Broad discovery reveals title variation. Narrow selection preserves application quality.</p>
+</section>
+
+<section class="section">
+  <div class="activity"><h3>Choose the channel</h3><p class="prompt">Would you use the same platform to find an early-stage AI startup, an Indian product company, and a production-ML infrastructure role?</p><button class="reveal-button" data-reveal="channel-answer">Reveal answer</button><div class="answer" id="channel-answer" hidden>No. Each platform has a different supply of companies, role types and search signals. Use two broad channels and two specialised channels that match your target.</div></div>
+  <h2>Useful platforms beyond the obvious job boards</h2>
+  <p>Keep LinkedIn, Naukri and selected company career pages as broad discovery channels. Add two specialised platforms that match your target market; more accounts do not automatically create a better search.</p>
+  <div class="grid four">
+    <a class="card" href="https://hiringcafe.com/" target="_blank" rel="noreferrer"><h3>HiringCafe</h3><p><strong>Best for:</strong> structured discovery across public listings. Filter by seniority, salary, company size, industry, funding stage and working conditions.</p></a>
+    <a class="card" href="https://simplify.jobs/" target="_blank" rel="noreferrer"><h3>Simplify</h3><p><strong>Best for:</strong> profile-based matches, job tracking and reducing repetitive forms. Use assisted autofill with human review.</p></a>
+    <a class="card" href="https://wellfound.com/candidates/overview" target="_blank" rel="noreferrer"><h3>Wellfound</h3><p><strong>Best for:</strong> startup and technology roles. Useful signals include salary, equity, startup stage and direct founder or hiring-team access.</p></a>
+    <a class="card" href="https://www.ycombinator.com/jobs" target="_blank" rel="noreferrer"><h3>YC Startup Jobs</h3><p><strong>Best for:</strong> roles at Y Combinator companies. Read the company and founders before applying; early teams often value evidence of ownership.</p></a>
+    <a class="card" href="https://www.instahyre.com/" target="_blank" rel="noreferrer"><h3>Instahyre</h3><p><strong>Best for:</strong> matched technology opportunities in India. Resume, preferences and work experience influence the opportunities shown.</p></a>
+    <a class="card" href="https://cutshort.io/" target="_blank" rel="noreferrer"><h3>Cutshort</h3><p><strong>Best for:</strong> Indian technology and product hiring, including data science. Keep skills, experience and role preferences precise.</p></a>
+    <a class="card" href="https://www.aijobs.com/" target="_blank" rel="noreferrer"><h3>AIJobs</h3><p><strong>Best for:</strong> AI-specific discovery across ML engineering, data science, research, robotics, computer vision and AI product roles.</p></a>
+    <a class="card" href="https://jobs.mlops.community/" target="_blank" rel="noreferrer"><h3>MLOps Community Jobs</h3><p><strong>Best for:</strong> production-ML, platform, infrastructure and operations roles where deployment evidence matters.</p></a>
+  </div>
+  <p class="note warning"><strong>Platform names are leads, not endorsements.</strong> Features and listing quality change. Verify each vacancy on the employer’s official careers site, confirm location and work-authorisation rules, and never pay to apply.</p>
+</section>
+
+<section class="section">
+  <h2>Search where companies publish first</h2>
+  <p>Many companies publish to an applicant-tracking system before an aggregator indexes the role. Search official career pages and common ATS domains directly:</p>
+  <div class="codebox">site:jobs.lever.co ("machine learning" OR "applied scientist") India
+site:boards.greenhouse.io ("ML engineer" OR "data scientist") remote
+site:jobs.ashbyhq.com "machine learning" Python
+site:myworkdayjobs.com "AI engineer" Bengaluru</div>
+  <p>Then open the employer’s careers site and verify that the role is still active. The official listing is the source of truth for requirements, location and application.</p>
+</section>
+
+<section class="section">
+  <h2>A five-stage discovery funnel</h2>
+  <div class="step-list">
+    <div class="step"><strong>Retrieve broadly:</strong> run primary and adjacent-title searches across two broad and two specialised channels.</div>
+    <div class="step"><strong>Reject quickly:</strong> remove roles with incompatible location, seniority, work authorisation or core work.</div>
+    <div class="step"><strong>Verify:</strong> find the same opening on the company’s official careers page and note the posting date.</div>
+    <div class="step"><strong>Score fit:</strong> compare outcomes, evidence, constraints and genuine interest before investing time.</div>
+    <div class="step"><strong>Apply deliberately:</strong> tailor evidence, identify a useful contact and record the next follow-up date.</div>
+  </div>
+  <table><thead><tr><th>Fit dimension</th><th>Weight</th><th>Fast question</th></tr></thead><tbody>
+    <tr><td>Work and outcomes</td><td>40%</td><td>Do I want the actual weekly work?</td></tr>
+    <tr><td>Defensible evidence</td><td>30%</td><td>Can I prove the important requirements?</td></tr>
+    <tr><td>Constraints</td><td>20%</td><td>Do location, level, authorisation and compensation align?</td></tr>
+    <tr><td>Interest</td><td>10%</td><td>Would I still want this role without the company name?</td></tr>
+  </tbody></table>
+</section>
+
+<section class="section">
+  <h2>A sustainable weekly search system</h2>
+  <div class="grid">
+    <div class="card"><h3>Monday: calibrate</h3><p>Review search results. Add useful title variants and remove noisy terms.</p></div>
+    <div class="card"><h3>Three short searches</h3><p>Check saved searches and alerts while roles are recent, not through one exhausting weekly session.</p></div>
+    <div class="card"><h3>Track the funnel</h3><p>Record source, fit score, version used, contact, status and follow-up date.</p></div>
+  </div>
+  <p class="intuition"><strong>Optimise qualified conversations, not application count.</strong> If many applications produce no screens, inspect targeting and evidence before sending more.</p>
+</section>
+
+<section class="section">
+  <div class="activity"><h3>Before counting keywords</h3><p class="prompt">What work is hidden inside this sentence: “Build and deploy churn models, partner with product teams, define success metrics, and monitor model performance”?</p><button class="reveal-button" data-reveal="jd-answer">Reveal answer</button><div class="answer" id="jd-answer" hidden>The role owns more than training: define churn and intervention, create labels and features, establish a baseline, collaborate on retention actions, deploy predictions, measure business impact, monitor quality and retrain when behaviour changes.</div></div>
+  <h2>Read a JD in five layers</h2>
+  <div class="grid"><div class="card"><h3>Outcome</h3><p>What must increase, decrease, predict, automate or improve?</p></div><div class="card"><h3>Weekly work</h3><p>What will the person build, analyse, deploy, present or maintain?</p></div><div class="card"><h3>Evidence</h3><p>Which outcomes, scale, ownership and technical depth must be demonstrated?</p></div><div class="card"><h3>Environment</h3><p>Domain, data, stack, stakeholders, product maturity and constraints.</p></div><div class="card"><h3>Interview prediction</h3><p>What will the company probably test to trust the candidate with this work?</p></div></div>
+</section>
+
+<section class="section"><h2>Worked JD analysis</h2><div class="formula">“Build and deploy churn models, partner with product teams, define success metrics, and monitor model performance. Experience with Python, SQL, experimentation and cloud platforms preferred.”</div><table><thead><tr><th>Signal</th><th>Interpretation</th><th>Preparation</th></tr></thead><tbody><tr><td>Build and deploy</td><td>End-to-end ownership, not notebook-only modelling</td><td>Serving, pipelines, versioning, monitoring</td></tr><tr><td>Churn</td><td>Binary classification with intervention and label-window choices</td><td>Imbalance, leakage, thresholds, calibration</td></tr><tr><td>Partner with product</td><td>Predictions must support an action</td><td>Business framing and stakeholder story</td></tr><tr><td>Define success metrics</td><td>Offline accuracy is not enough</td><td>Business, model and experiment metrics</td></tr><tr><td>SQL and experimentation</td><td>Data extraction and causal product measurement</td><td>SQL practice and A/B testing</td></tr></tbody></table></section>
+
+<section class="section"><h2>Alignment decision</h2><table><thead><tr><th>Requirement</th><th>My evidence</th><th>Gap</th><th>Action</th></tr></thead><tbody><tr><td>Deploy classification systems</td><td>Batch fraud scoring project</td><td>No online serving</td><td>Prepare batch design honestly; study online trade-offs</td></tr><tr><td>Define metrics</td><td>Threshold chosen from cost matrix</td><td>Weak online experiment story</td><td>Revise experiment design</td></tr><tr><td>Cloud platform</td><td>Used object storage and scheduled jobs</td><td>No Kubernetes</td><td>Do not claim Kubernetes; decide whether it is truly required</td></tr></tbody></table><p class="intuition"><strong>Apply based on evidence and growth, not a perfect keyword match.</strong> Ask whether you want the actual work, can prove adjacent evidence, and can close the important gaps.</p></section>
+
+<section class="section"><h2>Prompt for honest resume tailoring</h2><div class="codebox">Act as the hiring manager for the job below.
+
+1. Identify the five most important outcomes.
+2. Separate mandatory and preferred qualifications.
+3. Infer likely day-to-day work and interview areas.
+4. Map only my real evidence to the requirements.
+5. Identify critical gaps.
+6. Suggest which bullets to move, shorten or rewrite.
+
+Do not invent skills, metrics or responsibilities. Mark missing information as [VERIFY]. Explain every substantial change.
+
+JOB DESCRIPTION:
+[PASTE JD]
+
+RESUME:
+[PASTE RESUME]</div></section>
+
+<section class="section"><h2>Platform research notes</h2><p class="small">Platform descriptions were checked against official candidate pages, documentation and job boards on 8 October 2026. Useful references: <a href="https://wellfound.com/candidates/overview" target="_blank" rel="noreferrer">Wellfound for candidates</a>, <a href="https://help.instahyre.com/en/category/instahyre-for-candidates-rhe292/" target="_blank" rel="noreferrer">Instahyre candidate help</a>, <a href="https://cutshort.io/faq" target="_blank" rel="noreferrer">Cutshort FAQ</a>, <a href="https://help.simplify.jobs/help/articles/0738509-signing-up-for-simplify" target="_blank" rel="noreferrer">Simplify overview</a>, <a href="https://hiringcafe.com/documentation" target="_blank" rel="noreferrer">HiringCafe documentation</a>, <a href="https://www.ycombinator.com/jobs" target="_blank" rel="noreferrer">YC jobs</a>, <a href="https://www.aijobs.com/" target="_blank" rel="noreferrer">AIJobs</a>, and <a href="https://jobs.mlops.community/" target="_blank" rel="noreferrer">MLOps Community Jobs</a>.</p></section>
+
+<div class="pager"><a class="button" href="05-linkedin-resume.html">Previous: Profile</a><a class="button primary" href="07-outreach.html">Next: Outreach</a></div>
+</main>
+</body>
+</html>

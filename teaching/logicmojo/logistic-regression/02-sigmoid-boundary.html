@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sigmoid and Decision Boundary</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Logistic Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-classification-setup.html">Setup</a>
+        <a class="active" href="02-sigmoid-boundary.html">Sigmoid</a>
+        <a href="03-loss-training.html">Loss</a>
+        <a href="04-interpretation-regularization.html">Interpretation</a>
+        <a href="05-metrics-imbalance.html">Metrics</a>
+        <a href="06-handling-imbalance.html">Imbalance</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 2</div>
+    <h1>Sigmoid probability and decision boundary</h1>
+    <p class="lead">The sigmoid function turns any real-valued linear score into a probability between 0 and 1.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Linear score: logit</h2>
+        <p>First compute a linear score:</p>
+        <div class="formula">\[
+z = \beta_0+\beta_1x_1+\beta_2x_2+\cdots+\beta_px_p
+\]</div>
+        <p>This score can be negative, positive, or zero. By itself, it is not a probability.</p>
+        <table>
+          <thead><tr><th>Score \(z\)</th><th>Meaning before sigmoid</th></tr></thead>
+          <tbody>
+            <tr><td>Large positive</td><td>Evidence leans toward class 1.</td></tr>
+            <tr><td>Near zero</td><td>Model is near the decision boundary.</td></tr>
+            <tr><td>Large negative</td><td>Evidence leans toward class 0.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Linear score then sigmoid">
+          <rect x="46" y="58" width="110" height="58" rx="8" fill="#eef5ff" stroke="#1f6feb"></rect>
+          <text x="78" y="92" class="axis-label">features</text>
+          <line x1="156" y1="87" x2="228" y2="87" stroke="#5e6875" stroke-width="2"></line>
+          <polygon points="228,81 242,87 228,93" fill="#5e6875"></polygon>
+          <rect x="242" y="58" width="110" height="58" rx="8" fill="#fff6e8" stroke="#b85c00"></rect>
+          <text x="276" y="82" class="axis-label">score z</text>
+          <text x="266" y="102" class="axis-label">any real value</text>
+          <line x1="297" y1="116" x2="297" y2="174" stroke="#5e6875" stroke-width="2"></line>
+          <polygon points="291,174 297,188 303,174" fill="#5e6875"></polygon>
+          <rect x="210" y="188" width="174" height="62" rx="8" fill="#ecfdf5" stroke="#11875d"></rect>
+          <text x="238" y="215" class="axis-label">sigmoid probability</text>
+          <text x="260" y="236" class="axis-label">0 to 1</text>
+        </svg>
+        <p class="caption">The sigmoid is the probability-conversion step.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Sigmoid function</h2>
+      <div class="formula">\[
+\sigma(z)=\frac{1}{1+e^{-z}}
+\]</div>
+      <div class="visual compact-visual">
+        <svg class="plot" viewBox="0 0 520 320" role="img" aria-label="Sigmoid function">
+          <line x1="70" y1="260" x2="448" y2="260" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="260" y1="260" x2="260" y2="48" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="70" y1="154" x2="448" y2="154" stroke="#b85c00" stroke-width="2" stroke-dasharray="7 6"></line>
+          <path d="M82 248 C146 246, 194 230, 230 184 C248 162, 272 146, 290 124 C326 78, 374 62, 438 60" fill="none" stroke="#1f6feb" stroke-width="5"></path>
+          <circle cx="260" cy="154" r="7" fill="#c3342f"></circle>
+          <text x="270" y="150" class="axis-label">z=0, p=0.5</text>
+          <text x="428" y="58" class="axis-label">1</text>
+          <text x="426" y="260" class="axis-label">0</text>
+          <text x="242" y="288" class="axis-label">z</text>
+          <text x="28" y="64" class="axis-label">probability</text>
+        </svg>
+        <p class="caption">Negative scores become probabilities near 0. Positive scores become probabilities near 1. Zero becomes 0.5.</p>
+      </div>
+      <div class="activity">
+        <h3>Probability check</h3>
+        <p class="prompt">If \(z=0\), what is \(\sigma(z)\)?</p>
+        <p>\(\sigma(0)=0.5\), because the model is exactly at the boundary between the two classes.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Prediction threshold</h2>
+      <p>After computing the probability, we convert it into a class using a threshold.</p>
+      <div class="formula">\[
+\hat{y}=
+\begin{cases}
+1, & \text{if } \hat{p}\ge t \\
+0, & \text{if } \hat{p}\lt t
+\end{cases}
+\]</div>
+      <p>The default threshold is often \(t=0.5\), but it can be changed based on the problem. The equality case \(\hat{p}=t\) is a convention; here we assign it to class \(1\).</p>
+      <table>
+        <thead><tr><th>Predicted probability</th><th>Threshold</th><th>Predicted class</th></tr></thead>
+        <tbody>
+          <tr><td>0.72</td><td>0.50</td><td>1</td></tr>
+          <tr><td>0.72</td><td>0.80</td><td>0</td></tr>
+          <tr><td>0.18</td><td>0.50</td><td>0</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Threshold thinking</h3>
+        <p class="prompt">For cancer screening, would you usually prefer a lower threshold or a higher threshold?</p>
+        <p>A lower threshold may catch more true cases, increasing recall, but it can also create more false positives.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Mini numerical walkthrough</h2>
+      <p>Let us compute one prediction by hand. Suppose we are predicting whether a customer will churn.</p>
+      <div class="formula">\[
+z=-3+0.04(\text{support calls})+1.2(\text{monthly contract})
+\]</div>
+      <p>For a customer with 8 support calls and a monthly contract value of 1:</p>
+      <div class="formula">\[
+z=-3+0.04(8)+1.2(1)=-1.48
+\]</div>
+      <p>Convert score into probability:</p>
+      <div class="formula">\[
+\hat{p}=\sigma(-1.48)=\frac{1}{1+e^{1.48}}\approx0.185
+\]</div>
+      <p>With threshold \(t=0.5\), the predicted class is:</p>
+      <div class="formula">\[
+0.185 \lt 0.5 \Rightarrow \hat{y}=0
+\]</div>
+      <table>
+        <thead><tr><th>Quantity</th><th>Value</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>\(z\)</td><td>-1.48</td><td>Evidence leans toward class 0.</td></tr>
+          <tr><td>\(\hat{p}\)</td><td>0.185</td><td>Estimated churn probability is 18.5%.</td></tr>
+          <tr><td>\(t\)</td><td>0.5</td><td>Decision cutoff.</td></tr>
+          <tr><td>\(\hat{y}\)</td><td>0</td><td>Predicted not churn.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Threshold check</h3>
+        <p class="prompt">If the business wants to proactively call risky customers, might it use a threshold lower than 0.5?</p>
+        <p>Yes. A lower threshold catches more possible churners, but also creates more false alarms.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Decision boundary</h2>
+        <p>With threshold \(0.5\), the decision boundary happens where:</p>
+        <div class="formula">\[
+\hat{p}=0.5 \Rightarrow z=0
+\]</div>
+        <p>For two features:</p>
+        <div class="formula">\[
+\beta_0+\beta_1x_1+\beta_2x_2=0
+\]</div>
+        <p>This is a line in the two-feature input space. Logistic regression produces a linear decision boundary in the original feature space.</p>
+        <div class="note">Important intuition: the sigmoid makes the predicted probability nonlinear, but the \(0.5\) decision boundary is still where the linear score \(z\) equals zero. So with original features, logistic regression separates classes using a line, plane, or hyperplane.</div>
+        <p>If we add transformed features, logistic regression can create nonlinear boundaries in the original input space:</p>
+        <div class="formula">\[
+z=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_1^2+\beta_4x_2^2+\beta_5x_1x_2
+\]</div>
+        <p>The boundary is still linear in the transformed features, but it may look curved when plotted against the original \(x_1,x_2\).</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 320" role="img" aria-label="Linear decision boundary">
+          <line x1="54" y1="268" x2="374" y2="268" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="54" y1="268" x2="54" y2="46" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="92" y1="72" x2="344" y2="248" stroke="#c3342f" stroke-width="4"></line>
+          <g fill="#1f6feb">
+            <circle cx="92" cy="218" r="7"></circle><circle cx="126" cy="238" r="7"></circle><circle cx="154" cy="206" r="7"></circle><circle cx="188" cy="232" r="7"></circle><circle cx="224" cy="214" r="7"></circle>
+          </g>
+          <g fill="#b85c00">
+            <circle cx="190" cy="78" r="7"></circle><circle cx="228" cy="98" r="7"></circle><circle cx="266" cy="72" r="7"></circle><circle cx="302" cy="104" r="7"></circle><circle cx="338" cy="88" r="7"></circle>
+          </g>
+          <text x="246" y="188" class="axis-label">z=0 boundary</text>
+          <text x="196" y="302" class="axis-label">x1</text>
+          <text x="22" y="58" class="axis-label">x2</text>
+        </svg>
+        <p class="caption">Points on one side are predicted class 0; points on the other side are predicted class 1.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Linear vs nonlinear boundary with feature engineering</h2>
+      <p>Without transformed features, logistic regression draws a linear boundary. With transformed features, the model is still linear in the new feature space, but the boundary can look curved in the original plot.</p>
+      <div class="two-col">
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 320" role="img" aria-label="Linear boundary cannot separate circular pattern">
+            <line x1="54" y1="268" x2="374" y2="268" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="54" y1="268" x2="54" y2="46" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="82" y1="246" x2="348" y2="70" stroke="#c3342f" stroke-width="4"></line>
+            <g fill="#b85c00">
+              <circle cx="212" cy="154" r="7"></circle><circle cx="190" cy="146" r="7"></circle><circle cx="230" cy="164" r="7"></circle><circle cx="210" cy="132" r="7"></circle>
+            </g>
+            <g fill="#1f6feb">
+              <circle cx="112" cy="224" r="7"></circle><circle cx="118" cy="88" r="7"></circle><circle cx="318" cy="92" r="7"></circle><circle cx="330" cy="226" r="7"></circle><circle cx="92" cy="154" r="7"></circle><circle cx="344" cy="154" r="7"></circle>
+            </g>
+            <text x="118" y="284" class="axis-label">original x1, x2 only: line struggles</text>
+          </svg>
+          <p class="caption">A straight boundary cannot naturally separate a center cluster from an outside ring.</p>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 320" role="img" aria-label="Nonlinear boundary from transformed features">
+            <line x1="54" y1="268" x2="374" y2="268" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="54" y1="268" x2="54" y2="46" stroke="#5e6875" stroke-width="2"></line>
+            <circle cx="212" cy="154" r="72" fill="none" stroke="#c3342f" stroke-width="4"></circle>
+            <g fill="#b85c00">
+              <circle cx="212" cy="154" r="7"></circle><circle cx="190" cy="146" r="7"></circle><circle cx="230" cy="164" r="7"></circle><circle cx="210" cy="132" r="7"></circle>
+            </g>
+            <g fill="#1f6feb">
+              <circle cx="112" cy="224" r="7"></circle><circle cx="118" cy="88" r="7"></circle><circle cx="318" cy="92" r="7"></circle><circle cx="330" cy="226" r="7"></circle><circle cx="92" cy="154" r="7"></circle><circle cx="344" cy="154" r="7"></circle>
+            </g>
+            <text x="100" y="284" class="axis-label">with x1^2 and x2^2: curved boundary</text>
+          </svg>
+          <p class="caption">Feature engineering can make a logistic model draw a curved boundary in the original feature space.</p>
+        </div>
+      </div>
+      <div class="formula">\[
+z=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_1^2+\beta_4x_2^2
+\]</div>
+      <div class="note">The model is still logistic regression. The difference is that we changed the input features.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="01-classification-setup.html">Previous: Setup</a>
+      <a class="button primary" href="03-loss-training.html">Next: Loss</a>
+    </div>
+  </main>
+</body>
+</html>

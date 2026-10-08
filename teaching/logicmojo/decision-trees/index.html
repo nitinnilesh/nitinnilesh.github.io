@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Decision Trees: Complete Teaching Material</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="active" href="index.html">Overview</a><a class="" href="01-tree-intuition.html">Intuition</a><a class="" href="02-entropy-gini.html">Impurity</a><a class="" href="03-information-gain.html">Gain</a><a class="" href="04-mixed-splits.html">Mixed Data</a><a class="" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="" href="07-regression-trees.html">Regression</a><a class="" href="08-evaluation-tuning.html">Evaluation</a><a class="" href="09-practical-guide.html">Practice</a><a class="" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Decision Trees</div>
+    <h1>Learn a decision tree as a sequence of questions that progressively removes uncertainty.</h1>
+    <p class="lead">A university-style path from hand-calculated entropy to mixed-data classification, recursive fitting, pruning, regression trees, evaluation, and practical model choice.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>The central learning question</h2>
+        <div class="activity"><h3>Opening question</h3><p class="prompt">If several questions can divide the same training data, how should a tree decide which question to ask first?</p></div>
+        <p>A tree tries each allowed question and measures how much cleaner the labels become. For classification, entropy or Gini measures the mixture. Information gain measures the reduction.</p>
+        <div class="formula">\[
+        \text{best question}=\arg\max_{\text{question}}\left(\text{impurity before}-\text{impurity after}\right)
+        \]</div>
+        <p class="intuition"><strong>Intuition:</strong> ask the question that removes the most uncertainty now, then repeat the same idea inside each resulting group.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 440 320" role="img" aria-label="A decision tree and its feature-space partitions">
+          <rect x="24" y="48" width="170" height="220" fill="#ffffff" stroke="#d9e0ea"/>
+          <circle cx="65" cy="208" r="7" fill="#11875d"/><circle cx="90" cy="226" r="7" fill="#11875d"/><circle cx="120" cy="188" r="7" fill="#11875d"/><circle cx="158" cy="214" r="7" fill="#11875d"/>
+          <circle cx="66" cy="88" r="7" fill="#c3342f"/><circle cx="98" cy="110" r="7" fill="#c3342f"/><circle cx="146" cy="92" r="7" fill="#c3342f"/><circle cx="166" cy="132" r="7" fill="#c3342f"/>
+          <line x1="24" y1="156" x2="194" y2="156" stroke="#6741d9" stroke-width="3"/>
+          <line x1="132" y1="156" x2="132" y2="268" stroke="#1f6feb" stroke-width="3"/>
+          <text x="34" y="290" class="axis-label">feature-space cuts</text>
+          <rect x="278" y="46" width="126" height="42" rx="6" fill="#f7f5ff" stroke="#6741d9"/><text x="341" y="72" text-anchor="middle" font-size="13">Feature 2 ≤ 4.5?</text>
+          <line x1="310" y1="88" x2="268" y2="136" stroke="#5e6875"/><line x1="372" y1="88" x2="414" y2="136" stroke="#5e6875"/>
+          <rect x="216" y="136" width="104" height="40" rx="6" fill="#f4f8ff" stroke="#1f6feb"/><text x="268" y="161" text-anchor="middle" font-size="13">Feature 1 ≤ 2?</text>
+          <rect x="362" y="136" width="68" height="40" rx="6" fill="#fff4f1" stroke="#c3342f"/><text x="396" y="161" text-anchor="middle" font-size="13">Class 0</text>
+          <line x1="246" y1="176" x2="226" y2="220" stroke="#5e6875"/><line x1="290" y1="176" x2="310" y2="220" stroke="#5e6875"/>
+          <rect x="194" y="220" width="64" height="38" rx="6" fill="#eef9f4" stroke="#11875d"/><text x="226" y="244" text-anchor="middle" font-size="13">Class 1</text>
+          <rect x="278" y="220" width="64" height="38" rx="6" fill="#fff4f1" stroke="#c3342f"/><text x="310" y="244" text-anchor="middle" font-size="13">Class 0</text>
+        </svg>
+        <p class="caption">Every root-to-leaf path corresponds to one region of feature space.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Three connected examples</h2>
+      <div class="three-col">
+        <div class="card"><h3>Play cricket?</h3><p>A tiny categorical dataset for complete entropy and information-gain calculations.</p></div>
+        <div class="card"><h3>Approve a loan?</h3><p>A mixed numerical and categorical dataset for thresholds, recursion, prediction, and fairness.</p></div>
+        <div class="card"><h3>Predict house price</h3><p>A regression example for means, squared error, piecewise predictions, and extrapolation.</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Session story</h2>
+      <div class="mini-flow"><span>Ask a question</span><span>Measure impurity</span><span>Choose the best split</span><span>Repeat recursively</span><span>Control complexity</span></div>
+      <p>The mathematical expression on every page is followed by its symbols, numerical substitution, plain-language intuition, and a visual consequence.</p>
+    </section>
+
+    <section class="section">
+      <h2>Roadmap</h2>
+      <div class="grid">
+        <a class="card" href="01-tree-intuition.html"><div class="num">1</div><h3>Intuition and anatomy</h3><p>Questions, branches, leaves, regions, classification, and regression.</p></a>
+        <a class="card" href="02-entropy-gini.html"><div class="num">2</div><h3>Entropy and Gini</h3><p>Uncertainty, surprise, impurity curves, and complete calculations.</p></a>
+        <a class="card" href="03-information-gain.html"><div class="num">3</div><h3>Information gain</h3><p>Weighted child entropy and the complete cricket root split.</p></a>
+        <a class="card" href="04-mixed-splits.html"><div class="num">4</div><h3>Mixed-data splits</h3><p>Loan data, numeric thresholds, categories, and tie-breaking.</p></a>
+        <a class="card" href="05-recursion-prediction.html"><div class="num">5</div><h3>Recursion</h3><p>Tree growth, stopping cases, prediction paths, and probabilities.</p></a>
+        <a class="card" href="06-overfitting-pruning.html"><div class="num">6</div><h3>Pruning</h3><p>Underfitting, overfitting, pre-pruning, and cost complexity.</p></a>
+        <a class="card" href="07-regression-trees.html"><div class="num">7</div><h3>Regression trees</h3><p>SSE reduction, leaf means, step functions, and limitations.</p></a>
+        <a class="card" href="08-evaluation-tuning.html"><div class="num">8</div><h3>Evaluation</h3><p>Metrics, cross-validation, tuning, imbalance, and calibration.</p></a>
+        <a class="card" href="09-practical-guide.html"><div class="num">9</div><h3>Practice</h3><p>Preprocessing, missing values, interpretation, and workflows.</p></a>
+        <a class="card" href="10-when-to-use.html"><div class="num">10</div><h3>Model choice</h3><p>When trees work, when they struggle, nuances, and ensembles.</p></a>
+      </div>
+    </section>
+
+    <div class="pager"><span></span><a class="button primary" href="01-tree-intuition.html">Next: Intuition</a></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Support Vector Machine Overview</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">SVM</a>
+      <div class="navlinks">
+        <a class="active" href="index.html">Overview</a>
+        <a class="" href="01-svm-geometry.html">Geometry</a>
+        <a class="" href="02-margin-and-scratch-svm.html">Scratch</a>
+        <a class="" href="03-soft-margin.html">Soft Margin</a>
+        <a class="" href="04-kernels.html">Kernels</a>
+        <a class="" href="05-svm-in-practice.html">Practice</a>
+        <a class="" href="06-support-vector-regression.html">SVR</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Support Vector Machine</div>
+    <h1>SVM chooses a boundary that is not just correct, but safely separated.</h1>
+    <p class="lead">Support Vector Machine is a margin-based classifier. It asks: among all possible boundaries, which one leaves the widest safety gap from the closest training points?</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>The core question</h2>
+        <div class="activity"><h3>Opening question</h3><p class="prompt">If three different lines classify all training points correctly, which line should we trust on future data?</p></div>
+        <p>SVM prefers the line with the largest margin. The margin is the safety gap between the decision boundary and the closest examples from each class.</p>
+        <div class="formula">\[
+\text{SVM} = \text{maximum-margin classifier}
+\]</div>
+        <p>The closest points are called support vectors because they decide where the boundary sits.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="SVM margin overview">
+          <line x1="54" y1="246" x2="370" y2="246" stroke="#5e6875" stroke-width="2"/>
+          <line x1="54" y1="246" x2="54" y2="50" stroke="#5e6875" stroke-width="2"/>
+          <circle cx="112" cy="194" r="8" fill="#2a9d8f" stroke="#18202a"/><circle cx="146" cy="184" r="8" fill="#2a9d8f" stroke="#18202a"/><circle cx="168" cy="220" r="8" fill="#2a9d8f" stroke="#18202a"/><circle cx="188" cy="166" r="8" fill="#2a9d8f" stroke="#18202a"/>
+          <circle cx="254" cy="96" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="286" cy="128" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="316" cy="84" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="232" cy="138" r="8" fill="#e76f51" stroke="#18202a"/>
+          <line x1="116" y1="88" x2="312" y2="246" stroke="#18202a" stroke-width="4"/>
+          <line x1="80" y1="128" x2="276" y2="286" stroke="#18202a" stroke-width="2" stroke-dasharray="7 6"/>
+          <line x1="152" y1="48" x2="348" y2="206" stroke="#18202a" stroke-width="2" stroke-dasharray="7 6"/>
+          <circle cx="188" cy="166" r="15" fill="none" stroke="#ffb703" stroke-width="4"/>
+          <circle cx="232" cy="138" r="15" fill="none" stroke="#ffb703" stroke-width="4"/>
+          <text x="244" y="238" class="axis-label">decision boundary</text>
+          <text x="254" y="52" class="axis-label">margin</text>
+          <text x="64" y="280" class="axis-label">support vectors touch the margin</text>
+        </svg>
+        <p class="caption">SVM is geometric: boundary, margin, and support vectors.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Session story</h2>
+      <div class="mini-flow"><span>Many lines</span><span>Widest margin</span><span>Scratch training</span><span>Soft margin</span><span>Kernels + practice</span></div>
+      <p>The pages follow the same flow as the notebook: visual intuition first, then formulas, then code-ready practical choices.</p>
+    </section>
+
+    <section class="section">
+      <h2>Roadmap</h2>
+      <div class="grid">
+        <a class="card" href="01-svm-geometry.html"><div class="num">1</div><h3>Geometry</h3><p>Separating lines, hyperplanes, margins, and support vectors.</p></a>
+        <a class="card" href="02-margin-and-scratch-svm.html"><div class="num">2</div><h3>Scratch SVM</h3><p>Hinge loss, gradients, updates, and a small from-scratch classifier.</p></a>
+        <a class="card" href="03-soft-margin.html"><div class="num">3</div><h3>Soft margin</h3><p>Slack variables, C, violations, and class weights.</p></a>
+        <a class="card" href="04-kernels.html"><div class="num">4</div><h3>Kernels</h3><p>Nonlinear data, feature maps, polynomial kernel, RBF kernel, and gamma.</p></a>
+        <a class="card" href="05-svm-in-practice.html"><div class="num">5</div><h3>Practice</h3><p>Scaling, pipelines, tuning, probability estimates, multiclass, and checklist.</p></a>
+        <a class="card" href="06-support-vector-regression.html"><div class="num">6</div><h3>SVR</h3><p>Use SVM ideas for regression with an epsilon-insensitive tube.</p></a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Where SVM is useful</h2>
+      <table><thead><tr><th>Use case</th><th>Why SVM can work well</th></tr></thead><tbody>
+        <tr><td>Text classification</td><td>High-dimensional sparse features often work well with linear SVM.</td></tr>
+        <tr><td>Medical classification</td><td>Strong margin-based boundaries can work well on small to medium numeric datasets.</td></tr>
+        <tr><td>Bioinformatics</td><td>Often many features and fewer samples, where margin-based models can be strong.</td></tr>
+        <tr><td>Engineered image features</td><td>SVM can classify embeddings or handcrafted visual features.</td></tr>
+        <tr><td>Nonlinear toy/medium data</td><td>RBF and polynomial kernels can create curved boundaries.</td></tr>
+        <tr><td>Regression with robust tolerance</td><td>SVR fits a function while ignoring small errors inside an epsilon tube.</td></tr>
+      </tbody></table>
+    </section>
+
+    <div class="pager"><span></span><a class="button primary" href="01-svm-geometry.html">Next: Geometry</a></div>
+  </main>
+</body>
+</html>

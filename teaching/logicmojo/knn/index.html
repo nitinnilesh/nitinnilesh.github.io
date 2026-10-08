@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>K Nearest Neighbors - Session</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="../logistic-regression/index.html">AI/ML Sessions</a>
+      <div class="navlinks">
+        <a class="active" href="index.html">KNN</a>
+        <a href="01-knn-basics.html">Basics</a>
+        <a href="02-distance-metrics.html">Distances</a>
+        <a href="03-choosing-k.html">Choosing K</a>
+        <a href="04-knn-imputation.html">Imputation</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Instance-based learning</div>
+    <h1>K Nearest Neighbors: learn by comparing with similar examples.</h1>
+    <p class="lead">KNN is one of the most intuitive machine learning algorithms: to predict a new point, look at the most similar past examples and let them vote or average.</p>
+
+    <section class="section">
+      <h2>Opening intuition</h2>
+      <div class="activity">
+        <h3>Quick question</h3>
+        <p class="prompt">If your three closest friends all recommend the same restaurant, how much does that influence your choice?</p>
+        <p>That is the everyday intuition of KNN: nearby examples influence the decision.</p>
+      </div>
+      <div class="two-col">
+        <div>
+          <p>Imagine a new customer enters our dataset. Instead of learning coefficients or a tree, KNN asks:</p>
+          <div class="formula">\[
+\text{Who are the }K\text{ most similar customers we have already seen?}
+\]</div>
+          <p>If most similar customers churned, classify this customer as likely churn. If their average bill was high, predict a high bill.</p>
+          <div class="note">KNN is called a lazy learning algorithm because most of the work happens during prediction time, not training time.</div>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="KNN neighbors around a query point">
+            <line x1="54" y1="244" x2="366" y2="244" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="54" y1="244" x2="54" y2="54" stroke="#5e6875" stroke-width="2"></line>
+            <circle cx="200" cy="150" r="70" fill="none" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 6"></circle>
+            <circle cx="200" cy="150" r="10" fill="#18202a"></circle>
+            <circle cx="164" cy="132" r="8" fill="#1f6feb"></circle>
+            <circle cx="228" cy="128" r="8" fill="#1f6feb"></circle>
+            <circle cx="186" cy="202" r="8" fill="#1f6feb"></circle>
+            <circle cx="248" cy="182" r="8" fill="#c3342f"></circle>
+            <circle cx="130" cy="84" r="8" fill="#c3342f"></circle>
+            <circle cx="310" cy="92" r="8" fill="#c3342f"></circle>
+            <text x="210" y="154" class="axis-label">new point</text>
+            <text x="122" y="270" class="axis-label">feature 1</text>
+            <text x="14" y="88" class="axis-label">feature 2</text>
+          </svg>
+          <p class="caption">The prediction depends on nearby known examples.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Session roadmap</h2>
+      <div class="grid">
+        <a class="card" href="01-knn-basics.html">
+          <span class="num">1</span>
+          <h3>KNN basics</h3>
+          <p>Classification, regression, decision process, and when KNN is useful.</p>
+        </a>
+        <a class="card" href="02-distance-metrics.html">
+          <span class="num">2</span>
+          <h3>Distance metrics</h3>
+          <p>Euclidean, Manhattan, Minkowski, cosine similarity, scaling, metric choice, irrelevant features, and leakage-safe pipelines.</p>
+        </a>
+        <a class="card" href="03-choosing-k.html">
+          <span class="num">3</span>
+          <h3>Choosing K</h3>
+          <p>Bias-variance tradeoff, validation curves, outliers, class imbalance, curse of dimensionality, weighted neighbors, and fast neighbor search.</p>
+        </a>
+        <a class="card" href="04-knn-imputation.html">
+          <span class="num">4</span>
+          <h3>KNN imputation</h3>
+          <p>How KNN fills missing values using similar rows, with procedure and simulation.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Core idea in one line</h2>
+      <div class="formula">\[
+\hat{y}(x_{new}) = \text{aggregate}\left(y_i: x_i \in N_K(x_{new})\right)
+\]</div>
+      <table>
+        <thead><tr><th>Task</th><th>Aggregation</th><th>Output</th></tr></thead>
+        <tbody>
+          <tr><td>Classification</td><td>Majority vote</td><td>Class label</td></tr>
+          <tr><td>Regression</td><td>Mean or weighted mean</td><td>Numeric value</td></tr>
+          <tr><td>Imputation</td><td>Mean/mode of neighbor values</td><td>Missing value replacement</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="../logistic-regression/index.html">Previous Topic</a>
+      <a class="button primary" href="01-knn-basics.html">Start KNN</a>
+    </div>
+  </main>
+</body>
+</html>

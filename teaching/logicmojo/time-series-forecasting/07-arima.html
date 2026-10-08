@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ARIMA Intuition</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body data-prev="06c-arima-pre.html" data-next="07b-sarima-pre.html">
+<header class="topbar"><div class="progress"><span style="width:80%"></span></div><nav class="nav"><a class="brand" href="index.html">Time-Series Forecasting</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-forecasting-contract.html">Contract</a><a href="02-patterns.html">Patterns</a><a href="03-baselines.html">Baselines</a><a href="04-lags-and-acf.html">Lags</a><a href="05-stationarity.html">Stationarity</a><a href="06-smoothing.html">Smoothing</a><a href="06c-arima-pre.html">ARIMA Pre</a><a class="active" href="07-arima.html">ARIMA</a><a href="07b-sarima-pre.html">SARIMA Pre</a><a href="08-validation.html">Validation</a><a href="09-ml-workflow.html">ML workflow</a></div></nav></header>
+<main class="page">
+  <div class="eyebrow">Part 7</div>
+  <h1>Explain the next value using memory and past surprises.</h1>
+  <p class="lead">ARIMA combines three operations: stabilize the series by differencing, regress the stable series on its own lags, and model short-lived dependence in forecast errors.</p>
+
+  <section class="section">
+    <div class="activity"><h3>Memory question</h3><p class="prompt">If today's demand remains informative after yesterday's demand is known, which component should represent that direct lag relationship?</p><button class="reveal-button" data-reveal="ar-answer">Reveal answer</button><div class="answer" id="ar-answer" hidden>The autoregressive component. It directly relates the current stationary value to previous stationary values.</div></div>
+    <h2>AR: previous values</h2>
+    <div class="formula">\[z_t=c+\phi_1z_{t-1}+\phi_2z_{t-2}+\cdots+\phi_pz_{t-p}+\varepsilon_t\]</div>
+    <p>An AR(\(p\)) model uses \(p\) lags of a stationary series \(z_t\). The innovation \(\varepsilon_t\) is new information not predictable from those lags.</p>
+    <p class="intuition"><strong>Example:</strong> with \(\phi_1=0.7\), a positive deviation tends to persist, but its expected effect shrinks geometrically when \(|\phi_1|<1\).</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Surprise question</h3><p class="prompt">Yesterday's unexpected station closure created a large forecast error. Could that surprise affect today's forecast even after yesterday's demand is observed?</p></div>
+    <h2>MA: previous innovations</h2>
+    <div class="formula">\[z_t=\mu+\varepsilon_t+\theta_1\varepsilon_{t-1}+\cdots+\theta_q\varepsilon_{t-q}\]</div>
+    <p>An MA(\(q\)) model uses the last \(q\) innovations. These are fitted one-step forecast errors, not a moving average of observations.</p>
+    <div class="note warning"><strong>Terminology trap:</strong> “MA” in ARIMA means a linear combination of past innovations. It is different from a rolling mean such as \((y_t+y_{t-1}+y_{t-2})/3\).</div>
+  </section>
+
+  <section class="section">
+    <h2>Combine them: ARIMA(\(p,d,q\))</h2>
+    <p>Difference the original series \(d\) times and call the result \(z_t=(1-B)^d y_t\). Then model \(z_t\) with AR and MA terms:</p>
+    <div class="formula">\[\underbrace{\phi(B)}_{\text{AR}}\underbrace{(1-B)^d y_t}_{\text{differenced series}}=c+\underbrace{\theta(B)\varepsilon_t}_{\text{current and past innovations}}\]</div>
+    <div class="formula">\[\phi(B)=1-\phi_1B-\cdots-\phi_pB^p,\qquad \theta(B)=1+\theta_1B+\cdots+\theta_qB^q\]</div>
+    <div class="grid three"><div class="card"><h3>\(p\)</h3><p>Number of nonseasonal AR lags.</p></div><div class="card"><h3>\(d\)</h3><p>Number of nonseasonal differences.</p></div><div class="card"><h3>\(q\)</h3><p>Number of nonseasonal MA terms.</p></div></div>
+    <p class="small">Software may use an equivalent opposite sign convention for MA coefficients. Interpretation and forecasts remain consistent within that convention.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>One-step calculation</h3><p class="prompt">A stationary demand deviation is currently \(z_t=20\). With \(c=2\) and \(\phi_1=0.6\), what does an AR(1) model forecast before any future innovation occurs?</p></div>
+    <h2>A numerical AR(1) forecast</h2>
+    <div class="formula">\[\widehat z_{t+1\mid t}=c+\phi_1z_t=2+0.6(20)=14\]</div>
+    <p>The current deviation of 20 does not persist completely. The coefficient carries 60% of it forward and the intercept contributes 2. As forecasts move farther ahead, repeated multiplication by \(\phi_1\) pulls the deviation toward the process mean when \(|\phi_1|<1\).</p>
+    <div class="formula">\[\widehat z_{t+2\mid t}=c+\phi_1\widehat z_{t+1\mid t}=2+0.6(14)=10.4\]</div>
+    <p class="intuition"><strong>AR forecasts propagate predicted values.</strong> The unknown future innovation has conditional expectation zero, so it does not enter the point forecast.</p>
+  </section>
+
+  <section class="section">
+    <h2>What ACF and PACF suggest in ideal cases</h2>
+    <div class="table-wrap"><table><thead><tr><th>Stationary process</th><th>Typical ACF pattern</th><th>Typical PACF pattern</th></tr></thead><tbody><tr><td>AR(\(p\))</td><td>Gradual exponential or damped decay</td><td>Approximately cuts off after lag \(p\)</td></tr><tr><td>MA(\(q\))</td><td>Approximately cuts off after lag \(q\)</td><td>Gradual decay</td></tr><tr><td>ARMA</td><td>Gradual decay</td><td>Gradual decay</td></tr><tr><td>Seasonal dependence</td><td>Peaks at \(m,2m,\ldots\)</td><td>Seasonal spikes may remain after shorter lags are controlled</td></tr></tbody></table></div>
+    <p class="note warning"><strong>These are identification heuristics.</strong> Finite samples, trend, multiple seasonalities and mixed ARMA structure blur textbook cutoffs. Confirm choices through rolling-origin performance and residual diagnostics.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Weekly question</h3><p class="prompt">Where does a seven-day relationship enter an ARIMA model without adding seven ordinary lags one by one?</p><button class="reveal-button" data-reveal="sarima">Reveal answer</button><div class="answer" id="sarima" hidden>Through seasonal differencing and seasonal AR or MA polynomials at multiples of period \(m=7\).</div></div>
+    <h2>SARIMA adds seasonal memory</h2>
+    <div class="formula">\[\operatorname{SARIMA}(p,d,q)\times(P,D,Q)_m\]</div>
+    <div class="formula">\[\phi(B)\Phi(B^m)(1-B)^d(1-B^m)^D y_t=c+\theta(B)\Theta(B^m)\varepsilon_t\]</div>
+    <p>\(P,D,Q\) are seasonal AR, differencing, and MA orders. The seasonal polynomials use \(B^m\), so they connect matching locations across seasons.</p>
+    <h3>Order selection is evidence, not ritual</h3>
+    <ol class="steps"><li>Plot the raw series and choose plausible transformations or differences.</li><li>Inspect ACF/PACF for candidate lag structure.</li><li>Fit a small set of sensible orders; avoid a huge blind search.</li><li>Compare rolling-origin forecasts, not only in-sample AIC.</li><li>Check that residuals retain no useful autocorrelation.</li></ol>
+    <p class="intuition"><strong>White-noise goal:</strong> residuals need not be normally distributed to be unpredictable, but their mean should be near zero and their ACF should show no systematic remaining structure.</p>
+  </section>
+  <div class="pager"><a class="button" href="06c-arima-pre.html">Previous: ARIMA Pre</a><a class="button primary" href="07b-sarima-pre.html">Next: SARIMA Pre</a></div>
+</main>
+</body>
+</html>

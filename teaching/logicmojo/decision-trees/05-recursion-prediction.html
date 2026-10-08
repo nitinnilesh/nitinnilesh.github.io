@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recursive Tree Construction and Prediction</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav" aria-label="Decision tree lecture pages">
+      <a class="brand" href="index.html">Decision Trees</a>
+      <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-tree-intuition.html">Intuition</a><a class="" href="02-entropy-gini.html">Impurity</a><a class="" href="03-information-gain.html">Gain</a><a class="" href="04-mixed-splits.html">Mixed Data</a><a class="active" href="05-recursion-prediction.html">Recursion</a><a class="" href="06-overfitting-pruning.html">Pruning</a><a class="" href="07-regression-trees.html">Regression</a><a class="" href="08-evaluation-tuning.html">Evaluation</a><a class="" href="09-practical-guide.html">Practice</a><a class="" href="10-when-to-use.html">Model Choice</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">Part 5</div>
+    <h1>A complete tree repeats one small decision until a stopping rule fires.</h1>
+    <p class="lead">This page turns information gain into an algorithm, traces a mixed-data loan prediction, derives class probabilities at leaves, and explains what the fitted model actually stores.</p>
+
+    <section class="section">
+      <h2>One node as an optimization problem</h2>
+      <div class="activity"><h3>Node question</h3><p class="prompt">At a node containing only some training rows, what exactly is the algorithm optimizing?</p></div>
+      <p>Let \(Q_m\) be the rows reaching node \(m\). A numeric candidate \(\theta=(j,t)\) uses feature \(j\) and threshold \(t\):</p>
+      <div class="formula">\[
+      Q_m^{left}(\theta)=\{(x,y)\in Q_m:x_j\le t\}
+      \]</div>
+      <div class="formula">\[
+      Q_m^{right}(\theta)=Q_m\setminus Q_m^{left}(\theta)
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> a candidate is just one yes/no question and the two piles of rows created by its answer.</p>
+    </section>
+
+    <section class="section">
+      <h2>Score and choose the candidate</h2>
+      <div class="formula">\[
+      G(Q_m,\theta)=\frac{n_L}{n_m}H(Q_L)+\frac{n_R}{n_m}H(Q_R)
+      \]</div>
+      <div class="formula">\[
+      \theta^*=\arg\min_\theta G(Q_m,\theta)
+      \]</div>
+      <p>Minimizing weighted child impurity is equivalent to maximizing information gain because the parent impurity is fixed while candidates at the same node are compared.</p>
+      <div class="formula">\[
+      \arg\max_\theta\left[H(Q_m)-G(Q_m,\theta)\right]
+      =\arg\min_\theta G(Q_m,\theta)
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> every candidate starts from the same parent, so the winner is simply the candidate leaving the cleanest children.</p>
+    </section>
+
+    <section class="section">
+      <h2>The recursive algorithm</h2>
+      <div class="activity"><h3>Recursion question</h3><p class="prompt">After selecting a root split, do child nodes need a different learning algorithm?</p></div>
+      <div class="codebox tree-code">grow(rows, depth):
+    compute the node prediction and impurity
+    if a stopping condition is true:
+        return a leaf
+
+    generate every valid question
+    choose the question with maximum gain
+    grow(left rows, depth + 1)
+    grow(right rows, depth + 1)
+    return the decision node</div>
+      <p class="intuition"><strong>Intuition:</strong> each child receives fewer rows but solves the same problem: find the next question that most reduces local uncertainty.</p>
+    </section>
+
+    <section class="section">
+      <h2>Stopping cases</h2>
+      <table><thead><tr><th>Stopping case</th><th>Why stop?</th><th>Leaf prediction</th></tr></thead><tbody>
+        <tr><td>Pure node</td><td>No uncertainty remains.</td><td>The only class present.</td></tr>
+        <tr><td>Maximum depth</td><td>The allowed complexity has been reached.</td><td>Local majority class.</td></tr>
+        <tr><td>Too few samples</td><td>Further groups would be unreliable.</td><td>Local majority class.</td></tr>
+        <tr><td>No useful gain</td><td>No candidate meaningfully improves purity.</td><td>Local majority class.</td></tr>
+        <tr><td>No features/candidates</td><td>No valid question remains.</td><td>Local majority class.</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>A learned loan tree</h2>
+        <p>One fully grown tree consistent with the tiny sample can reuse a numeric feature at different thresholds.</p>
+        <div class="codebox tree-code">CreditScore ≤ 622.5?
+├── yes → Decline
+└── no
+    ├── LoanAmount > 32.5 → Decline
+    └── LoanAmount ≤ 32.5
+        ├── CreditScore > 645 → Approve
+        └── Income ≤ 31?
+            ├── yes → Approve
+            └── no  → Decline</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 440 340" role="img" aria-label="Loan decision tree with repeated credit score feature">
+          <rect x="128" y="18" width="184" height="40" rx="6" fill="#f7f5ff" stroke="#6741d9"/><text x="220" y="43" text-anchor="middle" font-size="13">CreditScore ≤ 622.5?</text>
+          <line x1="170" y1="58" x2="84" y2="108" stroke="#5e6875"/><line x1="270" y1="58" x2="342" y2="108" stroke="#5e6875"/>
+          <rect x="34" y="108" width="100" height="38" rx="6" fill="#fff0ec" stroke="#c3342f"/><text x="84" y="132" text-anchor="middle" font-size="13">Decline</text>
+          <rect x="272" y="108" width="140" height="38" rx="6" fill="#f4f8ff" stroke="#1f6feb"/><text x="342" y="132" text-anchor="middle" font-size="13">LoanAmount &gt; 32.5?</text>
+          <line x1="316" y1="146" x2="250" y2="196" stroke="#5e6875"/><line x1="372" y1="146" x2="404" y2="196" stroke="#5e6875"/>
+          <rect x="198" y="196" width="104" height="38" rx="6" fill="#f4f8ff" stroke="#1f6feb"/><text x="250" y="220" text-anchor="middle" font-size="12">CreditScore &gt; 645?</text>
+          <rect x="358" y="196" width="82" height="38" rx="6" fill="#fff0ec" stroke="#c3342f"/><text x="399" y="220" text-anchor="middle" font-size="13">Decline</text>
+          <line x1="226" y1="234" x2="174" y2="278" stroke="#5e6875"/><line x1="274" y1="234" x2="326" y2="278" stroke="#5e6875"/>
+          <rect x="128" y="278" width="92" height="38" rx="6" fill="#f7f5ff" stroke="#6741d9"/><text x="174" y="302" text-anchor="middle" font-size="12">Income ≤ 31?</text>
+          <rect x="286" y="278" width="80" height="38" rx="6" fill="#eef9f4" stroke="#11875d"/><text x="326" y="302" text-anchor="middle" font-size="13">Approve</text>
+        </svg>
+        <p class="caption">This is one possible fully grown tree; ties can produce an equivalent alternative structure.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Trace a new application</h2>
+      <div class="activity"><h3>Prediction question</h3><p class="prompt">For CreditScore 680, LoanAmount ₹22L, and Income ₹55k/month, which path is followed?</p></div>
+      <ol class="equation-steps">
+        <li>\(680\le622.5\) is false, so move right.</li>
+        <li>\(22&gt;32.5\) is false, so move toward the smaller-loan branch.</li>
+        <li>\(680&gt;645\) is true, so reach the Approve leaf.</li>
+      </ol>
+      <div class="formula">\[
+      \hat y=\text{Approve}
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> entropy is used to train the questions. Prediction only follows the stored questions; it does not recalculate information gain.</p>
+    </section>
+
+    <section class="section">
+      <h2>Leaf probabilities</h2>
+      <div class="activity"><h3>Confidence question</h3><p class="prompt">If a leaf contains 7 approvals and 2 declines, should it report 100% approval probability?</p></div>
+      <div class="formula">\[
+      \hat P(Y=k\mid x\in leaf\ m)=\frac{N_{mk}}{N_m}
+      \]</div>
+      <div class="formula">\[
+      \hat P(Approve)=\frac{7}{9}\approx0.778,\qquad \hat P(Decline)=\frac{2}{9}\approx0.222
+      \]</div>
+      <p class="intuition"><strong>Intuition:</strong> every row reaching the same leaf receives the same empirical class distribution.</p>
+      <div class="note warning">Small leaves can produce extreme probabilities from very little evidence. Larger `min_samples_leaf`, ensembles, or probability calibration may improve reliability.</div>
+    </section>
+
+    <section class="section">
+      <h2>What the trained model stores</h2>
+      <p>A fitted tree stores a hierarchy of nodes rather than one global coefficient vector.</p>
+      <table><thead><tr><th>Stored at a decision node</th><th>Stored at a leaf</th></tr></thead><tbody>
+        <tr><td>Feature index, threshold, child pointers, sample count, impurity, class counts</td><td>Prediction, class counts or mean target, sample count, impurity</td></tr>
+      </tbody></table>
+      <p>Prediction time is proportional to path length, approximately \(O(depth)\) per row for a balanced tree.</p>
+    </section>
+
+    <section class="section">
+      <h2>Ties and instability</h2>
+      <div class="activity"><h3>Tie question</h3><p class="prompt">If two candidate questions have exactly the same gain, which one is correct?</p></div>
+      <p>Both are equally good according to the current criterion. An implementation uses a deterministic or randomized tie-breaking rule. Because the selected root changes all later subsets, a small data change can produce a visibly different tree.</p>
+      <div class="note">Fix `random_state` for reproducibility where the implementation uses randomness, but remember that reproducibility does not remove statistical instability.</div>
+    </section>
+
+    <div class="pager"><a class="button" href="04-mixed-splits.html">Previous: Mixed Data</a><a class="button primary" href="06-overfitting-pruning.html">Next: Pruning</a></div>
+  </main>
+</body>
+</html>

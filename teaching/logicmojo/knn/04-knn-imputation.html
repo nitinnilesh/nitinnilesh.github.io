@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KNN Imputation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">KNN</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-knn-basics.html">Basics</a>
+        <a href="02-distance-metrics.html">Distances</a>
+        <a href="03-choosing-k.html">Choosing K</a>
+        <a class="active" href="04-knn-imputation.html">Imputation</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 4</div>
+    <h1>KNN imputation fills missing values using similar rows</h1>
+    <p class="lead">Instead of filling missing values with a global mean, KNN imputation uses nearby rows to make a context-aware replacement.</p>
+
+    <section class="section">
+      <h2>Why imputation?</h2>
+      <p>Real datasets often contain missing values.</p>
+      <table>
+        <thead><tr><th>Simple imputation</th><th>KNN imputation</th></tr></thead>
+        <tbody>
+          <tr><td>Fill with global mean/median/mode</td><td>Fill using similar rows</td></tr>
+          <tr><td>Fast and simple</td><td>More context-aware</td></tr>
+          <tr><td>Ignores relationships between features</td><td>Uses relationships between features</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Procedure</h2>
+      <ol>
+        <li>Choose features used to calculate similarity.</li>
+        <li>Scale numeric features.</li>
+        <li>For a row with a missing value, find its \(K\) nearest complete or usable rows.</li>
+        <li>For numeric missing values, fill with mean or weighted mean.</li>
+        <li>For categorical missing values, fill with mode or weighted mode.</li>
+      </ol>
+      <div class="formula">\[
+x_{missing} \leftarrow \frac{1}{K}\sum_{i\in N_K(x)}x_i
+\]</div>
+      <div class="note">In practical libraries, KNN imputation computes distance using the features available for both rows. For example, scikit-learn's `KNNImputer` uses a missing-value-aware distance rather than requiring every row to be fully complete.</div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Small working example</h2>
+        <p>Suppose `BMI` is missing for one person.</p>
+        <table>
+          <thead><tr><th>Neighbor</th><th>Age</th><th>Exercise score</th><th>BMI</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>31</td><td>7</td><td>24</td></tr>
+            <tr><td>2</td><td>33</td><td>6</td><td>26</td></tr>
+            <tr><td>3</td><td>30</td><td>8</td><td>25</td></tr>
+          </tbody>
+        </table>
+        <div class="formula">\[
+\text{imputed BMI}=\frac{24+26+25}{3}=25
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="KNN imputation neighbors">
+          <line x1="60" y1="242" x2="360" y2="242" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="60" y1="242" x2="60" y2="54" stroke="#5e6875" stroke-width="2"></line>
+          <circle cx="208" cy="146" r="11" fill="#18202a"></circle>
+          <circle cx="170" cy="124" r="9" fill="#1f6feb"></circle>
+          <circle cx="236" cy="120" r="9" fill="#1f6feb"></circle>
+          <circle cx="206" cy="198" r="9" fill="#1f6feb"></circle>
+          <circle cx="314" cy="90" r="9" fill="#c3342f"></circle>
+          <circle cx="116" cy="212" r="9" fill="#c3342f"></circle>
+          <circle cx="208" cy="146" r="72" fill="none" stroke="#6741d9" stroke-width="3" stroke-dasharray="7 6"></circle>
+          <text x="222" y="150" class="axis-label">BMI missing</text>
+          <text x="134" y="268" class="axis-label">use nearest rows to fill</text>
+        </svg>
+        <p class="caption">The missing value is estimated from similar rows.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Weighted KNN imputation</h2>
+      <p>Closer rows can be given more weight.</p>
+      <div class="formula">\[
+w_i=\frac{1}{d_i+\epsilon}
+\]</div>
+      <div class="formula">\[
+x_{missing} \leftarrow \frac{\sum_{i\in N_K(x)}w_i x_i}{\sum_{i\in N_K(x)}w_i}
+\]</div>
+      <p>This is useful when one neighbor is much more similar than the others.</p>
+    </section>
+
+    <section class="section">
+      <h2>Advantages of KNN imputation</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Context-aware</h3>
+          <p>Uses similar rows instead of a global average.</p>
+        </div>
+        <div class="card">
+          <h3>Nonlinear</h3>
+          <p>Can capture local patterns without fitting an equation.</p>
+        </div>
+        <div class="card">
+          <h3>Easy intuition</h3>
+          <p>Students can reason about it visually.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Limitations</h2>
+      <table>
+        <thead><tr><th>Limitation</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td>Needs scaling</td><td>Distance is scale-sensitive.</td></tr>
+          <tr><td>Can be slow</td><td>Needs neighbor search for missing rows.</td></tr>
+          <tr><td>Bad with irrelevant features</td><td>Irrelevant features distort similarity.</td></tr>
+          <tr><td>Missingness pattern matters</td><td>If many features are missing, distances become unreliable.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Simulation idea for class</h2>
+      <div class="activity">
+        <h3>Imputation question</h3>
+        <p class="prompt">If two customers have similar age, income, and spending score, would their purchase amount be more useful than the global average?</p>
+        <p>Often yes. That is the core intuition behind KNN imputation.</p>
+      </div>
+      <p>A simple classroom simulation:</p>
+      <ol>
+        <li>Create a small dataset with `age`, `income`, `spending_score`, and `purchase_amount`.</li>
+        <li>Hide some `purchase_amount` values.</li>
+        <li>Scale the features.</li>
+        <li>For each missing row, find nearest rows using available features.</li>
+        <li>Fill missing values with neighbor average.</li>
+        <li>Compare mean imputation vs KNN imputation.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>Validation-safe imputation workflow</h2>
+      <div class="activity">
+        <h3>Workflow question</h3>
+        <p class="prompt">If we impute missing values using the full dataset before splitting, what information can leak?</p>
+        <p>The test/validation distribution can influence training preprocessing, making evaluation look better than it really is.</p>
+      </div>
+      <p>KNN imputation should be fit only on training data inside the modeling pipeline. Then the learned imputation process is applied to validation or test rows.</p>
+      <div class="mini-flow">
+        <span>Split</span>
+        <span>Fit imputer on train</span>
+        <span>Transform validation/test</span>
+        <span>Train model</span>
+        <span>Evaluate once</span>
+      </div>
+      <div class="note warning">For teaching, this is a good place to remind students that preprocessing can cause data leakage just like model training can.</div>
+    </section>
+
+    <section class="section">
+      <h2>Final checklist</h2>
+      <table>
+        <thead><tr><th>Before using KNN</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Scale numeric features</td><td>Distance is scale-sensitive.</td></tr>
+          <tr><td>Choose distance metric</td><td>Similarity definition changes neighbors.</td></tr>
+          <tr><td>Tune \(K\)</td><td>Controls bias-variance tradeoff.</td></tr>
+          <tr><td>Use validation or CV</td><td>Avoid choosing \(K\) on test data.</td></tr>
+          <tr><td>Use a pipeline</td><td>Prevent leakage from scaling or imputation.</td></tr>
+          <tr><td>Check prediction speed</td><td>KNN can be slow for large datasets.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="03-choosing-k.html">Previous: Choosing K</a>
+      <a class="button primary" href="index.html">Back to Overview</a>
+    </div>
+  </main>
+</body>
+</html>

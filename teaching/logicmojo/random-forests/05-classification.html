@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Random Forest Classification</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
+    <a class="brand" href="index.html">Random Forests</a>
+    <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-why-ensemble.html">Why ensemble</a><a class="" href="02-bootstrap.html">Bootstrap</a><a class="" href="03-bagging.html">Bagging</a><a class="" href="04-feature-randomness.html">Features</a><a class="active" href="05-classification.html">Classification</a><a class="" href="06-regression.html">Regression</a><a class="" href="07-oob.html">OOB</a><a class="" href="08-variance.html">Variance</a><a class="" href="09-tuning.html">Tuning</a><a class="" href="10-interpretation.html">Interpretation</a><a class="" href="11-practical-guide.html">Practice</a></div>
+  </nav></header>
+  <main class="page">
+    <div class="eyebrow">Part 5</div>
+    <h1>For classification, a forest turns many tree opinions into a class and a probability.</h1>
+    <p class="lead">The individual trees use the same target but see different rows and feature candidates. Their predictions are combined at the end.</p>
+
+<section class="section"><h2>One loan application, several trees</h2><div class="activity"><h3>Prediction question</h3><p class="prompt">If a forest contains 100 trees and 72 predict Approved, what is the hard-vote prediction?</p></div><p>Suppose a new application follows a different path through each tree. The forest may produce this vote summary:</p><div class="two-col"><div><table><thead><tr><th>Prediction</th><th>Number of trees</th><th>Fraction</th></tr></thead><tbody><tr><td>Approved</td><td>72</td><td>0.72</td></tr><tr><td>Declined</td><td>28</td><td>0.28</td></tr></tbody></table><div class="formula">\[\hat y=\operatorname{mode}(72A,28D)=A\]</div><p class="intuition"><strong>Intuition:</strong> the class is the forest's most common opinion, not the class predicted by a single “best” tree.</p></div><div class="visual"><svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Forest classification vote bar"><rect x="58" y="72" width="300" height="54" rx="6" fill="#fff0ec"/><rect x="58" y="72" width="216" height="54" rx="6" fill="#11875d"/><text x="166" y="106" fill="#fff" font-size="16" text-anchor="middle">Approved 72%</text><text x="316" y="106" fill="#5e6875" font-size="14" text-anchor="middle">Declined 28%</text><text x="210" y="166" class="plot-title" text-anchor="middle">probability / vote share</text><circle cx="128" cy="226" r="10" fill="#11875d"/><circle cx="162" cy="226" r="10" fill="#11875d"/><circle cx="196" cy="226" r="10" fill="#11875d"/><circle cx="230" cy="226" r="10" fill="#c3342f"/><text x="210" y="260" class="axis-label" text-anchor="middle">sample of four tree votes</text></svg></div></div></section>
+<section class="section"><h2>Hard vote versus averaged probability</h2><div class="activity"><h3>Probability question</h3><p class="prompt">Why might 72% of tree votes be more informative than only the label Approved?</p></div><p>For a binary problem, a hard vote keeps only whether each tree is above its own classification threshold. A probability aggregate retains more information:</p><div class="formula">\[\hat p(A\mid x)=\frac{1}{B}\sum_{b=1}^B\hat p_b(A\mid x)\]</div><p>In scikit-learn, a tree's class probability is the fraction of training samples from that class in the reached leaf, and the forest averages those probabilities. A separate business threshold can then turn probability into an action.</p></section>
+<section class="section"><h2>Classification workflow</h2><ol class="equation-steps"><li>Split data before fitting the forest; stratify when class proportions matter.</li><li>Fit the forest on training rows only.</li><li>Inspect validation metrics beyond accuracy when costs are unequal.</li><li>Choose the operating threshold using validation data.</li><li>Evaluate once on the untouched test set.</li></ol><div class="note warning">A forest probability is not automatically perfectly calibrated. Check calibration if probabilities drive decisions, prices, or interventions.</div></section>
+    <div class="pager"><a class="button" href="04-feature-randomness.html">Previous: Features</a><a class="button primary" href="06-regression.html">Next: Regression</a></div>
+  </main>
+</body>
+</html>

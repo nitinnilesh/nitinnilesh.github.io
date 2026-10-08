@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ARIMA Pre</title><link rel="stylesheet" href="styles.css">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script><script defer src="interactions.js"></script>
+</head>
+<body data-prev="06-smoothing.html" data-next="07-arima.html">
+<header class="topbar"><div class="progress"><span style="width:76%"></span></div><nav class="nav"><a class="brand" href="index.html">Time-Series Forecasting</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-forecasting-contract.html">Contract</a><a href="02-patterns.html">Patterns</a><a href="03-baselines.html">Baselines</a><a href="04-lags-and-acf.html">Lags</a><a href="05-stationarity.html">Stationarity</a><a href="06-smoothing.html">Smoothing</a><a class="active" href="06c-arima-pre.html">ARIMA Pre</a><a href="07-arima.html">ARIMA</a><a href="08-validation.html">Validation</a><a href="09-ml-workflow.html">ML workflow</a></div></nav></header>
+<main class="page">
+  <div class="eyebrow">ARIMA Pre</div>
+  <h1>1. Start With the Problem</h1>
+  <p>Suppose monthly demand is:</p>
+  <div class="formula">\[100,\ 108,\ 115,\ 121,\ 130,\ 138,\ldots\]</div>
+  <p>The series is increasing, so predicting with a fixed historical mean will not work well.</p>
+  <p>After removing the growth through differencing:</p>
+  <div class="formula">\[\Delta Y_t=Y_t-Y_{t-1}\]</div>
+  <p>we get:</p>
+  <div class="formula">\[8,\ 7,\ 6,\ 9,\ 8,\ldots\]</div>
+  <p>These changes look more stable. However, they may still contain predictable relationships:</p>
+  <ul><li>A large increase this month may influence next month.</li><li>A forecasting error this month may help correct next month’s forecast.</li></ul>
+  <p>ARIMA models these relationships.</p>
+  <blockquote><strong>ARIMA models a stationary version of the series using its past values and past forecast errors.</strong></blockquote>
+
+  <section class="section">
+    <h2>2. What Does ARIMA Mean?</h2>
+    <p>ARIMA stands for:</p>
+    <div class="formula">\[\boxed{\text{ARIMA}(p,d,q)}\]</div>
+    <div class="table-wrap"><table><thead><tr><th>Component</th><th>Meaning</th><th>Main question</th></tr></thead><tbody>
+      <tr><td>AR</td><td>AutoRegressive</td><td>Do previous values help predict the current value?</td></tr>
+      <tr><td>I</td><td>Integrated</td><td>How many times should we difference the series?</td></tr>
+      <tr><td>MA</td><td>Moving Average</td><td>Do previous forecast errors help predict the current value?</td></tr>
+    </tbody></table></div>
+    <p>The parameters are:</p>
+    <ul><li>\(p\): number of autoregressive lags</li><li>\(d\): number of differences</li><li>\(q\): number of lagged errors</li></ul>
+  </section>
+
+  <section class="section"><h2>Part 1: AR</h2></section>
+
+  <section class="section">
+    <h2>3. Autoregression Intuition</h2>
+    <p>“Auto” means self. “Regression” means predicting a value using other values.</p>
+    <p>An autoregressive model predicts a series using its own past:</p>
+    <div class="formula">\[Y_t=c+\phi_1Y_{t-1}+\phi_2Y_{t-2}+\cdots+\phi_pY_{t-p}+\varepsilon_t\]</div>
+    <p>This is called an AR(\(p\)) model.</p>
+    <p>For an AR(1) model:</p>
+    <div class="formula">\[Y_t=c+\phi Y_{t-1}+\varepsilon_t\]</div>
+    <h3>Example</h3>
+    <p>Suppose:</p>
+    <div class="formula">\[Y_t=20+0.7Y_{t-1}+\varepsilon_t\]</div>
+    <p>If yesterday’s demand was 100 and we ignore the unknown future error:</p>
+    <div class="formula">\[\widehat Y_t=20+0.7(100)=90\]</div>
+    <p>The model says:</p>
+    <blockquote>Today’s demand is related to yesterday’s demand, but it does not simply copy it.</blockquote>
+  </section>
+
+  <section class="section">
+    <h2>4. Meaning of the AR Coefficient</h2>
+    <p>Consider:</p>
+    <div class="formula">\[Y_t=c+\phi Y_{t-1}+\varepsilon_t\]</div>
+    <ul>
+      <li>If \(\phi\) is close to \(1\), shocks persist for a long time.</li>
+      <li>If \(\phi\) is close to \(0\), the past has little influence.</li>
+      <li>If \(\phi&lt;0\), values tend to alternate around the mean.</li>
+      <li>For a stationary AR(1), we require:</li>
+    </ul>
+    <div class="formula">\[|\phi|&lt;1\]</div>
+    <h3>Long-run mean</h3>
+    <p>For a stationary AR(1), the long-run mean is:</p>
+    <div class="formula">\[\mu=\frac{c}{1-\phi}\]</div>
+    <p>For:</p>
+    <div class="formula">\[Y_t=20+0.7Y_{t-1}+\varepsilon_t\]</div>
+    <p>the long-run mean is:</p>
+    <div class="formula">\[\mu=\frac{20}{1-0.7}=66.67\]</div>
+    <p>If the series is above 66.67, it tends to move downward. If it is below 66.67, it tends to move upward.</p>
+    <p>This is mean reversion.</p>
+  </section>
+
+  <section class="section"><h2>Part 2: I</h2></section>
+
+  <section class="section">
+    <h2>5. Why Do We Need Integration?</h2>
+    <p>AR and MA models assume that the modeled series is stationary.</p>
+    <p>But suppose the series follows a random walk:</p>
+    <div class="formula">\[Y_t=Y_{t-1}+\varepsilon_t\]</div>
+    <p>Every new error permanently changes the level. The series has no stable long-run mean.</p>
+    <p>Taking the first difference gives:</p>
+    <div class="formula">\[\Delta Y_t=Y_t-Y_{t-1}=\varepsilon_t\]</div>
+    <p>The unstable accumulated level disappears, leaving a potentially stationary series.</p>
+    <p>The “Integrated” component means:</p>
+    <ol><li>Difference the series before modeling.</li><li>Forecast the differences.</li><li>Integrate, or accumulate, those forecasts to recover the original level.</li></ol>
+  </section>
+
+  <section class="section">
+    <h2>6. Meaning of \(d\)</h2>
+    <p>For ARIMA(\(p,d,q\)):</p>
+    <ul><li>\(d=0\): use the original series.</li><li>\(d=1\): use first differences.</li><li>\(d=2\): use second differences.</li></ul>
+    <p>First difference:</p>
+    <div class="formula">\[\Delta Y_t=Y_t-Y_{t-1}\]</div>
+    <p>Second difference:</p>
+    <div class="formula">\[\Delta^2Y_t=\Delta Y_t-\Delta Y_{t-1}\]</div>
+    <p>Most practical series use \(d=0\) or \(d=1\). Using unnecessary differences can amplify noise and create artificial negative autocorrelation.</p>
+  </section>
+
+  <section class="section">
+    <h2>7. Reconstructing the Forecast</h2>
+    <p>Suppose the ARIMA model predicts:</p>
+    <div class="formula">\[\widehat{\Delta Y}_{t+1}=8\]</div>
+    <p>and the latest observed level is:</p>
+    <div class="formula">\[Y_t=130\]</div>
+    <p>Then:</p>
+    <div class="formula">\[\widehat Y_{t+1\mid t}=Y_t+\widehat{\Delta Y}_{t+1}=130+8=138\]</div>
+    <p>For two periods:</p>
+    <div class="formula">\[
+      \widehat Y_{t+2\mid t}
+      =
+      Y_t+
+      \widehat{\Delta Y}_{t+1\mid t}+
+      \widehat{\Delta Y}_{t+2\mid t}
+    \]</div>
+    <p>The predicted changes are accumulated to reconstruct the future level.</p>
+  </section>
+
+  <section class="section"><h2>Part 3: MA</h2></section>
+
+  <section class="section">
+    <h2>8. Moving-Average Error Intuition</h2>
+    <p>The MA component does <strong>not</strong> mean taking the average of recent observations.</p>
+    <p>An MA model uses previous forecast errors:</p>
+    <div class="formula">\[Y_t=c+\varepsilon_t+\theta_1\varepsilon_{t-1}+\cdots+\theta_q\varepsilon_{t-q}\]</div>
+    <p>For MA(1):</p>
+    <div class="formula">\[Y_t=c+\varepsilon_t+\theta\varepsilon_{t-1}\]</div>
+    <p>At forecasting time, the current error \(\varepsilon_t\) is unknown, but previous errors are known.</p>
+    <h3>Example</h3>
+    <p>Suppose:</p>
+    <div class="formula">\[Y_t=100+0.6\varepsilon_{t-1}+\varepsilon_t\]</div>
+    <p>Yesterday’s forecast was 90, but the actual value was 100:</p>
+    <div class="formula">\[\varepsilon_{t-1}=100-90=10\]</div>
+    <p>Therefore:</p>
+    <div class="formula">\[\widehat Y_t=100+0.6(10)=106\]</div>
+    <p>The model reasons:</p>
+    <blockquote>I underpredicted yesterday. If that surprise has a short-lived effect, I should adjust today’s forecast upward.</blockquote>
+  </section>
+
+  <section class="section">
+    <h2>9. AR Versus MA</h2>
+    <h3>AR asks:</h3>
+    <blockquote>Did the previous value contain useful information?</blockquote>
+    <div class="formula">\[Y_t\leftarrow Y_{t-1},Y_{t-2},\ldots\]</div>
+    <h3>MA asks:</h3>
+    <blockquote>Did the previous forecast surprise contain useful information?</blockquote>
+    <div class="formula">\[Y_t\leftarrow\varepsilon_{t-1},\varepsilon_{t-2},\ldots\]</div>
+    <div class="table-wrap"><table><thead><tr><th>AR</th><th>MA</th></tr></thead><tbody>
+      <tr><td>Uses previous observations</td><td>Uses previous forecast errors</td></tr>
+      <tr><td>Models persistence in values</td><td>Models persistence in shocks</td></tr>
+      <tr><td>Past values are directly observed</td><td>Errors are inferred after fitting</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section class="section"><h2>Putting Everything Together</h2></section>
+
+  <section class="section">
+    <h2>10. The Complete ARIMA Model</h2>
+    <p>First define the differenced series:</p>
+    <div class="formula">\[Z_t=(1-B)^dY_t\]</div>
+    <p>Here, \(B\) is the backshift operator:</p>
+    <div class="formula">\[BY_t=Y_{t-1}\]</div>
+    <p>For \(d=1\):</p>
+    <div class="formula">\[(1-B)Y_t=Y_t-Y_{t-1}\]</div>
+    <p>ARIMA then applies an ARMA model to \(Z_t\):</p>
+    <div class="formula">\[
+      Z_t
+      =
+      c+
+      \sum_{i=1}^{p}\phi_iZ_{t-i}
+      +
+      \varepsilon_t
+      +
+      \sum_{j=1}^{q}\theta_j\varepsilon_{t-j}
+    \]</div>
+    <p>In plain language:</p>
+    <div class="formula">\[
+      \boxed{
+      \text{Current change}
+      =
+      \text{past changes}
+      +
+      \text{past surprises}
+      +
+      \text{new surprise}
+      }
+    \]</div>
+  </section>
+
+  <section class="section">
+    <h2>11. ARIMA(1,1,1) Example</h2>
+    <p>ARIMA(1,1,1) means:</p>
+    <ul><li>difference once: \(d=1\)</li><li>use one previous difference: \(p=1\)</li><li>use one previous error: \(q=1\)</li></ul>
+    <p>The model is:</p>
+    <div class="formula">\[\Delta Y_t=c+\phi\Delta Y_{t-1}+\theta\varepsilon_{t-1}+\varepsilon_t\]</div>
+    <p>Suppose:</p>
+    <div class="formula">\[c=2,\qquad \phi=0.6,\qquad \theta=0.4\]</div>
+    <p>The previous change was:</p><div class="formula">\[\Delta Y_t=10\]</div>
+    <p>and the previous error was:</p><div class="formula">\[\varepsilon_t=-3\]</div>
+    <p>The next predicted change is:</p>
+    <div class="formula">\[\widehat{\Delta Y}_{t+1}=2+0.6(10)+0.4(-3)=6.8\]</div>
+    <p>If the latest observed level is 150:</p>
+    <div class="formula">\[\widehat Y_{t+1\mid t}=150+6.8=156.8\]</div>
+    <p>Notice the complete process:</p>
+    <ol><li>Predict the next change.</li><li>Add the predicted change to the latest level.</li></ol>
+  </section>
+
+  <section class="section">
+    <h2>12. Important Special Cases</h2>
+    <div class="table-wrap"><table><thead><tr><th>Model</th><th>Interpretation</th></tr></thead><tbody>
+      <tr><td>ARIMA(0,0,0)</td><td>White noise around a constant</td></tr>
+      <tr><td>ARIMA(1,0,0)</td><td>AR(1)</td></tr>
+      <tr><td>ARIMA(0,0,1)</td><td>MA(1)</td></tr>
+      <tr><td>ARIMA(\(p\),0,\(q\))</td><td>ARMA(\(p,q\))</td></tr>
+      <tr><td>ARIMA(0,1,0)</td><td>Random walk</td></tr>
+      <tr><td>ARIMA(0,1,0) with drift</td><td>Random walk with average growth</td></tr>
+      <tr><td>ARIMA(1,1,0)</td><td>Current change depends on the previous change</td></tr>
+      <tr><td>ARIMA(0,1,1)</td><td>Current change depends on the previous shock</td></tr>
+    </tbody></table></div>
+    <p>A useful class question:</p>
+    <blockquote>If ARIMA(0,1,0) is a random walk, what is its next forecast?</blockquote>
+    <p>Because:</p>
+    <div class="formula">\[Y_t=Y_{t-1}+\varepsilon_t\]</div>
+    <p>and the expected future error is zero:</p>
+    <div class="formula">\[\widehat Y_{t+1\mid t}=Y_t\]</div>
+    <p>It produces the naive forecast.</p>
+  </section>
+
+  <section class="section"><h2>Choosing \(p,d,q\)</h2></section>
+
+  <section class="section">
+    <h2>13. Choose \(d\) First</h2>
+    <p>Start by asking whether the series needs differencing.</p>
+    <p>Use:</p>
+    <ul><li>time-series plots,</li><li>rolling mean and variance,</li><li>ADF or KPSS tests,</li><li>ACF behavior,</li><li>domain understanding.</li></ul>
+    <p>A slowly decaying ACF can indicate non-stationarity, but it is not sufficient by itself.</p>
+    <p>Choose the smallest \(d\) that creates a reasonably stable series.</p>
+  </section>
+
+  <section class="section">
+    <h2>14. ACF and PACF Hints</h2>
+    <p>For an ideal stationary process:</p>
+    <div class="table-wrap"><table><thead><tr><th>Pattern</th><th>Possible model</th></tr></thead><tbody>
+      <tr><td>PACF cuts off after lag \(p\), ACF decays</td><td>AR(\(p\))</td></tr>
+      <tr><td>ACF cuts off after lag \(q\), PACF decays</td><td>MA(\(q\))</td></tr>
+      <tr><td>Both gradually decay</td><td>ARMA model may be needed</td></tr>
+    </tbody></table></div>
+    <p>These are diagnostic hints, not strict rules for real data.</p>
+    <p>A good workflow is:</p>
+    <ol><li>Use ACF/PACF to propose a few small models.</li><li>Fit those models.</li><li>Compare AIC/BIC.</li><li>Compare rolling-origin forecast performance.</li><li>Check residuals.</li></ol>
+    <p>Avoid searching over very large \(p\) and \(q\) without justification.</p>
+  </section>
+
+  <section class="section"><h2>Model Diagnostics</h2></section>
+
+  <section class="section">
+    <h2>15. What Should Good Residuals Look Like?</h2>
+    <p>After fitting ARIMA:</p>
+    <div class="formula">\[e_t=Y_t-\widehat Y_{t\mid t-1}\]</div>
+    <p>The residuals should have:</p>
+    <ul><li>mean close to zero,</li><li>stable variance,</li><li>no visible trend,</li><li>no remaining seasonality,</li><li>no meaningful autocorrelation.</li></ul>
+    <p>Use:</p>
+    <ul><li>residual plot,</li><li>residual ACF,</li><li>Ljung–Box test,</li><li>histogram or Q–Q plot when distributional assumptions matter.</li></ul>
+    <p>If residual autocorrelation remains, the model has left predictable information behind.</p>
+  </section>
+
+  <section class="section"><h2>Seasonal ARIMA</h2></section>
+
+  <section class="section">
+    <h2>16. What About Seasonality?</h2>
+    <p>For seasonal data, we use:</p>
+    <div class="formula">\[\operatorname{SARIMA}(p,d,q)(P,D,Q)_m\]</div>
+    <p>The seasonal parameters are:</p>
+    <ul><li>\(P\): seasonal AR order</li><li>\(D\): seasonal differencing order</li><li>\(Q\): seasonal MA order</li><li>\(m\): seasonal period</li></ul>
+    <p>For daily observations with weekly seasonality:</p>
+    <div class="formula">\[m=7\]</div>
+    <p>Seasonal differencing is:</p>
+    <div class="formula">\[\Delta_7Y_t=Y_t-Y_{t-7}\]</div>
+    <p>A seasonal AR term relates the current value to a matching previous season. A seasonal MA term uses a forecast error from a previous season.</p>
+  </section>
+
+  <section class="section">
+    <h2>17. ARIMA Versus Exponential Smoothing</h2>
+    <div class="table-wrap"><table><thead><tr><th>Exponential smoothing</th><th>ARIMA</th></tr></thead><tbody>
+      <tr><td>Models evolving level, trend, and seasonality</td><td>Models autocorrelation in a stationary or differenced series</td></tr>
+      <tr><td>State-based intuition</td><td>Lag-and-error-based intuition</td></tr>
+      <tr><td>Strong for changing local structure</td><td>Strong for systematic temporal dependence</td></tr>
+      <tr><td>Holt-Winters represents seasonality through seasonal states</td><td>SARIMA represents seasonality through seasonal lags</td></tr>
+    </tbody></table></div>
+    <p>Neither is universally superior. Compare them using the same rolling-origin validation setup.</p>
+  </section>
+
+  <section class="section">
+    <h2>18. When Is ARIMA Useful?</h2>
+    <p>ARIMA is especially useful when:</p>
+    <ul><li>observations are regularly spaced,</li><li>historical lag relationships are informative,</li><li>the series can be made approximately stationary,</li><li>the dataset is not extremely large,</li><li>interpretability matters,</li><li>external predictors are limited or available through ARIMAX/SARIMAX.</li></ul>
+    <p>ARIMA may struggle when:</p>
+    <ul><li>relationships are highly nonlinear,</li><li>many external predictors drive the target,</li><li>structural breaks occur frequently,</li><li>several seasonalities overlap,</li><li>the time series is very sparse or intermittent.</li></ul>
+  </section>
+
+  <section class="section">
+    <h2>Final Intuition</h2>
+    <p>ARIMA can be remembered as three operations:</p>
+    <div class="formula">\[\boxed{\text{Stabilize}\rightarrow\text{remember values}\rightarrow\text{correct using surprises}}\]</div>
+    <ul><li><strong>I:</strong> stabilize the series through differencing.</li><li><strong>AR:</strong> learn from previous values or changes.</li><li><strong>MA:</strong> learn from previous forecasting mistakes.</li></ul>
+    <p>The central idea is:</p>
+    <blockquote>Once the changing level has been handled, can past movements and past surprises explain what happens next?</blockquote>
+  </section>
+
+  <div class="pager"><a class="button" href="06-smoothing.html">Previous: Smoothing</a><a class="button primary" href="07-arima.html">Next: ARIMA</a></div>
+</main>
+</body>
+</html>

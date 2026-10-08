@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Stationarity and Differencing</title><link rel="stylesheet" href="styles.css">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script><script defer src="interactions.js"></script>
+</head>
+<body data-prev="04-lags-and-acf.html" data-next="06-smoothing.html">
+<header class="topbar"><div class="progress"><span style="width:60%"></span></div><nav class="nav"><a class="brand" href="index.html">Time-Series Forecasting</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-forecasting-contract.html">Contract</a><a href="02-patterns.html">Patterns</a><a href="03-baselines.html">Baselines</a><a href="04-lags-and-acf.html">Lags</a><a class="active" href="05-stationarity.html">Stationarity</a><a href="06-smoothing.html">Smoothing</a><a href="07-arima.html">ARIMA</a><a href="08-validation.html">Validation</a><a href="09-ml-workflow.html">ML workflow</a></div></nav></header>
+
+<main class="page">
+  <div class="eyebrow">Part 5</div>
+  <h1>Model a stable mechanism, not a moving target.</h1>
+  <p class="lead">Stationarity asks whether the statistical behavior observed in one period remains a useful description of another period. It is the bridge between “this happened in the past” and “this relationship may repeat in the future.”</p>
+
+  <section class="section">
+    <div class="activity"><h3>Window-shift question</h3><p class="prompt">Imagine hiding the date labels and showing three different months from the series. Would their level, spread, and short-term movement look as though they came from the same process?</p></div>
+    <h2>What is stationarity?</h2>
+    <p>A time series is stationary when its probability-generating mechanism does not change as time moves forward. The values may rise and fall, but the <em>rules governing those movements</em> remain stable.</p>
+    <p class="intuition"><strong>Classroom intuition:</strong> slide a window along the timeline. A stationary series should show broadly similar center, variability, and dependence in each window. It does not need to repeat the exact same values.</p>
+    <div class="grid">
+      <div class="card"><h3>Stationary-looking</h3><p>\(98,103,100,96,102,101,99,\ldots\)</p><p>Values fluctuate around approximately 100 with a similar spread throughout.</p></div>
+      <div class="card"><h3>Non-stationary trend</h3><p>\(100,108,116,124,132,140,\ldots\)</p><p>The typical level increases, so an early-window mean no longer describes a later window.</p></div>
+    </div>
+    <svg class="stationarity-svg" viewBox="0 0 1000 590" role="img" aria-labelledby="stationarity-title stationarity-desc">
+      <title id="stationarity-title">Three examples used to diagnose stationarity</title>
+      <desc id="stationarity-desc">The first series fluctuates around a stable mean, the second has an upward trend, and the third has variance that increases over time.</desc>
+      <g class="panel-bg"><rect x="155" y="25" width="815" height="145"/><rect x="155" y="215" width="815" height="145"/><rect x="155" y="405" width="815" height="145"/></g>
+      <g class="panel-grid"><path d="M155 98H970 M155 288H970 M155 478H970"/></g>
+      <g class="panel-labels"><text x="15" y="82" fill="#087f6b">Stable level</text><text x="15" y="103" fill="#087f6b">and spread</text><text x="15" y="272" fill="#c43b36">Changing</text><text x="15" y="293" fill="#c43b36">mean</text><text x="15" y="462" fill="#a96700">Changing</text><text x="15" y="483" fill="#a96700">variance</text></g>
+      <polyline class="series stable" points="165,105 195,84 225,112 255,91 285,102 315,78 345,109 375,88 405,116 435,96 465,81 495,104 525,93 555,111 585,86 615,100 645,80 675,108 705,92 735,114 765,89 795,101 825,83 855,107 885,94 915,113 945,87"/>
+      <polyline class="series changing-mean" points="165,330 195,322 225,326 255,311 285,314 315,300 345,304 375,291 405,287 435,282 465,270 495,276 525,258 555,263 585,246 615,250 645,238 675,232 705,236 735,219 765,225 795,210 825,216 855,201 885,205 915,191 945,196"/>
+      <polyline class="series changing-variance" points="165,481 195,475 225,484 255,474 285,486 315,470 345,489 375,466 405,493 435,461 465,496 495,456 525,503 555,450 585,510 615,443 645,517 675,434 705,525 735,426 765,533 795,418 825,542 855,410 885,548 915,405 945,552"/>
+      <g class="axis-labels"><text x="155" y="578">Earlier time</text><text x="880" y="578">Later time</text></g>
+    </svg>
+    <p class="caption">The first series changes value without changing its behavior. The second changes its mean; the third keeps a similar center but its fluctuations grow. Only the first is stationary-looking.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Meaning question</h3><p class="prompt">Does stationary mean “constant,” “without noise,” or “perfectly predictable”?</p><button class="reveal-button" data-reveal="stationary-meaning">Reveal answer</button><div class="answer" id="stationary-meaning" hidden>None of them. A stationary series can be noisy and difficult to predict. Stationarity says its statistical behavior is stable, not that its future values are known.</div></div>
+    <h2>Weak stationarity, one condition at a time</h2>
+    <div class="formula">\[\mathbb E[Y_t]=\mu,\qquad \operatorname{Var}(Y_t)=\sigma^2,\qquad \operatorname{Cov}(Y_t,Y_{t-k})=\gamma_k\]</div>
+    <div class="grid three">
+      <div class="card"><h3>1. Stable mean</h3><div class="formula">\[\mathbb E[Y_t]=\mu\]</div><p>The expected center does not depend on calendar time. Demand cannot average 100 early in the series and 300 later while satisfying this condition.</p></div>
+      <div class="card"><h3>2. Stable variance</h3><div class="formula">\[\operatorname{Var}(Y_t)=\sigma^2\]</div><p>The typical size of fluctuations remains stable. A quiet first year followed by a highly volatile second year violates this condition.</p></div>
+      <div class="card"><h3>3. Stable memory</h3><div class="formula">\[\operatorname{Cov}(Y_t,Y_{t-k})=\gamma_k\]</div><p>Dependence is determined by the distance \(k\), not the date. The one-day relationship should be comparable in January and June.</p></div>
+    </div>
+    <p class="intuition"><strong>What this explains:</strong> a relationship estimated from historical windows can be reused at a future forecast origin. If the mean, variance, or lag relationship keeps changing, one fixed model is trying to learn several different processes.</p>
+    <p class="note"><strong>Weak versus strict stationarity:</strong> strict stationarity requires the complete joint distribution to remain unchanged after shifting time. In practical forecasting, weak stationarity is more commonly discussed because it focuses on mean, variance, and covariance.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Generalization question</h3><p class="prompt">A model learns that demand usually returns toward 100. If the business expands and the new normal becomes 200, should that old relationship still be trusted?</p><button class="reveal-button" data-reveal="why-stationarity">Reveal answer</button><div class="answer" id="why-stationarity" hidden>No. The model learned a relationship around the old level. If the generating process changes, it may repeatedly pull forecasts toward 100 even though 200 is now normal. Either the changing structure must be modeled explicitly or the series must be transformed into a more stable one.</div></div>
+    <h2>Why stationarity matters in forecasting</h2>
+    <p>A forecasting model learns relationships from earlier observations and applies them at a later forecast origin. This transfer from past to future is credible only when the learned mechanism remains reasonably stable.</p>
+    <div class="formula">\[\text{historical relationship}\quad\Longrightarrow\quad\text{future relationship}\]</div>
+    <p class="intuition"><strong>Core intuition:</strong> stationarity does not make the future certain. It makes the past statistically relevant. Without some form of stability, excellent historical fit may describe a regime that no longer exists.</p>
+
+    <div class="grid">
+      <div class="card"><h3>1. Models can generalize</h3><p>A stable mean, variance, and lag structure allow relationships estimated in training windows to remain useful in validation and deployment.</p></div>
+      <div class="card"><h3>2. Parameters keep their meaning</h3><p>An AR coefficient should describe the same type of dependence throughout the series. If dependence changes with time, one fixed coefficient becomes an average of incompatible regimes.</p></div>
+      <div class="card"><h3>3. ACF and PACF are interpretable</h3><p>Classical autocorrelation assumes that dependence at lag <em>k</em> is comparable wherever it is measured. Trend and changing seasonality can create correlations that reflect shared time movement rather than useful memory.</p></div>
+      <div class="card"><h3>4. Uncertainty is more credible</h3><p>If error variability is stable, historical residuals can inform future prediction intervals. When variance grows, intervals learned from quiet periods become too narrow.</p></div>
+      <div class="card"><h3>5. Residual checks become meaningful</h3><p>After a model removes predictable structure, its residuals should behave like a stable, patternless process. Remaining trend, seasonality, or changing spread signals unfinished modeling.</p></div>
+      <div class="card"><h3>6. Forecast errors reveal change</h3><p>When a previously stable model develops persistent bias, it can indicate drift, a structural break, or a new operating regime rather than ordinary random error.</p></div>
+    </div>
+
+    <h3>A model trained around the wrong level</h3>
+    <p>Suppose historical demand fluctuates around 100 and we estimate:</p>
+    <div class="formula">\[Y_t-100=0.7(Y_{t-1}-100)+\varepsilon_t\]</div>
+    <p>If yesterday's demand is 120, the one-step forecast is:</p>
+    <div class="formula">\[\widehat Y_{t+1}=100+0.7(120-100)=114\]</div>
+    <p>The model expects deviations to move back toward 100. But if expansion permanently changes the normal level to 200, that mean-reversion target is obsolete. The same fitted equation will systematically underforecast.</p>
+    <p class="note"><strong>Important qualification:</strong> the raw series does not always need to be stationary. Exponential smoothing can model an evolving level, regression can model trend and calendar effects, and ARIMA can difference the series. What must remain stable is the mechanism left for the model to learn after those components are represented.</p>
+  </section>
+
+  <section class="section">
+    <h2>Examples and non-examples</h2>
+    <div class="table-wrap"><table><thead><tr><th>Series</th><th>Stationary?</th><th>Reason</th></tr></thead><tbody>
+      <tr><td>Noise fluctuating around 100 with stable spread</td><td>Possibly</td><td>Its level and variance can remain stable even though individual values are unpredictable.</td></tr>
+      <tr><td>Bike demand growing as the service expands</td><td>No</td><td>The mean changes through time because of trend.</td></tr>
+      <tr><td>Hourly demand with a repeated morning peak</td><td>Not in raw form</td><td>The expected value depends on the hour. Seasonal adjustment or seasonal differencing may reveal a stable remainder.</td></tr>
+      <tr><td>Sales whose fluctuations grow with sales level</td><td>No</td><td>The variance changes; a logarithm may stabilize proportional variation.</td></tr>
+      <tr><td>Random walk: \(Y_t=Y_{t-1}+\varepsilon_t\)</td><td>No</td><td>Every shock permanently changes the level, and \(\operatorname{Var}(Y_t)\) grows with time.</td></tr>
+      <tr><td>First difference of a random walk: \(\Delta Y_t=\varepsilon_t\)</td><td>Often yes</td><td>Differencing removes the accumulated level and leaves the innovations.</td></tr>
+    </tbody></table></div>
+    <p class="note warning"><strong>Seasonality nuance:</strong> deterministic seasonality is predictable rather than random, but it still makes the unconditional mean depend on time position. We can model the seasonal state directly or remove it before fitting a model that assumes stationarity.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Diagnosis question</h3><p class="prompt">If the first and second half have similar averages, is that enough to declare the series stationary?</p><button class="reveal-button" data-reveal="diagnosis">Reveal answer</button><div class="answer" id="diagnosis" hidden>No. Their variance or lag relationships may differ, and shorter local changes or structural breaks may be hidden by two overall averages. Diagnosis requires several pieces of evidence.</div></div>
+    <h2>How to identify stationarity</h2>
+    <ol class="steps">
+      <li><strong>Plot the values in time order.</strong> Look for trend, repeating seasonal level, growing spread, sudden breaks, and long periods at different levels. A time plot is more informative than a histogram because it preserves order.</li>
+      <li><strong>Compare time windows.</strong> Split the series into early, middle, and late windows. Compare their mean and standard deviation. Large systematic differences suggest changing level or variance.</li>
+      <li><strong>Plot rolling statistics.</strong> A rolling mean exposes local level; a rolling standard deviation exposes local spread. Use them as visual diagnostics, not formal proof, because their appearance depends on window length.</li>
+      <li><strong>Inspect the ACF.</strong> A trending or unit-root series often has large positive autocorrelations that decay very slowly. Seasonal peaks indicate that the mean depends on calendar position. A stationary series usually loses correlation more quickly, although persistent stationary processes can still decay slowly.</li>
+      <li><strong>Use statistical tests.</strong> ADF tests a unit-root null; KPSS tests a stationarity null. Their hypotheses differ, so using both can expose uncertainty rather than forcing one test to make the entire decision.</li>
+      <li><strong>Repeat after transformation.</strong> If you apply a log, first difference, or seasonal difference, replot the result and rerun the diagnostics. The transformed series, not the original one, is what the stationary model will see.</li>
+    </ol>
+    <div class="table-wrap"><table><thead><tr><th>Diagnostic observation</th><th>What it suggests</th><th>What it does not prove</th></tr></thead><tbody>
+      <tr><td>Rolling mean drifts upward</td><td>Changing level or trend</td><td>Whether the trend is deterministic or a unit root</td></tr>
+      <tr><td>Rolling standard deviation grows</td><td>Changing variance</td><td>That a log transform is always the correct fix</td></tr>
+      <tr><td>ACF remains close to 1 for many lags</td><td>Strong persistence, trend, or unit root</td><td>Non-stationarity by itself</td></tr>
+      <tr><td>ACF peaks at 24 and 168</td><td>Daily and weekly seasonality in hourly data</td><td>That all other structure is stationary</td></tr>
+      <tr><td>Sudden permanent level shift</td><td>Structural break or new regime</td><td>That ordinary differencing alone will solve it</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Transformation question</h3><p class="prompt">What remains after subtracting yesterday from today? What remains after subtracting the same weekday last week?</p></div>
+    <h2>Differencing: model movement instead of level</h2>
+    <p>First differencing subtracts the previous observation from the current observation:</p>
+    <div class="formula">\[\Delta Y_t=Y_t-Y_{t-1}\]</div>
+    <p>The original series answers “where are we?” The differenced series answers “how far did we move?” A level can keep rising while its movement follows a much simpler and more stable process.</p>
+    <p class="intuition"><strong>Escalator intuition:</strong> a person standing on an upward-moving escalator gets higher above the ground every second. Their height is non-stationary, but the distance travelled each second may be nearly constant. Differencing removes the accumulated height and exposes the step-by-step movement.</p>
+
+    <h3>Why forecasting models use differencing</h3>
+    <div class="grid">
+      <div class="card"><h3>Remove a changing level</h3><p>A trend makes early and late observations live around different means. Differences can turn a rising level into stable average growth.</p></div>
+      <div class="card"><h3>Remove accumulated shocks</h3><p>In a random walk, every shock permanently changes the level. Differencing recovers the individual innovations.</p></div>
+      <div class="card"><h3>Reveal genuine memory</h3><p>A trending series can show high autocorrelation merely because adjacent observations share the same trend. Differencing helps separate movement from shared time position.</p></div>
+      <div class="card"><h3>Stabilize model parameters</h3><p>ARMA-style relationships are easier to estimate and interpret when the modeled series has a stable level and lag structure.</p></div>
+    </div>
+
+    <h3>The random-walk derivation</h3>
+    <p>In a random walk, today's level equals yesterday's level plus a new shock:</p>
+    <div class="formula">\[Y_t=Y_{t-1}+\varepsilon_t\]</div>
+    <p>Shocks accumulate, so the level has no fixed long-run center. Subtracting yesterday from today gives:</p>
+    <div class="formula">\[\Delta Y_t=Y_t-Y_{t-1}=\varepsilon_t\]</div>
+    <p>The unstable accumulated level disappears. If the shocks \(\varepsilon_t\) form a stationary process, the first-differenced series is stationary. This is the central idea behind the \(I\), or integrated, part of ARIMA.</p>
+
+    <div class="grid"><div class="card"><h3>First difference</h3><div class="formula">\[\Delta Y_t=Y_t-Y_{t-1}=(1-B)Y_t\]</div><p>Compares neighboring observations and can remove a trend or unit root.</p></div><div class="card"><h3>Seasonal difference</h3><div class="formula">\[\Delta_mY_t=Y_t-Y_{t-m}=(1-B^m)Y_t\]</div><p>Compares matching seasonal positions \(m\) periods apart.</p></div></div>
+    <p>Here \(B\) is the backshift operator: \(BY_t=Y_{t-1}\).</p>
+    <div class="visual"><canvas id="raw-chart" class="chart" width="900" height="360" aria-label="Raw bike demand"></canvas><canvas id="difference-chart" class="chart" width="900" height="360" aria-label="First and seasonal differences"></canvas><div class="legend"><span><i class="swatch" style="background:#a96700"></i>First difference</span><span><i class="swatch" style="background:#087f6b"></i>Seasonal difference</span></div><p class="caption">The raw teaching series contains trend and weekly seasonality. First differencing reduces trend but retains weekly alternation. Seasonal differencing compares matching weekdays and removes most of the designed weekly structure; unusual events remain visible.</p></div>
+
+    <h3>A small first-difference example</h3>
+    <p>Suppose demand is \(100,108,116,124,132\). Its mean keeps moving upward, but its changes are stable:</p>
+    <div class="formula">\[\Delta Y=[108-100,\ 116-108,\ 124-116,\ 132-124]=[8,8,8,8]\]</div>
+    <p>The simpler statement is now visible: demand grows by approximately 8 units per period.</p>
+
+    <h3>Forecast changes, then reconstruct the level</h3>
+    <p>A model fitted to differences predicts \(\widehat{\Delta Y}_{t+h}\), not the final level. For one step ahead:</p>
+    <div class="formula">\[\widehat Y_{t+1\mid t}=Y_t+\widehat{\Delta Y}_{t+1\mid t}\]</div>
+    <p>If the latest demand is 124 and the predicted change is 7, the level forecast is \(124+7=131\). For two steps, accumulate both predicted changes:</p>
+    <div class="formula">\[\widehat Y_{t+2\mid t}=Y_t+\widehat{\Delta Y}_{t+1\mid t}+\widehat{\Delta Y}_{t+2\mid t}\]</div>
+    <p class="intuition"><strong>Differencing changes the prediction target:</strong> the last observed level acts as an anchor, and forecasted changes build the future path from that anchor.</p>
+
+    <h3>Seasonal differencing: compare like with like</h3>
+    <p>First differencing compares today with yesterday. Seasonal differencing compares today with the corresponding point in the previous cycle:</p>
+    <div class="formula">\[\Delta_mY_t=Y_t-Y_{t-m}\]</div>
+    <p>Suppose two weeks of daily demand are:</p>
+    <div class="formula">\[\begin{aligned}\text{Week 1: }&[100,110,120,130,140,170,160]\\\text{Week 2: }&[105,115,125,135,145,175,165]\end{aligned}\]</div>
+    <p>With \(m=7\), every seasonal difference is 5. The large weekday-weekend shape disappears, leaving the simpler week-over-week increase.</p>
+    <div class="table-wrap"><table><thead><tr><th>Operation</th><th>Comparison</th><th>Typical purpose</th></tr></thead><tbody>
+      <tr><td>First difference \((1-B)Y_t\)</td><td>Current value minus previous value</td><td>Remove trend or a nonseasonal unit root</td></tr>
+      <tr><td>Seasonal difference \((1-B^m)Y_t\)</td><td>Current value minus the matching seasonal value</td><td>Remove seasonal level or a seasonal unit root</td></tr>
+      <tr><td>Both \((1-B)(1-B^m)Y_t\)</td><td>Seasonally difference, then difference again</td><td>Handle both sources only when diagnostics justify it</td></tr>
+    </tbody></table></div>
+    <p>For hourly bike demand, \(m=24\) compares the same hour yesterday, while \(m=168\) compares the same hour and weekday last week.</p>
+
+    <h3>How do we know differencing helped?</h3>
+    <ul>
+      <li>The transformed plot has a more stable level and spread.</li>
+      <li>The ACF no longer stays extremely high across many lags.</li>
+      <li>The intended trend or seasonal peaks are reduced.</li>
+      <li>ADF and KPSS evidence becomes more consistent with stationarity.</li>
+      <li>Rolling-origin forecast accuracy improves, not merely the statistical-test result.</li>
+    </ul>
+    <p class="note warning"><strong>Do not difference automatically.</strong> Over-differencing can amplify noise, discard useful level information, widen long-horizon uncertainty, and create artificial negative lag-1 autocorrelation. A smooth deterministic trend may be better represented directly with a time feature or trend component. Difference only when modeling changes creates a more stable and useful forecasting mechanism.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Test question</h3><p class="prompt">If an ADF test rejects a unit root, has it proven that every stationarity condition is satisfied?</p><button class="reveal-button" data-reveal="adf">Reveal answer</button><div class="answer" id="adf" hidden>No. It is evidence against a particular unit-root null under the selected lags and deterministic terms. It does not establish constant variance, remove seasonality, detect every structural break, or guarantee future stability.</div></div>
+    <h2>ADF test: does a shock persist forever?</h2>
+    <p>Begin with an AR(1) process:</p>
+    <div class="formula">\[Y_t=\rho Y_{t-1}+\varepsilon_t\]</div>
+    <p>Subtract \(Y_{t-1}\) from both sides and define \(\gamma=\rho-1\):</p>
+    <div class="formula">\[\Delta Y_t=(\rho-1)Y_{t-1}+\varepsilon_t=\gamma Y_{t-1}+\varepsilon_t\]</div>
+    <div class="grid"><div class="card"><h3>Unit root</h3><p>If \(\rho=1\), then \(\gamma=0\). Shocks accumulate permanently and the level behaves like a random walk.</p></div><div class="card"><h3>Mean reversion</h3><p>If \(\gamma<0\), a high previous level predicts a negative change and a low level predicts a positive change. The process is pulled back.</p></div></div>
+    <p class="intuition"><strong>ADF intuition:</strong> test whether yesterday's level creates a restoring force in today's change. No restoring force is evidence for a unit root.</p>
+
+    <h3>Why “augmented”?</h3>
+    <p>The test adds lagged changes to absorb short-term autocorrelation:</p>
+    <div class="formula">\[\Delta Y_t=\alpha+\beta t+\gamma Y_{t-1}+\sum_{i=1}^{p}\delta_i\Delta Y_{t-i}+\varepsilon_t\]</div>
+    <div class="table-wrap"><table><thead><tr><th>Term</th><th>Role</th></tr></thead><tbody>
+      <tr><td>\(\alpha\)</td><td>Optional constant or drift</td></tr>
+      <tr><td>\(\beta t\)</td><td>Optional deterministic trend</td></tr>
+      <tr><td>\(\gamma Y_{t-1}\)</td><td>Term tested for a unit root</td></tr>
+      <tr><td>\(\Delta Y_{t-1},\ldots,\Delta Y_{t-p}\)</td><td>Lagged changes that remove residual autocorrelation</td></tr>
+    </tbody></table></div>
+    <div class="grid"><div class="card"><h3>ADF null</h3><p><strong>\(H_0:\gamma=0\)</strong></p><p>The series contains a unit root.</p></div><div class="card"><h3>ADF alternative</h3><p><strong>\(H_1:\gamma<0\)</strong></p><p>The series is stationary under the selected constant/trend specification.</p></div></div>
+    <p>Suppose the ADF statistic is \(-4.21\), its 5% critical value is \(-2.86\), and \(p=0.0007\). Because the statistic is more negative than the critical value and \(p<0.05\), reject the unit-root null.</p>
+    <p class="note"><strong>Careful wording:</strong> “The test provides evidence against a unit root under the chosen lag and deterministic-term specification.” It does not prove constant variance, remove seasonality, detect every structural break, or guarantee good forecasts. Failing to reject \(H_0\) also does not prove a unit root; the test may have low power.</p>
+
+    <h3>Use ADF and KPSS as complementary evidence</h3>
+    <div class="grid"><div class="card"><h3>ADF test</h3><p><strong>\(H_0\):</strong> the series contains a unit root.</p><p>A small \(p\)-value supports rejecting that unit-root explanation.</p></div><div class="card"><h3>KPSS test</h3><p><strong>\(H_0\):</strong> the series is level-stationary or trend-stationary, depending on the test specification.</p><p>A small \(p\)-value is evidence against stationarity.</p></div></div>
+    <div class="table-wrap"><table><thead><tr><th>ADF</th><th>KPSS</th><th>Practical reading</th></tr></thead><tbody>
+      <tr><td>Reject unit root</td><td>Do not reject stationarity</td><td>Both are consistent with stationarity.</td></tr>
+      <tr><td>Do not reject unit root</td><td>Reject stationarity</td><td>Both are consistent with non-stationarity.</td></tr>
+      <tr><td colspan="2">Mixed or inconclusive result</td><td>Inspect trend terms, lag choices, sample size, seasonality, and structural breaks. Do not choose a conclusion from the preferred test alone.</td></tr>
+    </tbody></table></div>
+    <p class="note"><strong>A test does not replace a plot.</strong> Results depend on lag selection, whether a constant or trend is included, sample size, and breaks. Stationarity is a working model assumption supported by converging evidence, not a permanent label attached to a dataset.</p>
+  </section>
+
+  <section class="section">
+    <h2>Does every forecasting model require stationarity?</h2>
+    <div class="table-wrap"><table><thead><tr><th>Model family</th><th>How it handles changing structure</th></tr></thead><tbody>
+      <tr><td>ARMA</td><td>Usually applied to a stationary series.</td></tr>
+      <tr><td>ARIMA</td><td>The \(I\) component differences a non-stationary level before modeling AR and MA dependence.</td></tr>
+      <tr><td>Exponential smoothing</td><td>Represents evolving level, trend, and seasonality directly; the raw series need not be stationary.</td></tr>
+      <tr><td>Machine-learning models</td><td>Can use time, lag, rolling, and calendar features, but still fail when training relationships do not survive into deployment.</td></tr>
+    </tbody></table></div>
+    <p class="intuition"><strong>The real objective:</strong> do not make a series stationary merely to satisfy a test. Make the mechanism being modeled stable enough that relationships learned from historical data remain useful at future forecast origins.</p>
+  </section>
+
+  <div class="pager"><a class="button" href="04-lags-and-acf.html">Previous: Lags</a><a class="button primary" href="06-smoothing.html">Next: Smoothing</a></div>
+</main>
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log Loss and Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Logistic Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-classification-setup.html">Setup</a>
+        <a href="02-sigmoid-boundary.html">Sigmoid</a>
+        <a class="active" href="03-loss-training.html">Loss</a>
+        <a href="04-interpretation-regularization.html">Interpretation</a>
+        <a href="05-metrics-imbalance.html">Metrics</a>
+        <a href="06-handling-imbalance.html">Imbalance</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 3</div>
+    <h1>Log loss and training logistic regression</h1>
+    <p class="lead">Logistic regression learns coefficients by minimizing a probability-aware loss function called log loss or binary cross entropy.</p>
+
+    <section class="section">
+      <h2>Why not use MSE?</h2>
+      <p>MSE can be used with probabilities, but it is not the standard loss for logistic regression. Log loss matches the probability model and strongly punishes confident wrong predictions.</p>
+      <table>
+        <thead><tr><th>Prediction</th><th>True label</th><th>Intuition</th></tr></thead>
+        <tbody>
+          <tr><td>\(\hat{p}=0.99\)</td><td>\(y=1\)</td><td>Very confident and correct, tiny loss.</td></tr>
+          <tr><td>\(\hat{p}=0.51\)</td><td>\(y=1\)</td><td>Correct side, but not confident.</td></tr>
+          <tr><td>\(\hat{p}=0.01\)</td><td>\(y=1\)</td><td>Very confident and wrong, huge loss.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Confidence check</h3>
+        <p class="prompt">Which should be punished more: predicting 0.49 for a positive example or predicting 0.01?</p>
+        <p>Predicting 0.01 should be punished much more because the model is confidently wrong.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Binary cross entropy loss</h2>
+      <p>For one training example:</p>
+      <div class="formula">\[
+L(y,\hat{p})=-\left[y\log(\hat{p})+(1-y)\log(1-\hat{p})\right]
+\]</div>
+      <p>This compact formula contains two cases:</p>
+      <div class="grid">
+        <div class="card">
+          <h3>If \(y=1\)</h3>
+          <div class="formula">\[
+L=-\log(\hat{p})
+\]</div>
+          <p>Loss is small when \(\hat{p}\) is close to 1.</p>
+        </div>
+        <div class="card">
+          <h3>If \(y=0\)</h3>
+          <div class="formula">\[
+L=-\log(1-\hat{p})
+\]</div>
+          <p>Loss is small when \(\hat{p}\) is close to 0.</p>
+        </div>
+        <div class="card">
+          <h3>Numerical safety</h3>
+          <p>In code, probabilities are often clipped slightly away from 0 and 1 before taking logs.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Loss curve intuition</h2>
+      <div class="visual compact-visual">
+        <svg class="plot" viewBox="0 0 520 320" role="img" aria-label="Log loss curves">
+          <line x1="70" y1="260" x2="450" y2="260" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="70" y1="260" x2="70" y2="46" stroke="#5e6875" stroke-width="2"></line>
+          <path d="M92 56 C126 68, 176 98, 228 152 C278 204, 342 242, 432 252" fill="none" stroke="#1f6feb" stroke-width="5"></path>
+          <path d="M92 252 C182 242, 246 204, 296 152 C348 98, 398 68, 432 56" fill="none" stroke="#b85c00" stroke-width="5"></path>
+          <circle cx="380" cy="246" r="6" fill="#1f6feb"></circle>
+          <circle cx="120" cy="246" r="6" fill="#b85c00"></circle>
+          <text x="196" y="288" class="axis-label">predicted probability p</text>
+          <text x="24" y="58" class="axis-label">loss</text>
+          <circle cx="88" cy="24" r="5" fill="#1f6feb"></circle>
+          <text x="102" y="28" class="axis-label">loss when y=1</text>
+          <circle cx="238" cy="24" r="5" fill="#b85c00"></circle>
+          <text x="252" y="28" class="axis-label">loss when y=0</text>
+        </svg>
+        <p class="caption">For \(y=1\), loss decreases as predicted probability approaches 1. For \(y=0\), loss decreases as probability approaches 0.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Cost function over all examples</h2>
+      <p>The training cost is average binary cross entropy across all \(n\) examples:</p>
+      <div class="formula">\[
+J(\beta)= -\frac{1}{n}\sum_{i=1}^{n}
+\left[
+y_i\log(\hat{p}_i)+(1-y_i)\log(1-\hat{p}_i)
+\right]
+\]</div>
+      <p>Here:</p>
+      <div class="formula">\[
+\hat{p}_i=\sigma(x_i^T\beta)
+\]</div>
+      <div class="note">Logistic regression has no closed-form OLS-style solution. We usually optimize this cost function iteratively.</div>
+    </section>
+
+    <section class="section">
+      <h2>Negative log likelihood, step by step</h2>
+      <p>Likelihood means: “How likely is the observed answer under the probability predicted by the model?”</p>
+      <p>For one row, if the true class is \(1\), the model assigns likelihood \(\hat{p}\). If the true class is \(0\), the model assigns likelihood \(1-\hat{p}\).</p>
+      <div class="formula">\[
+P(y_i\mid x_i)=\hat{p}_i^{y_i}(1-\hat{p}_i)^{1-y_i}
+\]</div>
+      <table>
+        <thead><tr><th>True label</th><th>Predicted probability \(\hat{p}\)</th><th>Likelihood of true label</th><th>NLL</th></tr></thead>
+        <tbody>
+          <tr><td>\(y=1\)</td><td>0.90</td><td>0.90</td><td>\(-\log(0.90)=0.105\)</td></tr>
+          <tr><td>\(y=1\)</td><td>0.20</td><td>0.20</td><td>\(-\log(0.20)=1.609\)</td></tr>
+          <tr><td>\(y=0\)</td><td>0.20</td><td>\(1-0.20=0.80\)</td><td>\(-\log(0.80)=0.223\)</td></tr>
+          <tr><td>\(y=0\)</td><td>0.95</td><td>\(1-0.95=0.05\)</td><td>\(-\log(0.05)=2.996\)</td></tr>
+        </tbody>
+      </table>
+      <p>For many rows, likelihood multiplies all row-wise probabilities:</p>
+      <div class="formula">\[
+\mathcal{L}(\beta)=\prod_{i=1}^{n}\hat{p}_i^{y_i}(1-\hat{p}_i)^{1-y_i}
+\]</div>
+      <p>Products of many probabilities become tiny, so we take log. Log turns products into sums, which are easier to optimize:</p>
+      <div class="formula">\[
+\log\mathcal{L}(\beta)=\sum_{i=1}^{n}\left[y_i\log(\hat{p}_i)+(1-y_i)\log(1-\hat{p}_i)\right]
+\]</div>
+      <p>Maximum likelihood wants to maximize this value. Most ML training code minimizes a loss, so we multiply by \(-1\):</p>
+      <div class="formula">\[
+\text{NLL}(\beta)=-\log\mathcal{L}(\beta)
+\]</div>
+      <div class="note">Negative log likelihood is simply log loss written from the maximum-likelihood point of view.</div>
+    </section>
+
+    <section class="section">
+      <h2>Initial NLL for an untrained model</h2>
+      <p>If all coefficients start at zero, then every linear score is zero:</p>
+      <div class="formula">\[
+z_i=x_i^T\beta=0
+\]</div>
+      <p>The sigmoid gives the same probability for every row:</p>
+      <div class="formula">\[
+\hat{p}_i=\sigma(0)=\frac{1}{2}=0.5
+\]</div>
+      <p>For either class, the likelihood of the true label is \(0.5\), so the NLL per example is:</p>
+      <div class="formula">\[
+-\log(0.5)=\log(2)\approx0.693
+\]</div>
+      <p>For \(n\) examples:</p>
+      <div class="formula">\[
+\text{Total NLL}=n\log(2)
+\qquad
+\text{Average NLL}=\log(2)\approx0.693
+\]</div>
+      <table>
+        <thead><tr><th>Dataset size</th><th>Untrained probability</th><th>Total NLL</th><th>Average NLL</th></tr></thead>
+        <tbody>
+          <tr><td>10 rows</td><td>0.5 for every row</td><td>\(10\log(2)=6.93\)</td><td>0.693</td></tr>
+          <tr><td>100 rows</td><td>0.5 for every row</td><td>\(100\log(2)=69.3\)</td><td>0.693</td></tr>
+        </tbody>
+      </table>
+      <div class="note warning">If we initialize or fit only the intercept to match the class rate, the initial average NLL becomes the entropy of the class distribution. But with all logits initialized at zero, the clean starting value is \(\log(2)\).</div>
+    </section>
+
+    <section class="section">
+      <h2>Initial NLL for multiclass classification</h2>
+      <p>For \(K\) classes, softmax converts class scores into class probabilities:</p>
+      <div class="formula">\[
+P(y=c\mid x)=\frac{e^{z_c}}{\sum_{k=1}^{K}e^{z_k}}
+\]</div>
+      <p>If the untrained model starts with all class scores equal to zero, then each class gets equal probability:</p>
+      <div class="formula">\[
+P(y=c\mid x)=\frac{e^0}{e^0+e^0+\cdots+e^0}=\frac{1}{K}
+\]</div>
+      <p>The NLL for the correct class is:</p>
+      <div class="formula">\[
+-\log\left(\frac{1}{K}\right)=\log(K)
+\]</div>
+      <table>
+        <thead><tr><th>Number of classes</th><th>Untrained probability per class</th><th>Initial average NLL</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td>\(1/2=0.5\)</td><td>\(\log(2)=0.693\)</td></tr>
+          <tr><td>3</td><td>\(1/3=0.333\)</td><td>\(\log(3)=1.099\)</td></tr>
+          <tr><td>10</td><td>\(1/10=0.1\)</td><td>\(\log(10)=2.303\)</td></tr>
+        </tbody>
+      </table>
+      <p>This gives students a useful benchmark: a trained model should usually reduce average NLL below the “random equal probability” starting point.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Gradient descent</h2>
+        <p>Using matrix notation:</p>
+        <div class="formula">\[
+\hat{p}=\sigma(X\beta)
+\]</div>
+        <p>The gradient of average log loss is:</p>
+        <div class="formula">\[
+\nabla_\beta J=\frac{1}{n}X^T(\hat{p}-y)
+\]</div>
+        <p>The update rule is:</p>
+        <div class="formula">\[
+\beta := \beta-\alpha\nabla_\beta J
+\]</div>
+        <p>The term \(\hat{p}-y\) is the probability error. If the model predicts too high, the update pushes coefficients down; if too low, it pushes them up.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Log loss decreasing with gradient descent">
+          <line x1="54" y1="244" x2="372" y2="244" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="54" y1="244" x2="54" y2="46" stroke="#5e6875" stroke-width="2"></line>
+          <path d="M72 66 C116 104, 158 136, 206 166 C252 194, 300 218, 354 232" fill="none" stroke="#11875d" stroke-width="5"></path>
+          <circle cx="72" cy="66" r="6" fill="#1f6feb"></circle><circle cx="132" cy="118" r="6" fill="#1f6feb"></circle><circle cx="206" cy="166" r="6" fill="#1f6feb"></circle><circle cx="284" cy="210" r="6" fill="#1f6feb"></circle><circle cx="354" cy="232" r="6" fill="#1f6feb"></circle>
+          <text x="162" y="278" class="axis-label">gradient descent iterations</text>
+          <text x="18" y="58" class="axis-label">cost</text>
+          <text x="214" y="116" class="axis-label">cost should decrease</text>
+        </svg>
+        <p class="caption">During successful training, log loss should generally move downward over iterations.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Full gradient derivation</h2>
+      <p>For one training example, start with:</p>
+      <div class="formula">\[
+z_i=x_i^T\beta
+\qquad
+\hat{p}_i=\sigma(z_i)
+\]</div>
+      <p>The single-row loss is:</p>
+      <div class="formula">\[
+L_i=-\left[y_i\log(\hat{p}_i)+(1-y_i)\log(1-\hat{p}_i)\right]
+\]</div>
+      <p>Differentiate the loss with respect to \(\hat{p}_i\):</p>
+      <div class="formula">\[
+\frac{\partial L_i}{\partial \hat{p}_i}
+=-\frac{y_i}{\hat{p}_i}+\frac{1-y_i}{1-\hat{p}_i}
+\]</div>
+      <p>The sigmoid derivative is:</p>
+      <div class="formula">\[
+\frac{\partial \hat{p}_i}{\partial z_i}
+=\hat{p}_i(1-\hat{p}_i)
+\]</div>
+      <p>Using the chain rule:</p>
+      <div class="formula">\[
+\frac{\partial L_i}{\partial z_i}
+=
+\frac{\partial L_i}{\partial \hat{p}_i}
+\cdot
+\frac{\partial \hat{p}_i}{\partial z_i}
+\]</div>
+      <div class="formula">\[
+\frac{\partial L_i}{\partial z_i}
+=
+\left(-\frac{y_i}{\hat{p}_i}+\frac{1-y_i}{1-\hat{p}_i}\right)
+\hat{p}_i(1-\hat{p}_i)
+\]</div>
+      <div class="formula">\[
+\frac{\partial L_i}{\partial z_i}
+=
+-y_i(1-\hat{p}_i)+(1-y_i)\hat{p}_i
+=
+\hat{p}_i-y_i
+\]</div>
+      <p>Since \(z_i=x_i^T\beta\), for coefficient \(\beta_j\):</p>
+      <div class="formula">\[
+\frac{\partial z_i}{\partial \beta_j}=x_{ij}
+\]</div>
+      <p>So the coefficient-level derivative is:</p>
+      <div class="formula">\[
+\frac{\partial L_i}{\partial \beta_j}
+=
+(\hat{p}_i-y_i)x_{ij}
+\]</div>
+      <p>Averaging over all examples gives:</p>
+      <div class="formula">\[
+\frac{\partial J}{\partial \beta_j}
+=
+\frac{1}{n}\sum_{i=1}^{n}(\hat{p}_i-y_i)x_{ij}
+\]</div>
+      <p>In matrix notation:</p>
+      <div class="formula">\[
+\nabla_\beta J=\frac{1}{n}X^T(\hat{p}-y)
+\]</div>
+      <div class="activity">
+        <h3>Gradient intuition</h3>
+        <p class="prompt">If \(y=1\) but the model predicts \(\hat{p}=0.2\), what is \(\hat{p}-y\)?</p>
+        <p>It is \(-0.8\), so the update pushes the model to increase the probability for similar examples.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Gradient descent steps</h2>
+      <p>The training loop is:</p>
+      <div class="mini-flow">
+        <span>Initialize \(\beta\)</span>
+        <span>Compute \(z=X\beta\)</span>
+        <span>Compute \(\hat{p}=\sigma(z)\)</span>
+        <span>Compute gradient</span>
+        <span>Update \(\beta\)</span>
+      </div>
+      <div class="formula">\[
+\beta^{(t+1)}
+=
+\beta^{(t)}
+-
+\alpha\frac{1}{n}X^T(\hat{p}-y)
+\]</div>
+      <table>
+        <thead><tr><th>Step</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Initialize \(\beta\)</td><td>Start with zeros or small random values.</td></tr>
+          <tr><td>Forward pass</td><td>Compute scores and probabilities.</td></tr>
+          <tr><td>Loss</td><td>Measure average NLL/log loss.</td></tr>
+          <tr><td>Gradient</td><td>Find how each coefficient should change.</td></tr>
+          <tr><td>Update</td><td>Move coefficients in the direction that reduces loss.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Maximum likelihood intuition</h2>
+      <p>Logistic regression can be understood as choosing coefficients that make the observed labels most likely.</p>
+      <div class="formula">\[
+\text{Choose }\beta\text{ so the labels we actually observed get high probability.}
+\]</div>
+      <p>Suppose two models predict probabilities for four examples:</p>
+      <table>
+        <thead><tr><th>True labels</th><th>Model A probabilities for true labels</th><th>Model B probabilities for true labels</th></tr></thead>
+        <tbody>
+          <tr><td>\(1,0,1,1\)</td><td>0.90, 0.80, 0.70, 0.85</td><td>0.55, 0.52, 0.51, 0.50</td></tr>
+        </tbody>
+      </table>
+      <p>Model A gives higher probability to what actually happened, so it has higher likelihood and lower NLL.</p>
+      <div class="formula">\[
+\text{higher likelihood}
+\Longleftrightarrow
+\text{lower negative log likelihood}
+\]</div>
+      <p>This is why minimizing log loss is the same as maximizing the probability assigned to the observed training labels.</p>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="02-sigmoid-boundary.html">Previous: Sigmoid</a>
+      <a class="button primary" href="04-interpretation-regularization.html">Next: Interpretation</a>
+    </div>
+  </main>
+</body>
+</html>

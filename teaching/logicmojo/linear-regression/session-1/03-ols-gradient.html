@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OLS And Gradient Descent</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="../index.html">Linear Regression Math</a>
+      <div class="navlinks">
+        <a href="index.html">Session 1</a>
+        <a href="01-line.html">Line</a>
+        <a href="02-errors-cost.html">Errors</a>
+        <a class="active" href="03-ols-gradient.html">Learning</a>
+        <a href="../session-2/index.html">Session 2</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 3</div>
+    <h1>OLS and gradient descent</h1>
+    <p class="lead">Both stories answer the same question: which slope and intercept produce the smallest overall error?</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Ordinary Least Squares</h2>
+        <p>OLS means choose the coefficients that minimize the sum of squared residuals.</p>
+        <div class="formula">\[\min_{\beta_0,\beta_1}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2\]</div>
+        <p>For simple linear regression, the closed-form slope can be written as:</p>
+        <div class="formula">\[\beta_1 = \frac{\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^{n}(x_i - \bar{x})^2}\]\[\beta_0 = \bar{y} - \beta_1\bar{x}\]</div>
+        <p>Intuition: slope is based on how x and y move together, divided by how much x itself varies.</p>
+        <div class="activity">
+          <h3>Check your intuition</h3>
+          <p class="prompt">If x and y usually increase together, should the slope be positive or negative?</p>
+          <p>What if x increases and y usually decreases?</p>
+        </div>
+      </div>
+      <div class="visual">
+        <div class="curve">
+          <span class="dot" aria-hidden="true"></span>
+        </div>
+        <p class="caption">Cost function intuition: move downhill until you reach the lowest error.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>OLS slope intuition</h2>
+      <p>The slope formula can be read as a ratio:</p>
+      <div class="formula">\[\beta_1 = \frac{\text{how }x\text{ and }y\text{ move together}}{\text{how much }x\text{ moves by itself}}\]</div>
+      <div class="formula">\[\beta_1 = \frac{\mathrm{covariance\ numerator}}{\mathrm{variance\ numerator}}\]</div>
+      <div class="two-col">
+        <div>
+          <h3>Numerator: movement together</h3>
+          <div class="formula">\[\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})\]</div>
+          <p>If a point is above average in x and also above average in y, the product is positive. If both are below average, the product is also positive. This pushes the slope upward.</p>
+          <p>If x is above average but y is below average, the product is negative. This pushes the slope downward.</p>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="OLS covariance intuition quadrants">
+            <line x1="44" y1="150" x2="386" y2="150" stroke="#5e6875" stroke-width="2" stroke-dasharray="6 5"></line>
+            <line x1="210" y1="252" x2="210" y2="40" stroke="#5e6875" stroke-width="2" stroke-dasharray="6 5"></line>
+            <text x="222" y="48" class="axis-label">mean x</text>
+            <text x="52" y="142" class="axis-label">mean y</text>
+            <circle cx="285" cy="82" r="7" fill="#11875d"></circle>
+            <circle cx="132" cy="210" r="7" fill="#11875d"></circle>
+            <circle cx="295" cy="208" r="7" fill="#c3342f"></circle>
+            <circle cx="122" cy="86" r="7" fill="#c3342f"></circle>
+            <text x="268" y="68" class="axis-label">+ product</text>
+            <text x="96" y="232" class="axis-label">+ product</text>
+            <text x="300" y="228" class="axis-label">- product</text>
+            <text x="72" y="72" class="axis-label">- product</text>
+          </svg>
+          <p class="caption">OLS slope is positive when the positive products dominate the negative products.</p>
+        </div>
+      </div>
+      <div class="note">The intercept then positions the line so it passes through the average point \((\bar{x}, \bar{y})\): \(\beta_0 = \bar{y} - \beta_1\bar{x}\).</div>
+    </section>
+
+    <section class="section">
+      <h2>Gradient descent</h2>
+      <p>Gradient descent does not jump directly to the answer. It starts with guesses for b0 and b1, checks the error, and repeatedly updates the guesses.</p>
+      <div class="formula">\[\theta_{new} = \theta_{old} - \alpha\nabla J(\theta)\]</div>
+      <div class="mini-flow">
+        <span>Guess b0, b1</span>
+        <span>Predict y_hat</span>
+        <span>Calculate MSE</span>
+        <span>Find gradient</span>
+        <span>Update values</span>
+      </div>
+
+      <h2>Gradient derivation for simple linear regression</h2>
+      <p>Start with the model equation:</p>
+      <div class="formula">\[\hat{y}_i = \beta_0 + \beta_1x_i\]</div>
+      <p>Use Mean Squared Error as the cost function:</p>
+      <div class="formula">\[J(\beta_0,\beta_1) = \frac{1}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)^2\]</div>
+      <p>Substitute the prediction equation into the cost function:</p>
+      <div class="formula">\[J(\beta_0,\beta_1) = \frac{1}{n}\sum_{i=1}^{n}(y_i - (\beta_0 + \beta_1x_i))^2\]</div>
+      <p>The gradient tells us how the cost changes when we slightly change the intercept or slope.</p>
+      <div class="formula">\[\frac{\partial J}{\partial \beta_0} = -\frac{2}{n}\sum_{i=1}^{n}(y_i - \hat{y}_i)\]</div>
+      <div class="formula">\[\frac{\partial J}{\partial \beta_1} = -\frac{2}{n}\sum_{i=1}^{n}x_i(y_i - \hat{y}_i)\]</div>
+      <p>So the update rules become:</p>
+      <div class="formula">\[\beta_0 := \beta_0 - \alpha\frac{\partial J}{\partial \beta_0}\]</div>
+      <div class="formula">\[\beta_1 := \beta_1 - \alpha\frac{\partial J}{\partial \beta_1}\]</div>
+      <div class="note">Intuition: if the derivative is positive, increasing the parameter increases error, so gradient descent moves the parameter down. If the derivative is negative, increasing the parameter reduces error, so gradient descent moves the parameter up.</div>
+
+      <table>
+        <thead><tr><th>Term</th><th>Meaning</th><th>Important note</th></tr></thead>
+        <tbody>
+          <tr><td>Gradient</td><td>Direction and steepness of change in cost.</td><td>It tells us how to move the parameter to reduce error.</td></tr>
+          <tr><td>Learning rate</td><td>Step size used during each update.</td><td>Too small is slow. Too large can overshoot.</td></tr>
+          <tr><td>Epoch</td><td>One full pass over the training data.</td><td>More epochs may help, but after convergence they add little value.</td></tr>
+          <tr><td>Convergence</td><td>Cost stops improving meaningfully.</td><td>The model has reached a stable minimum.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Gradient descent intuition</h3>
+        <p class="prompt">Imagine you are on a hill and can only feel the slope under your feet. How do you reach the lowest point?</p>
+        <p>This maps directly to gradient direction, step size, overshooting, and convergence.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Interactive gradient descent</h2>
+      <p>Change the initial line and learning settings. The chart shows how gradient descent updates the line and how the cost changes over epochs.</p>
+      <div class="control-panel">
+        <label>Learning rate <strong id="gdLrLabel">0.05</strong><input id="gdLearningRate" type="range" min="0.005" max="0.2" step="0.005" value="0.05"></label>
+        <label>Epochs <strong id="gdEpochLabel">60</strong><input id="gdEpochs" type="range" min="0" max="160" step="5" value="60"></label>
+        <label>Initial slope <strong id="gdSlopeLabel">0.0</strong><input id="gdInitialSlope" type="range" min="-8" max="8" step="0.5" value="0"></label>
+        <label>Initial intercept <strong id="gdInterceptLabel">0.0</strong><input id="gdInitialIntercept" type="range" min="-8" max="8" step="0.5" value="0"></label>
+      </div>
+      <div class="viz-grid">
+        <div class="wide-visual">
+          <h3>Fitted line</h3>
+          <svg id="gdLineSvg" class="plot" viewBox="0 0 420 300" role="img" aria-label="Interactive gradient descent fitted line"></svg>
+        </div>
+        <div class="wide-visual">
+          <h3>Cost over epochs</h3>
+          <svg id="gdCostSvg" class="plot" viewBox="0 0 420 300" role="img" aria-label="Interactive gradient descent cost curve"></svg>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><span>Current slope</span><strong id="gdSlopeOut">0.00</strong></div>
+        <div class="stat"><span>Current intercept</span><strong id="gdInterceptOut">0.00</strong></div>
+        <div class="stat"><span>Final MSE</span><strong id="gdMseOut">0.00</strong></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Convex vs non-convex cost</h2>
+      <p>Linear regression with MSE has a convex cost surface: one smooth bowl and one global minimum. More complex models can have non-convex surfaces with many dips.</p>
+      <div class="viz-grid">
+        <div class="wide-visual">
+          <h3>Linear regression cost</h3>
+          <svg class="plot" viewBox="0 0 420 260" role="img" aria-label="Convex cost curve">
+            <line x1="44" y1="218" x2="382" y2="218" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="44" y1="218" x2="44" y2="36" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M70 70 C125 170, 160 210, 210 210 C260 210, 298 170, 350 70" fill="none" stroke="#1f6feb" stroke-width="5"></path>
+            <circle cx="210" cy="210" r="7" fill="#11875d"></circle>
+            <text x="178" y="236" class="axis-label">global minimum</text>
+          </svg>
+          <p class="caption">Convex: gradient descent has a clear destination.</p>
+        </div>
+        <div class="wide-visual">
+          <h3>Complex model cost</h3>
+          <svg class="plot" viewBox="0 0 420 260" role="img" aria-label="Non-convex cost curve">
+            <line x1="44" y1="218" x2="382" y2="218" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="44" y1="218" x2="44" y2="36" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M58 72 C88 208, 122 200, 150 100 C180 25, 205 220, 242 142 C272 68, 298 202, 360 76" fill="none" stroke="#6741d9" stroke-width="5"></path>
+            <circle cx="123" cy="196" r="6" fill="#b85c00"></circle>
+            <circle cx="206" cy="211" r="7" fill="#11875d"></circle>
+            <circle cx="296" cy="196" r="6" fill="#b85c00"></circle>
+            <text x="84" y="232" class="axis-label">local</text>
+            <text x="177" y="236" class="axis-label">global</text>
+            <text x="276" y="232" class="axis-label">local</text>
+          </svg>
+          <p class="caption">Non-convex: the starting point can affect where optimization ends.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Important distinction</h2>
+      <div class="note">Scikit-learn's standard LinearRegression uses a direct least-squares solver, not ordinary gradient descent. Still teach gradient descent because it becomes essential for neural networks and many large-scale optimization problems.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="02-errors-cost.html">Previous: Errors</a>
+      <a class="button primary" href="../session-2/index.html">Next: Session 2</a>
+    </div>
+  </main>
+  <script>
+    const gdData = [
+      [-2.0, -3.9], [-1.5, -2.8], [-1.0, -2.4], [-0.5, -1.0],
+      [0.0, -0.3], [0.5, 1.2], [1.0, 2.1], [1.5, 3.0], [2.0, 4.1]
+    ];
+
+    function gdRun(lr, epochs, b1, b0) {
+      const history = [];
+      for (let epoch = 0; epoch <= epochs; epoch++) {
+        const preds = gdData.map(([x]) => b0 + b1 * x);
+        const errors = preds.map((p, i) => p - gdData[i][1]);
+        const mse = errors.reduce((s, e) => s + e * e, 0) / gdData.length;
+        history.push({ epoch, b0, b1, mse });
+        const gradB0 = 2 * errors.reduce((s, e) => s + e, 0) / gdData.length;
+        const gradB1 = 2 * errors.reduce((s, e, i) => s + e * gdData[i][0], 0) / gdData.length;
+        b0 -= lr * gradB0;
+        b1 -= lr * gradB1;
+      }
+      return history;
+    }
+
+    function svgEl(name, attrs = {}) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+      Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+      return el;
+    }
+
+    function drawGdLine(history) {
+      const svg = document.getElementById("gdLineSvg");
+      svg.innerHTML = "";
+      const pad = 44;
+      const xScale = x => pad + ((x + 2.4) / 4.8) * (420 - pad * 2);
+      const yScale = y => 248 - ((y + 5.5) / 12) * 205;
+      svg.append(svgEl("line", { x1: 44, y1: 248, x2: 386, y2: 248, stroke: "#5e6875", "stroke-width": 2 }));
+      svg.append(svgEl("line", { x1: 44, y1: 248, x2: 44, y2: 38, stroke: "#5e6875", "stroke-width": 2 }));
+      gdData.forEach(([x, y]) => svg.append(svgEl("circle", { cx: xScale(x), cy: yScale(y), r: 6, fill: "#11875d" })));
+      const last = history[history.length - 1];
+      const xA = -2.3;
+      const xB = 2.3;
+      const yA = last.b0 + last.b1 * xA;
+      const yB = last.b0 + last.b1 * xB;
+      svg.append(svgEl("line", { x1: xScale(xA), y1: yScale(yA), x2: xScale(xB), y2: yScale(yB), stroke: "#1f6feb", "stroke-width": 4 }));
+    }
+
+    function drawGdCost(history) {
+      const svg = document.getElementById("gdCostSvg");
+      svg.innerHTML = "";
+      const pad = 44;
+      const maxMse = Math.max(...history.map(h => h.mse), 1);
+      const xScale = epoch => pad + (epoch / Math.max(history[history.length - 1].epoch, 1)) * (420 - pad * 2);
+      const yScale = mse => 248 - (mse / maxMse) * 205;
+      svg.append(svgEl("line", { x1: 44, y1: 248, x2: 386, y2: 248, stroke: "#5e6875", "stroke-width": 2 }));
+      svg.append(svgEl("line", { x1: 44, y1: 248, x2: 44, y2: 38, stroke: "#5e6875", "stroke-width": 2 }));
+      const path = history.map((h, i) => `${i === 0 ? "M" : "L"} ${xScale(h.epoch)} ${yScale(h.mse)}`).join(" ");
+      svg.append(svgEl("path", { d: path, fill: "none", stroke: "#b85c00", "stroke-width": 4 }));
+      const last = history[history.length - 1];
+      svg.append(svgEl("circle", { cx: xScale(last.epoch), cy: yScale(last.mse), r: 6, fill: "#11875d" }));
+    }
+
+    function refreshGd() {
+      const lr = Number(document.getElementById("gdLearningRate").value);
+      const epochs = Number(document.getElementById("gdEpochs").value);
+      const initialSlope = Number(document.getElementById("gdInitialSlope").value);
+      const initialIntercept = Number(document.getElementById("gdInitialIntercept").value);
+      document.getElementById("gdLrLabel").textContent = lr.toFixed(3);
+      document.getElementById("gdEpochLabel").textContent = epochs;
+      document.getElementById("gdSlopeLabel").textContent = initialSlope.toFixed(1);
+      document.getElementById("gdInterceptLabel").textContent = initialIntercept.toFixed(1);
+      const history = gdRun(lr, epochs, initialSlope, initialIntercept);
+      const last = history[history.length - 1];
+      document.getElementById("gdSlopeOut").textContent = last.b1.toFixed(2);
+      document.getElementById("gdInterceptOut").textContent = last.b0.toFixed(2);
+      document.getElementById("gdMseOut").textContent = last.mse.toFixed(2);
+      drawGdLine(history);
+      drawGdCost(history);
+    }
+
+    ["gdLearningRate", "gdEpochs", "gdInitialSlope", "gdInitialIntercept"].forEach(id => {
+      document.getElementById(id).addEventListener("input", refreshGd);
+    });
+    refreshGd();
+  </script>
+</body>
+</html>

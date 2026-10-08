@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Line Equation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Linear Regression Math</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a class="active" href="01-line.html">Line</a>
+        <a href="02-errors-cost.html">Errors</a>
+        <a href="03-ols-gradient.html">Learning</a>
+        <a href="04-metrics.html">Metrics</a>
+        <a href="05-multiple.html">Multiple LR</a>
+        <a href="06-assumptions.html">Assumptions</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 1</div>
+    <h1>The line equation</h1>
+    <p class="lead">Linear regression is often the first real machine learning algorithm students learn because it turns a simple idea into a useful prediction engine: learn a relationship from past data, then predict a future numeric value.</p>
+
+    <section class="section">
+      <h2>Why linear regression matters in ML</h2>
+      <p>In supervised machine learning, we train a model using examples where both the input and the correct output are already known. Linear regression is used when the output is a continuous number, such as price, salary, revenue, demand, marks, temperature, delivery time, or sales.</p>
+      <p>The exciting part is that the model does not memorize answers. It learns a pattern: how much the output usually changes when the input changes. That makes it a foundation for understanding more advanced ML ideas like loss functions, optimization, feature importance, regularization, and even neural-network training.</p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Business forecasting</h3>
+          <p>Predict sales from advertising spend, forecast demand from historical orders, or estimate revenue from marketing activity.</p>
+        </div>
+        <div class="card">
+          <h3>Pricing and salary</h3>
+          <p>Estimate house prices from area and location, or predict salary from experience, skills, and city.</p>
+        </div>
+        <div class="card">
+          <h3>Operations and planning</h3>
+          <p>Estimate delivery time, ride fare, inventory needs, energy usage, or customer lifetime value.</p>
+        </div>
+      </div>
+
+      <div class="note">Teaching hook: if students understand linear regression deeply, they understand the basic loop of machine learning: predict, measure error, improve, and interpret.</div>
+
+      <div class="activity">
+        <h3>Opening interaction</h3>
+        <p class="prompt">Ask: Where have you already seen a numeric prediction in real life?</p>
+        <p>Collect 5-6 answers on the board, then classify them as regression or not regression. Good examples: cab fare, house price, salary, exam marks, delivery time, stock price, monthly sales.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Core formula</h2>
+        <div class="formula">\[\hat{y} = mx + c\]</div>
+        <p>In ML notation, the same idea is usually written as:</p>
+        <div class="formula">\[\hat{y} = \beta_0 + \beta_1x\]</div>
+        <p>When discussing real data, add an error term:</p>
+        <div class="formula">\[y = \beta_0 + \beta_1x + \varepsilon\]</div>
+        <ul class="checklist">
+          <li><strong>y</strong>: actual target value.</li>
+          <li><strong>y_hat</strong>: predicted target value.</li>
+          <li><strong>b0</strong>: intercept, the base prediction when x is 0.</li>
+          <li><strong>b1</strong>: slope/coefficient, the change in prediction for a one-unit increase in x.</li>
+          <li><strong>e</strong>: residual, the part the line failed to explain.</li>
+        </ul>
+        <div class="activity">
+          <h3>Quick check</h3>
+          <p class="prompt">If salary = 30000 + 8000 * years_experience, what is the predicted salary for 3 years?</p>
+          <p>Follow-up: What does 8000 mean in plain English?</p>
+        </div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Line showing positive slope and intercept">
+          <line x1="48" y1="252" x2="386" y2="252" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="48" y1="252" x2="48" y2="38" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="48" y1="218" x2="374" y2="74" stroke="#1f6feb" stroke-width="4"></line>
+          <circle cx="48" cy="218" r="6" fill="#b85c00"></circle>
+          <text x="58" y="216" class="axis-label">intercept b0</text>
+          <path d="M238 136 L315 102 L315 136 Z" fill="rgba(17,135,93,0.18)" stroke="#11875d"></path>
+          <text x="262" y="158" class="axis-label">slope</text>
+          <text x="178" y="286" class="axis-label">one unit change in x</text>
+        </svg>
+        <p class="caption">Teaching line: slope is the rate of change. If x increases by 1, prediction changes by b1.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Classroom examples</h2>
+      <table>
+        <thead><tr><th>Problem</th><th>x</th><th>y</th><th>Coefficient meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Salary prediction</td><td>Years of experience</td><td>Salary</td><td>Extra salary expected for one more year of experience.</td></tr>
+          <tr><td>House price</td><td>Area in square feet</td><td>Price</td><td>Extra price expected for one more square foot.</td></tr>
+          <tr><td>Advertising</td><td>TV ad spend</td><td>Sales</td><td>Extra sales expected for one more unit of TV spend.</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Important wording: linear regression is not saying reality is perfectly linear. It is saying a straight line is a useful first approximation.</div>
+      <div class="activity">
+        <h3>Think-pair-share</h3>
+        <p class="prompt">Can you name one case where a straight line is a bad approximation?</p>
+        <p>Use their answers to introduce the idea that model choice depends on the pattern in data. Examples: age vs medical risk, price vs demand, experience vs salary at senior levels.</p>
+      </div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="index.html">Back to overview</a>
+      <a class="button primary" href="02-errors-cost.html">Next: Errors and cost</a>
+    </div>
+  </main>
+</body>
+</html>

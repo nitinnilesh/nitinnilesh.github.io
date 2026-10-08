@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SVM Geometry</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">SVM</a>
+      <div class="navlinks">
+        <a class="" href="index.html">Overview</a>
+        <a class="active" href="01-svm-geometry.html">Geometry</a>
+        <a class="" href="02-margin-and-scratch-svm.html">Scratch</a>
+        <a class="" href="03-soft-margin.html">Soft Margin</a>
+        <a class="" href="04-kernels.html">Kernels</a>
+        <a class="" href="05-svm-in-practice.html">Practice</a>
+        <a class="" href="06-support-vector-regression.html">SVR</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Part 1</div>
+    <h1>SVM begins with a geometric choice: which separator is safest?</h1>
+    <p class="lead">Before optimization, SVM is a simple visual idea: separate the classes while staying as far as possible from the closest points.</p>
+
+    <section class="section">
+      <h2>Many separating lines</h2>
+      <div class="activity"><h3>First question</h3><p class="prompt">If all these lines classify the training data correctly, which one feels most reliable?</p></div>
+      <div class="wide-visual compact-visual">
+        <svg class="plot-wide" viewBox="0 0 760 310" role="img" aria-label="Many possible SVM separating lines">
+          <line x1="60" y1="260" x2="700" y2="260" stroke="#5e6875" stroke-width="2"/><line x1="60" y1="260" x2="60" y2="44" stroke="#5e6875" stroke-width="2"/>
+          <circle cx="150" cy="205" r="9" fill="#2a9d8f" stroke="#18202a"/><circle cx="190" cy="220" r="9" fill="#2a9d8f" stroke="#18202a"/><circle cx="230" cy="190" r="9" fill="#2a9d8f" stroke="#18202a"/><circle cx="260" cy="235" r="9" fill="#2a9d8f" stroke="#18202a"/>
+          <circle cx="450" cy="86" r="9" fill="#e76f51" stroke="#18202a"/><circle cx="500" cy="112" r="9" fill="#e76f51" stroke="#18202a"/><circle cx="545" cy="78" r="9" fill="#e76f51" stroke="#18202a"/><circle cx="585" cy="122" r="9" fill="#e76f51" stroke="#18202a"/>
+          <line x1="250" y1="54" x2="470" y2="260" stroke="#457b9d" stroke-width="3" stroke-dasharray="8 6"/><line x1="300" y1="44" x2="430" y2="260" stroke="#b85c00" stroke-width="3" stroke-dasharray="8 6"/><line x1="190" y1="64" x2="540" y2="260" stroke="#6741d9" stroke-width="4"/>
+          <text x="494" y="252" font-size="13" fill="#6741d9">wider gap</text><text x="306" y="64" font-size="13" fill="#5e6875">many correct boundaries</text>
+        </svg>
+        <p class="caption">SVM prefers the boundary that has the largest safety gap from nearby points.</p>
+      </div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Hyperplane equation</h2>
+        <div class="activity"><h3>Boundary question</h3><p class="prompt">How do we write a separating line in a way that also works for many dimensions?</p></div>
+        <p>In two dimensions, the boundary can be written as:</p>
+        <div class="formula">\[
+w_1x_1+w_2x_2+b=0
+\]</div>
+        <p>In many dimensions:</p>
+        <div class="formula">\[
+w^Tx+b=0
+\]</div>
+        <p>The vector \(w\) controls orientation. The number \(b\) shifts the boundary.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Hyperplane sign regions">
+          <rect x="62" y="42" width="300" height="210" fill="#fff" stroke="#d9e0ea"/>
+          <path d="M104 230 L332 70" stroke="#18202a" stroke-width="4"/>
+          <text x="228" y="78" class="axis-label">w^T x + b = 0</text>
+          <circle cx="130" cy="184" r="8" fill="#2a9d8f" stroke="#18202a"/><circle cx="170" cy="210" r="8" fill="#2a9d8f" stroke="#18202a"/>
+          <circle cx="278" cy="96" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="314" cy="124" r="8" fill="#e76f51" stroke="#18202a"/>
+          <text x="84" y="82" font-size="14" fill="#e76f51">f(x) &gt; 0</text><text x="260" y="226" font-size="14" fill="#2a9d8f">f(x) &lt; 0</text>
+        </svg>
+        <p class="caption">Prediction comes from which side of the hyperplane the point lies on.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Prediction by sign</h2>
+      <div class="activity"><h3>Sign question</h3><p class="prompt">If \(w^Tx+b\) is positive for a point, which class should it belong to?</p></div>
+      <div class="formula">\[
+f(x)=w^Tx+b
+\qquad
+\hat{y}=\operatorname{sign}(f(x))
+\]</div>
+      <table><thead><tr><th>Score</th><th>Prediction</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>\(f(x)>0\)</td><td>\(+1\)</td><td>point is on the positive side</td></tr>
+        <tr><td>\(f(x)<0\)</td><td>\(-1\)</td><td>point is on the negative side</td></tr>
+        <tr><td>\(f(x)=0\)</td><td>on boundary</td><td>model is exactly undecided</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Margin and support vectors</h2>
+      <div class="activity"><h3>Safety question</h3><p class="prompt">Should a correctly classified point very close to the boundary be treated as fully safe?</p></div>
+      <p>SVM wants a confident separation. The closest points determine the safety gap. These closest points are support vectors.</p>
+      <div class="formula">\[
+\text{support vectors} = \text{training points closest to the boundary}
+\]</div>
+      <div class="note">Far-away points usually do not decide the SVM boundary. The closest points do.</div>
+    </section>
+
+    <section class="section">
+      <h2>SVM vs logistic regression</h2>
+      <div class="activity"><h3>Comparison question</h3><p class="prompt">How is SVM different from logistic regression if both can learn a linear boundary?</p></div>
+      <table><thead><tr><th>Model</th><th>Main focus</th><th>Output style</th></tr></thead><tbody>
+        <tr><td>Logistic Regression</td><td>learn probabilities using log loss</td><td>probability-like output</td></tr>
+        <tr><td>SVM</td><td>maximize margin using hinge loss</td><td>decision score; probabilities need extra calibration</td></tr>
+      </tbody></table>
+    </section>
+
+    <div class="pager"><a class="button" href="index.html">Previous: Overview</a><a class="button primary" href="02-margin-and-scratch-svm.html">Next: Scratch SVM</a></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Random Forest Regression</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
+    <a class="brand" href="index.html">Random Forests</a>
+    <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-why-ensemble.html">Why ensemble</a><a class="" href="02-bootstrap.html">Bootstrap</a><a class="" href="03-bagging.html">Bagging</a><a class="" href="04-feature-randomness.html">Features</a><a class="" href="05-classification.html">Classification</a><a class="active" href="06-regression.html">Regression</a><a class="" href="07-oob.html">OOB</a><a class="" href="08-variance.html">Variance</a><a class="" href="09-tuning.html">Tuning</a><a class="" href="10-interpretation.html">Interpretation</a><a class="" href="11-practical-guide.html">Practice</a></div>
+  </nav></header>
+  <main class="page">
+    <div class="eyebrow">Part 6</div>
+    <h1>For regression, each tree predicts a number and the forest averages those numbers.</h1>
+    <p class="lead">A regression tree creates piecewise-constant predictions. A forest averages many such step functions, usually making the result less sensitive to any one partition.</p>
+
+<section class="section"><h2>House-price example</h2><div class="activity"><h3>Prediction question</h3><p class="prompt">Four trees predict 42, 48, 51, and 59 lakh for the same house. What should the forest report?</p></div><div class="formula">\[\hat y(x)=\frac{42+48+51+59}{4}=50\text{ lakh}\]</div><p class="intuition"><strong>Intuition:</strong> every tree gets one equal-weight voice. The forest does not choose the tree with the smallest training error for this row.</p><div class="visual"><svg class="plot-wide" viewBox="0 0 760 300" role="img" aria-label="Individual step predictions and a forest average"><line x1="54" y1="250" x2="708" y2="250" stroke="#5e6875"/><line x1="54" y1="40" x2="54" y2="250" stroke="#5e6875"/><path d="M54 210 H180 V170 H300 V115 H430 V145 H560 V75 H708" fill="none" stroke="#6741d9" stroke-width="4"/><path d="M54 196 H180 V158 H300 V132 H430 V126 H560 V93 H708" fill="none" stroke="#1f6feb" stroke-width="5"/><path d="M54 222 H180 V186 H300 V104 H430 V162 H560 V58 H708" fill="none" stroke="#e76f51" stroke-width="3" stroke-dasharray="7 5"/><text x="610" y="88" class="axis-label">forest average</text><text x="610" y="118" class="axis-label">individual trees</text><text x="375" y="282" class="axis-label" text-anchor="middle">living area / other features</text></svg><div class="legend"><span><i class="swatch split"></i> Tree 1</span><span><i class="swatch" style="background:#1f6feb"></i> Forest average</span><span><i class="swatch" style="background:#e76f51"></i> Tree 2</span></div></div></section>
+<section class="section"><h2>What the forest can and cannot do</h2><table><thead><tr><th>It can</th><th>It cannot guarantee</th></tr></thead><tbody><tr><td>Capture nonlinear interactions without polynomial features.</td><td>A smooth linear trend or smooth derivative everywhere.</td></tr><tr><td>Reduce sensitivity to one tree's partition.</td><td>Reliable extrapolation beyond the training range.</td></tr><tr><td>Model mixed relationships after suitable data preparation.</td><td>Freedom from leakage, noisy targets, or biased data.</td></tr></tbody></table><div class="formula">\[\hat f_{RF}(x)=\frac{1}{B}\sum_{b=1}^B f_b(x)\]</div><p class="intuition"><strong>Extrapolation intuition:</strong> outside the observed feature range, leaves tend to reuse values learned inside the training range. A forest is excellent at interpolation but should be treated carefully beyond the data it has seen.</p></section>
+<section class="section"><h2>Regression metrics and uncertainty clues</h2><div class="activity"><h3>Metric question</h3><p class="prompt">If one business error is twice as costly as another, is RMSE alone enough to choose a forest?</p></div><p>Use MAE for typical absolute error, RMSE when large misses deserve extra penalty, and \(R^2\) as a comparison with the target-mean baseline. The spread of tree predictions can be a useful diagnostic of model disagreement, but it is not automatically a calibrated prediction interval.</p></section>
+    <div class="pager"><a class="button" href="05-classification.html">Previous: Classification</a><a class="button primary" href="07-oob.html">Next: OOB</a></div>
+  </main>
+</body>
+</html>

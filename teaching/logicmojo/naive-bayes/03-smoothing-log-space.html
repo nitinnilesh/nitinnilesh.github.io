@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smoothing And Log Space</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Naive Bayes</a>
+      <div class="navlinks">
+        <a class="" href="index.html">Overview</a>
+        <a class="" href="01-bayes-intuition.html">Bayes</a>
+        <a class="" href="02-text-naive-bayes.html">Text NB</a>
+        <a class="active" href="03-smoothing-log-space.html">Smoothing</a>
+        <a class="" href="04-variants-evaluation.html">Variants</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Part 3</div>
+    <h1>Smoothing and log-space make Naive Bayes usable.</h1>
+    <p class="lead">The raw formula is intuitive, but two practical issues appear immediately: zero probabilities and tiny multiplied numbers.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Zero-probability problem</h2>
+        <div class="activity"><h3>Failure question</h3><p class="prompt">If one word never appeared in ham during training, should the ham score become exactly zero?</p></div>
+        <p>Without smoothing, one unseen word can destroy the full class score because probabilities are multiplied.</p>
+        <div class="formula">\[
+0.5\times0.12\times0\times0.08=0
+\]</div>
+        <p>That is too harsh. Unseen in a small training dataset should not mean impossible.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Zero probability multiplication visual">
+          <text x="38" y="34" class="plot-title">One zero collapses the product</text>
+          <circle cx="70" cy="130" r="28" fill="#eefcf9" stroke="#0f766e"/><text x="55" y="136" font-size="14">0.5</text>
+          <text x="110" y="136" font-size="22" fill="#5e6875">&times;</text>
+          <circle cx="155" cy="130" r="28" fill="#eefcf9" stroke="#0f766e"/><text x="137" y="136" font-size="14">0.12</text>
+          <text x="195" y="136" font-size="22" fill="#5e6875">&times;</text>
+          <circle cx="240" cy="130" r="28" fill="#fff3ef" stroke="#e76f51"/><text x="235" y="136" font-size="14">0</text>
+          <text x="280" y="136" font-size="22" fill="#5e6875">=</text>
+          <circle cx="335" cy="130" r="35" fill="#fff3ef" stroke="#e76f51"/><text x="330" y="137" font-size="18" font-weight="700">0</text>
+          <text x="58" y="216" font-size="13" fill="#5e6875">A missing word should reduce confidence, not erase a class.</text>
+        </svg>
+        <p class="caption">Multiplication makes zero probabilities dangerous.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Laplace smoothing</h2>
+      <div class="activity"><h3>Repair question</h3><p class="prompt">How can we give every known vocabulary word a tiny non-zero chance?</p></div>
+      <p>Laplace smoothing adds a small imaginary count to every word.</p>
+      <div class="formula">\[
+P(w\mid c)=\frac{\text{count}(w,c)+\alpha}{\sum_{w'\in V}\text{count}(w',c)+\alpha|V|}
+\]</div>
+      <p>For \(\alpha=1\), every word gets one extra count. The denominator also increases by \(|V|\), so the probabilities still sum to 1.</p>
+      <table>
+        <thead><tr><th>Quantity</th><th>Without smoothing</th><th>With \(\alpha=1\)</th></tr></thead>
+        <tbody>
+          <tr><td>Word count</td><td>\(count(w,c)\)</td><td>\(count(w,c)+1\)</td></tr>
+          <tr><td>Total count</td><td>\(N_c\)</td><td>\(N_c+|V|\)</td></tr>
+          <tr><td>Unseen word</td><td>0 probability</td><td>Small non-zero probability</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Effect of smoothing</h2>
+        <div class="activity"><h3>Before-after question</h3><p class="prompt">Does smoothing remove the evidence from strong words like &ldquo;free&rdquo;?</p></div>
+        <p>No. Smoothing softens extreme probabilities. Strong words remain strong, but unseen words no longer create impossible classes.</p>
+        <table>
+          <thead><tr><th>Word</th><th>\(P(w\mid ham)\)</th><th>\(P(w\mid spam)\)</th><th>Direction</th></tr></thead>
+          <tbody>
+            <tr><td>free</td><td>small</td><td>large</td><td>spam</td></tr>
+            <tr><td>meeting</td><td>large</td><td>small</td><td>ham</td></tr>
+            <tr><td>today</td><td>medium</td><td>medium</td><td>weak</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Smoothing probability bars">
+          <text x="38" y="34" class="plot-title">Smoothed word likelihoods</text>
+          <line x1="70" y1="252" x2="365" y2="252" stroke="#5e6875" stroke-width="2"/>
+          <line x1="70" y1="252" x2="70" y2="64" stroke="#5e6875" stroke-width="2"/>
+          <text x="92" y="274" font-size="12" fill="#5e6875">free</text><text x="186" y="274" font-size="12" fill="#5e6875">meeting</text><text x="292" y="274" font-size="12" fill="#5e6875">today</text>
+          <rect x="92" y="224" width="22" height="28" fill="#0f766e"/><rect x="118" y="104" width="22" height="148" fill="#e76f51"/>
+          <rect x="194" y="112" width="22" height="140" fill="#0f766e"/><rect x="220" y="224" width="22" height="28" fill="#e76f51"/>
+          <rect x="298" y="184" width="22" height="68" fill="#0f766e"/><rect x="324" y="194" width="22" height="58" fill="#e76f51"/>
+          <rect x="268" y="58" width="14" height="14" fill="#0f766e"/><text x="288" y="70" font-size="12" fill="#5e6875">ham</text>
+          <rect x="268" y="82" width="14" height="14" fill="#e76f51"/><text x="288" y="94" font-size="12" fill="#5e6875">spam</text>
+        </svg>
+        <p class="caption">Smoothing does not flatten everything; it prevents absolute zeros.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Why log probabilities?</h2>
+      <div class="activity"><h3>Tiny number question</h3><p class="prompt">What happens when a long document multiplies 200 small probabilities?</p></div>
+      <p>The product becomes extremely tiny. Computers may round it to zero. Logs solve this by turning multiplication into addition.</p>
+      <div class="formula">\[
+\log\left(P(c)\prod_{i=1}^{n}P(w_i\mid c)\right)=\log P(c)+\sum_{i=1}^{n}\log P(w_i\mid c)
+\]</div>
+      <p>Since log is an increasing function, the winning class does not change.</p>
+      <div class="formula">\[
+\arg\max_c P(c)\prod_iP(w_i\mid c)=\arg\max_c\left[\log P(c)+\sum_i\log P(w_i\mid c)\right]
+\]</div>
+    </section>
+
+    <section class="section">
+      <h2>Working example: predict a new sentence</h2>
+      <div class="activity"><h3>Prediction walkthrough</h3><p class="prompt">A new sentence comes in: <strong>free prize today</strong>. How exactly does Naive Bayes decide between ham and spam?</p></div>
+      <p>Assume the model has already learned these class-wise word counts from a tiny training dataset.</p>
+      <table>
+        <thead><tr><th>Word</th><th>Count in ham</th><th>Count in spam</th></tr></thead>
+        <tbody>
+          <tr><td>free</td><td>0</td><td>4</td></tr>
+          <tr><td>prize</td><td>0</td><td>3</td></tr>
+          <tr><td>today</td><td>2</td><td>1</td></tr>
+          <tr><td>meeting</td><td>4</td><td>0</td></tr>
+          <tr><td>project</td><td>3</td><td>0</td></tr>
+          <tr><td>report</td><td>3</td><td>0</td></tr>
+        </tbody>
+      </table>
+      <p>Let the vocabulary size be \(|V|=6\), and use Laplace smoothing with \(\alpha=1\).</p>
+      <div class="formula">\[
+P(w\mid c)=\frac{\text{count}(w,c)+1}{\text{total word count in class }c+|V|}
+\]</div>
+      <p>The total word counts are:</p>
+      <div class="formula">\[
+N_{ham}=12 \qquad N_{spam}=8
+\]</div>
+      <p>So the smoothed denominators become:</p>
+      <div class="formula">\[
+N_{ham}+|V|=12+6=18
+\qquad
+N_{spam}+|V|=8+6=14
+\]</div>
+      <table>
+        <thead><tr><th>Word in new sentence</th><th>\(P(w\mid ham)\)</th><th>\(P(w\mid spam)\)</th></tr></thead>
+        <tbody>
+          <tr><td>free</td><td>\(\frac{0+1}{18}=\frac{1}{18}\)</td><td>\(\frac{4+1}{14}=\frac{5}{14}\)</td></tr>
+          <tr><td>prize</td><td>\(\frac{0+1}{18}=\frac{1}{18}\)</td><td>\(\frac{3+1}{14}=\frac{4}{14}\)</td></tr>
+          <tr><td>today</td><td>\(\frac{2+1}{18}=\frac{3}{18}\)</td><td>\(\frac{1+1}{14}=\frac{2}{14}\)</td></tr>
+        </tbody>
+      </table>
+      <p>Assume both classes are equally common in the training data:</p>
+      <div class="formula">\[
+P(ham)=P(spam)=0.5
+\]</div>
+      <p>Now compute the two Naive Bayes scores.</p>
+      <div class="formula">\[
+score(ham)=0.5\times\frac{1}{18}\times\frac{1}{18}\times\frac{3}{18}=0.000257
+\]</div>
+      <div class="formula">\[
+score(spam)=0.5\times\frac{5}{14}\times\frac{4}{14}\times\frac{2}{14}=0.007289
+\]</div>
+      <p>The spam score is larger, so the prediction is spam.</p>
+      <div class="formula">\[
+\hat{c}=spam
+\]</div>
+      <div class="wide-visual compact-visual">
+        <svg class="plot-wide" viewBox="0 0 760 300" role="img" aria-label="Naive Bayes working prediction example">
+          <text x="34" y="36" class="plot-title">New sentence: free prize today</text>
+          <rect x="46" y="62" width="170" height="52" rx="8" fill="#fff3ef" stroke="#f1b2a0"/>
+          <text x="78" y="94" font-size="18" fill="#9f341f">free</text>
+          <rect x="234" y="62" width="170" height="52" rx="8" fill="#fff3ef" stroke="#f1b2a0"/>
+          <text x="266" y="94" font-size="18" fill="#9f341f">prize</text>
+          <rect x="422" y="62" width="170" height="52" rx="8" fill="#fff6e8" stroke="#f3ce8a"/>
+          <text x="454" y="94" font-size="18" fill="#5f3700">today</text>
+          <line x1="320" y1="126" x2="190" y2="172" stroke="#5e6875" stroke-width="2"/>
+          <line x1="320" y1="126" x2="520" y2="172" stroke="#5e6875" stroke-width="2"/>
+          <rect x="72" y="176" width="250" height="82" rx="8" fill="#ecfdf8" stroke="#a9ded4"/>
+          <text x="94" y="204" font-size="16" font-weight="700" fill="#0f766e">ham score</text>
+          <text x="94" y="232" font-size="15" fill="#134e4a">0.5 x 1/18 x 1/18 x 3/18</text>
+          <text x="94" y="252" font-size="15" fill="#134e4a">= 0.000257</text>
+          <rect x="438" y="176" width="250" height="82" rx="8" fill="#fff3ef" stroke="#f1b2a0"/>
+          <text x="460" y="204" font-size="16" font-weight="700" fill="#9f341f">spam score</text>
+          <text x="460" y="232" font-size="15" fill="#7c2d12">0.5 x 5/14 x 4/14 x 2/14</text>
+          <text x="460" y="252" font-size="15" fill="#7c2d12">= 0.007289</text>
+          <path d="M 346 218 L 414 218" stroke="#18202a" stroke-width="3" marker-end="url(#arrow)"/>
+          <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#18202a"/></marker></defs>
+          <text x="340" y="282" font-size="14" fill="#18202a">larger score wins: spam</text>
+        </svg>
+        <p class="caption">Smoothing gives ham a non-zero score, but the sentence still has much stronger spam evidence.</p>
+      </div>
+      <p>In log-space, the same comparison becomes addition instead of multiplication.</p>
+      <div class="formula">\[
+\log score(ham)=\log(0.5)+\log\frac{1}{18}+\log\frac{1}{18}+\log\frac{3}{18}=-8.266
+\]</div>
+      <div class="formula">\[
+\log score(spam)=\log(0.5)+\log\frac{5}{14}+\log\frac{4}{14}+\log\frac{2}{14}=-4.922
+\]</div>
+      <p>Less negative is larger, so the log-space prediction is also spam.</p>
+      <div class="note">This example shows the full prediction mechanics: tokenize the sentence, look up smoothed likelihoods, multiply or add log probabilities, then choose the class with the larger score.</div>
+    </section>
+
+    <section class="section">
+      <h2>Class imbalance: will Naive Bayes always predict ham?</h2>
+      <div class="activity"><h3>Imbalance question</h3><p class="prompt">If most emails are ham, does the model simply predict every new email as ham?</p></div>
+      <p>No. A larger ham prior gives ham a head start, but strong spam-like words can overcome that head start.</p>
+      <p>For spam vs ham, compare the log-score difference:</p>
+      <div class="formula">\[
+\Delta = score(spam)-score(ham)
+\]</div>
+      <div class="formula">\[
+\Delta = \log\frac{P(spam)}{P(ham)} + \sum_i \log\frac{P(w_i\mid spam)}{P(w_i\mid ham)}
+\]</div>
+      <p>If \(\Delta &gt; 0\), spam wins. If \(\Delta &lt; 0\), ham wins.</p>
+      <p>Suppose the training data is imbalanced:</p>
+      <div class="formula">\[
+P(ham)=0.95
+\qquad
+P(spam)=0.05
+\]</div>
+      <p>The spam class starts with a disadvantage:</p>
+      <div class="formula">\[
+\log\frac{P(spam)}{P(ham)} = \log\frac{0.05}{0.95} \approx -2.94
+\]</div>
+      <p>Now consider this new message:</p>
+      <div class="codebox">free lottery prize claim</div>
+      <p>Assume these words provide the following spam evidence:</p>
+      <table>
+        <thead><tr><th>Word</th><th>Spam evidence \(\log \frac{P(w\mid spam)}{P(w\mid ham)}\)</th></tr></thead>
+        <tbody>
+          <tr><td>free</td><td>1.8</td></tr>
+          <tr><td>lottery</td><td>2.2</td></tr>
+          <tr><td>prize</td><td>1.7</td></tr>
+          <tr><td>claim</td><td>1.5</td></tr>
+        </tbody>
+      </table>
+      <p>Total word evidence:</p>
+      <div class="formula">\[
+1.8+2.2+1.7+1.5=7.2
+\]</div>
+      <p>Final spam-vs-ham evidence:</p>
+      <div class="formula">\[
+\Delta = -2.94 + 7.2 = 4.26
+\]</div>
+      <p>Since \(4.26 &gt; 0\), the model predicts spam even though spam is the minority class.</p>
+      <div class="wide-visual compact-visual">
+        <svg class="plot-wide" viewBox="0 0 760 300" role="img" aria-label="Spam evidence overcoming ham prior">
+          <text x="34" y="36" class="plot-title">Class imbalance changes the starting point, not the final rule</text>
+          <line x1="92" y1="180" x2="670" y2="180" stroke="#5e6875" stroke-width="2"/>
+          <line x1="300" y1="160" x2="300" y2="200" stroke="#18202a" stroke-width="2"/>
+          <text x="292" y="222" font-size="13" fill="#18202a">0</text>
+          <rect x="146" y="112" width="154" height="42" rx="8" fill="#ecfdf8" stroke="#a9ded4"/>
+          <text x="160" y="138" font-size="14" fill="#134e4a">prior penalty: -2.94</text>
+          <path d="M 300 133 L 510 133" stroke="#e76f51" stroke-width="8"/>
+          <path d="M 510 133 L 492 122 L 492 144 Z" fill="#e76f51"/>
+          <text x="388" y="112" font-size="14" fill="#9f341f">word evidence: +7.2</text>
+          <circle cx="510" cy="180" r="8" fill="#e76f51"/>
+          <text x="486" y="207" font-size="13" fill="#9f341f">+4.26</text>
+          <rect x="532" y="156" width="118" height="48" rx="8" fill="#fff3ef" stroke="#f1b2a0"/>
+          <text x="566" y="185" font-size="16" font-weight="700" fill="#9f341f">spam wins</text>
+          <text x="96" y="252" font-size="13" fill="#5e6875">Ham prior says: most emails are ham. Spam words say: this particular email looks very spam-like.</text>
+        </svg>
+        <p class="caption">The prior is only the starting belief. The message words can overturn it.</p>
+      </div>
+      <div class="note warning">For imbalanced spam datasets, do not judge the model using accuracy alone. Track spam precision, spam recall, and \(F_1\), then choose a threshold based on the business cost of false alarms vs missed spam.</div>
+    </section>
+
+    <section class="section">
+      <h2>Word evidence in log-space</h2>
+      <div class="activity"><h3>Interpretability question</h3><p class="prompt">Which word in a message contributes most toward spam?</p></div>
+      <p>Compare a word&rsquo;s log likelihood under spam and ham.</p>
+      <div class="formula">\[
+\text{spam evidence}(w)=\log P(w\mid spam)-\log P(w\mid ham)
+\]</div>
+      <table>
+        <thead><tr><th>Value</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Positive</td><td>The word pushes toward spam.</td></tr>
+          <tr><td>Negative</td><td>The word pushes toward ham.</td></tr>
+          <tr><td>Near zero</td><td>The word is not strongly class-specific.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Unknown words at prediction time</h2>
+      <div class="activity"><h3>New word question</h3><p class="prompt">If the model never saw the word &ldquo;crypto&rdquo; during training, what should happen during prediction?</p></div>
+      <p>A word outside the training vocabulary has no learned count. Common practical choices are:</p>
+      <table>
+        <thead><tr><th>Approach</th><th>Meaning</th><th>When it is useful</th></tr></thead>
+        <tbody>
+          <tr><td>Ignore unknown word</td><td>The word contributes no class evidence.</td><td>Common with fixed vocabularies such as CountVectorizer.</td></tr>
+          <tr><td>Use an UNK token</td><td>Rare or unseen words map to one shared unknown token.</td><td>Useful when unknown-word behavior itself carries information.</td></tr>
+          <tr><td>Use character n-grams</td><td>Represent pieces like prefixes, suffixes, or character windows.</td><td>Useful for spelling variants, names, and noisy text.</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Laplace smoothing protects words inside the learned vocabulary. It does not automatically create probabilities for completely unknown words unless the implementation includes an unknown-token strategy.</div>
+    </section>
+
+    <section class="section">
+      <h2>Why Naive Bayes is linear in log-space</h2>
+      <div class="activity"><h3>Boundary question</h3><p class="prompt">If each word adds or subtracts evidence, what shape does the final decision take?</p></div>
+      <p>For two classes, compare the spam log score and ham log score. The difference can be written as a weighted sum of word counts.</p>
+      <div class="formula">\[
+score(spam)-score(ham)=\log\frac{P(spam)}{P(ham)}+\sum_{j=1}^{V}x_j\log\frac{P(w_j\mid spam)}{P(w_j\mid ham)}
+\]</div>
+      <p>Here \(x_j\) is the count of word \(j\). This looks like a linear model on bag-of-words features: each word has a fixed evidence weight, and the document adds them up.</p>
+      <div class="note">This is why Naive Bayes can be very fast: after training, prediction is mostly addition of stored log-evidence weights.</div>
+    </section>
+
+    <section class="section">
+      <h2>Full training algorithm</h2>
+      <div class="activity"><h3>Model storage question</h3><p class="prompt">After training, what does a Naive Bayes model actually store?</p></div>
+      <ol>
+        <li>Build the vocabulary from training documents.</li>
+        <li>Count documents per class to estimate \(P(c)\).</li>
+        <li>Count words inside each class.</li>
+        <li>Apply Laplace smoothing to estimate \(P(w\mid c)\).</li>
+        <li>Store \(\log P(c)\) and \(\log P(w\mid c)\).</li>
+      </ol>
+      <div class="codebox">model = {<br>&nbsp;&nbsp;classes,<br>&nbsp;&nbsp;vocabulary,<br>&nbsp;&nbsp;class_log_priors,<br>&nbsp;&nbsp;word_log_likelihoods<br>}</div>
+    </section>
+
+    <section class="section">
+      <h2>Full prediction algorithm</h2>
+      <div class="activity"><h3>Prediction question</h3><p class="prompt">How does the model score a new sentence step by step?</p></div>
+      <ol>
+        <li>Tokenize the new document.</li>
+        <li>For each class, start with \(\log P(c)\).</li>
+        <li>Add \(\log P(w\mid c)\) for every word in the document.</li>
+        <li>Return the class with the largest log score.</li>
+      </ol>
+      <div class="formula">\[
+\hat{c}=\arg\max_c\left[\log P(c)+\sum_{i=1}^{n}\log P(w_i\mid c)\right]
+\]</div>
+    </section>
+
+    <div class="pager"><a class="button" href="02-text-naive-bayes.html">Previous: Text NB</a><a class="button primary" href="04-variants-evaluation.html">Next: Variants</a></div>
+  </main>
+</body>
+</html>

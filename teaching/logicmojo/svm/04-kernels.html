@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SVM Kernels</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">SVM</a>
+      <div class="navlinks">
+        <a class="" href="index.html">Overview</a>
+        <a class="" href="01-svm-geometry.html">Geometry</a>
+        <a class="" href="02-margin-and-scratch-svm.html">Scratch</a>
+        <a class="" href="03-soft-margin.html">Soft Margin</a>
+        <a class="active" href="04-kernels.html">Kernels</a>
+        <a class="" href="05-svm-in-practice.html">Practice</a>
+        <a class="" href="06-support-vector-regression.html">SVR</a>
+      </div>
+    </nav>
+  </header>
+<main class="page">
+    <div class="eyebrow">Part 4</div>
+    <h1>Kernels let SVM draw nonlinear boundaries while keeping the margin idea.</h1>
+    <p class="lead">When a straight line fails, SVM can compare points in a transformed feature space using a kernel function.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>When linear fails</h2>
+        <div class="activity"><h3>Nonlinear question</h3><p class="prompt">Can one straight line separate points arranged like an inner circle and outer circle?</p></div>
+        <p>Some datasets are not linearly separable in the original feature space. A linear SVM will underfit.</p>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Circular nonlinear data">
+          <circle cx="210" cy="150" r="42" fill="none" stroke="#2a9d8f" stroke-width="0"/>
+          <circle cx="210" cy="150" r="18" fill="#2a9d8f" stroke="#18202a"/><circle cx="240" cy="150" r="18" fill="#2a9d8f" stroke="#18202a"/><circle cx="180" cy="150" r="18" fill="#2a9d8f" stroke="#18202a"/><circle cx="210" cy="120" r="18" fill="#2a9d8f" stroke="#18202a"/><circle cx="210" cy="180" r="18" fill="#2a9d8f" stroke="#18202a"/>
+          <circle cx="210" cy="58" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="300" cy="150" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="210" cy="242" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="120" cy="150" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="274" cy="86" r="8" fill="#e76f51" stroke="#18202a"/><circle cx="146" cy="214" r="8" fill="#e76f51" stroke="#18202a"/>
+          <line x1="82" y1="218" x2="330" y2="84" stroke="#18202a" stroke-width="3" stroke-dasharray="7 6"/>
+          <text x="68" y="268" class="axis-label">a straight line cannot isolate the inner group</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Feature mapping idea</h2>
+      <div class="activity"><h3>Transformation question</h3><p class="prompt">Could the same data become separable after adding new features?</p></div>
+      <p>A feature map transforms input \(x\) into a new representation \(\phi(x)\).</p>
+      <div class="formula">\[
+x \rightarrow \phi(x)
+\]</div>
+      <p>SVM can learn a linear boundary in the transformed space:</p>
+      <div class="formula">\[
+w^T\phi(x)+b=0
+\]</div>
+      <p>In original space, that may look like a curve.</p>
+    </section>
+
+    <section class="section">
+      <h2>Kernel trick</h2>
+      <div class="activity"><h3>Computation question</h3><p class="prompt">Do we need to explicitly create all transformed features?</p></div>
+      <p>No. A kernel computes the inner product in transformed space directly.</p>
+      <div class="formula">\[
+K(x_i,x_j)=\phi(x_i)^T\phi(x_j)
+\]</div>
+      <p>This lets SVM work with rich transformations without manually constructing every transformed feature.</p>
+    </section>
+
+    <section class="section">
+      <h2>Polynomial kernel</h2>
+      <div class="activity"><h3>Curved-boundary question</h3><p class="prompt">What if interactions like \(x_1^2\), \(x_2^2\), or \(x_1x_2\) help separate the classes?</p></div>
+      <div class="formula">\[
+K(x_i,x_j)=(\gamma x_i^Tx_j+r)^d
+\]</div>
+      <table><thead><tr><th>Parameter</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>\(d\)</td><td>degree of polynomial flexibility</td></tr>
+        <tr><td>\(\gamma\)</td><td>scales the dot product</td></tr>
+        <tr><td>\(r\)</td><td>constant term</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>RBF kernel</h2>
+      <div class="activity"><h3>Similarity question</h3><p class="prompt">What if nearby points should strongly influence each other, and far points should barely influence each other?</p></div>
+      <p>The RBF kernel measures local similarity.</p>
+      <div class="formula">\[
+K(x_i,x_j)=\exp(-\gamma\|x_i-x_j\|^2)
+\]</div>
+      <table><thead><tr><th>Distance</th><th>RBF similarity</th><th>Meaning</th></tr></thead><tbody>
+        <tr><td>small</td><td>close to 1</td><td>points strongly influence each other</td></tr>
+        <tr><td>large</td><td>close to 0</td><td>points barely influence each other</td></tr>
+      </tbody></table>
+    </section>
+
+    <section class="section">
+      <h2>Role of gamma</h2>
+      <div class="activity"><h3>Overfitting question</h3><p class="prompt">What happens if each point only influences a tiny neighborhood?</p></div>
+      <table><thead><tr><th>Gamma</th><th>Boundary</th><th>Risk</th></tr></thead><tbody>
+        <tr><td>small \(\gamma\)</td><td>smooth, broad influence</td><td>underfitting</td></tr>
+        <tr><td>large \(\gamma\)</td><td>wiggly, local influence</td><td>overfitting</td></tr>
+      </tbody></table>
+      <div class="wide-visual compact-visual">
+        <svg class="plot-wide" viewBox="0 0 760 300" role="img" aria-label="Gamma comparison">
+          <text x="72" y="34" class="plot-title">small gamma</text><text x="324" y="34" class="plot-title">medium gamma</text><text x="588" y="34" class="plot-title">large gamma</text>
+          <rect x="42" y="52" width="200" height="190" fill="#fff" stroke="#d9e0ea"/><rect x="282" y="52" width="200" height="190" fill="#fff" stroke="#d9e0ea"/><rect x="522" y="52" width="200" height="190" fill="#fff" stroke="#d9e0ea"/>
+          <path d="M62 160 C105 108, 178 108, 222 160" fill="none" stroke="#6741d9" stroke-width="4"/>
+          <path d="M302 170 C330 90, 398 230, 462 126" fill="none" stroke="#6741d9" stroke-width="4"/>
+          <path d="M542 170 C558 88, 592 222, 626 132 C654 42, 686 230, 706 118" fill="none" stroke="#6741d9" stroke-width="4"/>
+          <text x="82" y="268" class="axis-label">too smooth</text><text x="326" y="268" class="axis-label">balanced</text><text x="570" y="268" class="axis-label">too wiggly</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>C and gamma together</h2>
+      <div class="activity"><h3>Tuning question</h3><p class="prompt">Can high \(C\) and high \(\gamma\) together memorize the training data?</p></div>
+      <p>Yes. \(C\) controls tolerance for violations. \(\gamma\) controls locality. High values for both can produce a very flexible boundary.</p>
+      <div class="note warning">Use validation or cross-validation. Do not tune SVM hyperparameters by looking at test-set performance repeatedly.</div>
+    </section>
+
+    <div class="pager"><a class="button" href="03-soft-margin.html">Previous: Soft Margin</a><a class="button primary" href="05-svm-in-practice.html">Next: Practice</a></div>
+  </main>
+</body>
+</html>

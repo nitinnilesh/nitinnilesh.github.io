@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interpretation and Regularization</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Logistic Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-classification-setup.html">Setup</a>
+        <a href="02-sigmoid-boundary.html">Sigmoid</a>
+        <a href="03-loss-training.html">Loss</a>
+        <a class="active" href="04-interpretation-regularization.html">Interpretation</a>
+        <a href="05-metrics-imbalance.html">Metrics</a>
+        <a href="06-handling-imbalance.html">Imbalance</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 4</div>
+    <h1>Interpreting coefficients and controlling complexity</h1>
+    <p class="lead">Logistic regression coefficients are not direct probability changes. They operate on log-odds, which can be translated into odds ratios.</p>
+
+    <section class="section">
+      <h2>Odds and log-odds</h2>
+      <p>If \(p\) is the probability of class 1, odds are:</p>
+      <div class="formula">\[
+\text{odds}=\frac{p}{1-p}
+\]</div>
+      <p>Examples:</p>
+      <table>
+        <thead><tr><th>Probability \(p\)</th><th>Odds \(p/(1-p)\)</th><th>Plain meaning</th></tr></thead>
+        <tbody>
+          <tr><td>0.50</td><td>1</td><td>Class 1 and class 0 are equally likely.</td></tr>
+          <tr><td>0.75</td><td>3</td><td>Class 1 is 3 times as likely as class 0.</td></tr>
+          <tr><td>0.20</td><td>0.25</td><td>Class 1 is less likely than class 0.</td></tr>
+        </tbody>
+      </table>
+      <p>Logistic regression models the log of the odds:</p>
+      <div class="formula">\[
+\log\left(\frac{p}{1-p}\right)=\beta_0+\beta_1x_1+\cdots+\beta_px_p
+\]</div>
+    </section>
+
+    <section class="section">
+      <h2>Why does logistic regression model log-odds?</h2>
+      <p>The model starts with a linear score:</p>
+      <div class="formula">\[
+z=\beta_0+\beta_1x_1+\cdots+\beta_px_p
+\]</div>
+      <p>Then sigmoid converts that score into probability:</p>
+      <div class="formula">\[
+p=\frac{1}{1+e^{-z}}
+\]</div>
+      <p>Now derive the odds from the sigmoid:</p>
+      <div class="formula">\[
+1-p
+=
+1-\frac{1}{1+e^{-z}}
+=
+\frac{e^{-z}}{1+e^{-z}}
+\]</div>
+      <div class="formula">\[
+\frac{p}{1-p}
+=
+\frac{\frac{1}{1+e^{-z}}}{\frac{e^{-z}}{1+e^{-z}}}
+=
+e^z
+\]</div>
+      <p>Taking log on both sides gives:</p>
+      <div class="formula">\[
+\log\left(\frac{p}{1-p}\right)=z
+\]</div>
+      <p>Since \(z\) is the linear score:</p>
+      <div class="formula">\[
+\log\left(\frac{p}{1-p}\right)
+=
+\beta_0+\beta_1x_1+\cdots+\beta_px_p
+\]</div>
+      <div class="note">This is the heart of logistic regression: probability is nonlinear, but log-odds is modeled as a linear function of features.</div>
+    </section>
+
+    <section class="section">
+      <h2>Probability, odds, and log-odds examples</h2>
+      <p>Probabilities are bounded between 0 and 1. Odds range from 0 to infinity. Log-odds range from \(-\infty\) to \(+\infty\), which makes them suitable for a linear score.</p>
+      <table>
+        <thead><tr><th>Probability \(p\)</th><th>Odds \(p/(1-p)\)</th><th>Log-odds \(\log(p/(1-p))\)</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>0.10</td><td>0.111</td><td>-2.197</td><td>Strongly leans toward class 0.</td></tr>
+          <tr><td>0.25</td><td>0.333</td><td>-1.099</td><td>Class 0 is more likely.</td></tr>
+          <tr><td>0.50</td><td>1.000</td><td>0.000</td><td>Boundary point.</td></tr>
+          <tr><td>0.75</td><td>3.000</td><td>1.099</td><td>Class 1 is more likely.</td></tr>
+          <tr><td>0.90</td><td>9.000</td><td>2.197</td><td>Strongly leans toward class 1.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Scale check</h3>
+        <p class="prompt">Why not model probability directly as a linear function?</p>
+        <p>A line can go below 0 or above 1. Log-odds can safely take any real value, so it matches the linear score.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Coefficient interpretation</h2>
+      <p>A one-unit increase in \(x_j\), holding other features fixed, changes log-odds by \(\beta_j\).</p>
+      <div class="formula">\[
+\text{odds multiplier}=e^{\beta_j}
+\]</div>
+      <table>
+        <thead><tr><th>Coefficient</th><th>Odds multiplier</th><th>Interpretation</th></tr></thead>
+        <tbody>
+          <tr><td>\(\beta_j=0\)</td><td>\(e^0=1\)</td><td>No change in odds.</td></tr>
+          <tr><td>\(\beta_j=0.405\)</td><td>\(e^{0.405}\approx1.5\)</td><td>Odds increase by about 50%.</td></tr>
+          <tr><td>\(\beta_j=-0.693\)</td><td>\(e^{-0.693}\approx0.5\)</td><td>Odds are cut roughly in half.</td></tr>
+        </tbody>
+      </table>
+      <div class="note warning">A coefficient is not a fixed probability change. Probability changes depend on the starting probability because the sigmoid curve is nonlinear.</div>
+      <div class="activity">
+        <h3>Odds interpretation</h3>
+        <p class="prompt">If \(e^{\beta_j}=2\), what happens to the odds when \(x_j\) increases by one unit?</p>
+        <p>The odds of class 1 double, holding other features fixed.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Why coefficients are not direct probability changes</h2>
+      <p>The same coefficient can cause different probability changes depending on where the current probability starts.</p>
+      <p>Suppose a feature increases log-odds by \(0.693\). That means the odds multiply by \(e^{0.693}\approx2\).</p>
+      <table>
+        <thead><tr><th>Starting probability</th><th>Starting odds</th><th>After odds double</th><th>New probability</th><th>Probability change</th></tr></thead>
+        <tbody>
+          <tr><td>0.10</td><td>0.111</td><td>0.222</td><td>0.182</td><td>+0.082</td></tr>
+          <tr><td>0.50</td><td>1.000</td><td>2.000</td><td>0.667</td><td>+0.167</td></tr>
+          <tr><td>0.80</td><td>4.000</td><td>8.000</td><td>0.889</td><td>+0.089</td></tr>
+        </tbody>
+      </table>
+      <p>The odds multiplier is fixed, but the probability change is not fixed.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Feature scaling</h2>
+        <p>Scaling is not required for the sigmoid formula itself, but it matters in practice when using gradient descent or regularization.</p>
+        <p>If one feature ranges from 0 to 1 and another ranges from 0 to 100000, coefficient updates and penalties can become uneven.</p>
+        <div class="note">Standard practice: scale numerical features before regularized logistic regression.</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Feature scaling for logistic regression">
+          <rect x="54" y="70" width="120" height="58" rx="8" fill="#eef5ff" stroke="#1f6feb"></rect>
+          <text x="76" y="102" class="axis-label">age: 18-80</text>
+          <rect x="54" y="158" width="160" height="58" rx="8" fill="#fff6e8" stroke="#b85c00"></rect>
+          <text x="76" y="190" class="axis-label">income: 0-200000</text>
+          <line x1="220" y1="144" x2="286" y2="144" stroke="#5e6875" stroke-width="2"></line>
+          <polygon points="286,138 300,144 286,150" fill="#5e6875"></polygon>
+          <rect x="300" y="112" width="82" height="64" rx="8" fill="#ecfdf5" stroke="#11875d"></rect>
+          <text x="318" y="138" class="axis-label">scaled</text>
+          <text x="322" y="158" class="axis-label">features</text>
+        </svg>
+        <p class="caption">Scaling makes optimization and regularization behave more evenly across features.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Regularization</h2>
+      <p>Logistic regression can overfit when features are many, noisy, or strongly correlated. Regularization adds a penalty to discourage overly large coefficients.</p>
+      <div class="formula">\[
+J_{regularized}=J_{logloss}+\lambda\cdot\text{penalty}
+\]</div>
+      <table>
+        <thead><tr><th>Method</th><th>Penalty</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td>L2 / Ridge</td><td>\(\lambda\sum_{j=1}^{p}\beta_j^2\)</td><td>Shrinks coefficients smoothly toward zero.</td></tr>
+          <tr><td>L1 / Lasso</td><td>\(\lambda\sum_{j=1}^{p}|\beta_j|\)</td><td>Can set some coefficients exactly to zero.</td></tr>
+          <tr><td>Elastic Net</td><td>Mix of L1 and L2</td><td>Combines shrinkage and feature selection behavior.</td></tr>
+        </tbody>
+      </table>
+      <div class="visual compact-visual">
+        <svg class="plot" viewBox="0 0 520 320" role="img" aria-label="Coefficient shrinkage">
+          <line x1="70" y1="252" x2="438" y2="252" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="70" y1="252" x2="70" y2="50" stroke="#5e6875" stroke-width="2"></line>
+          <rect x="98" y="88" width="28" height="164" fill="#b85c00"></rect>
+          <rect x="142" y="118" width="28" height="134" fill="#b85c00"></rect>
+          <rect x="186" y="72" width="28" height="180" fill="#b85c00"></rect>
+          <rect x="280" y="162" width="28" height="90" fill="#11875d"></rect>
+          <rect x="324" y="184" width="28" height="68" fill="#11875d"></rect>
+          <rect x="368" y="214" width="28" height="38" fill="#11875d"></rect>
+          <text x="88" y="284" class="axis-label">without penalty</text>
+          <text x="284" y="284" class="axis-label">with penalty</text>
+          <text x="92" y="62" class="axis-label">large coefficients</text>
+          <text x="284" y="146" class="axis-label">shrunk coefficients</text>
+        </svg>
+        <p class="caption">Regularization controls overfitting by limiting how large coefficients can become.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Linearly separable data</h2>
+      <p>Sometimes the classes can be perfectly separated by a line. This sounds ideal, but it creates a subtle training problem for logistic regression.</p>
+      <div class="two-col">
+        <div>
+          <p>If a boundary already separates all points correctly, making the coefficients larger can make predicted probabilities even more confident:</p>
+          <div class="formula">\[
+z=x^T\beta
+\qquad
+\hat{p}=\sigma(z)
+\]</div>
+          <p>As \(\beta\) grows, correctly classified positive examples can move toward \(\hat{p}\approx1\), and correctly classified negative examples can move toward \(\hat{p}\approx0\).</p>
+          <p>That can keep improving likelihood without meaningfully changing the boundary location.</p>
+          <div class="note warning">Without regularization, perfectly separable data can make logistic-regression coefficients grow extremely large. Regularization keeps the solution finite and stable.</div>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 320" role="img" aria-label="Linearly separable data">
+            <line x1="54" y1="268" x2="374" y2="268" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="54" y1="268" x2="54" y2="46" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="120" y1="246" x2="310" y2="72" stroke="#c3342f" stroke-width="4"></line>
+            <line x1="104" y1="246" x2="294" y2="72" stroke="#c3342f" stroke-width="2" opacity="0.35"></line>
+            <line x1="136" y1="246" x2="326" y2="72" stroke="#c3342f" stroke-width="2" opacity="0.35"></line>
+            <g fill="#1f6feb">
+              <circle cx="86" cy="222" r="7"></circle><circle cx="118" cy="236" r="7"></circle><circle cx="152" cy="212" r="7"></circle><circle cx="186" cy="238" r="7"></circle>
+            </g>
+            <g fill="#b85c00">
+              <circle cx="238" cy="82" r="7"></circle><circle cx="274" cy="104" r="7"></circle><circle cx="308" cy="78" r="7"></circle><circle cx="340" cy="100" r="7"></circle>
+            </g>
+            <text x="208" y="168" class="axis-label">many nearby boundaries separate perfectly</text>
+          </svg>
+          <p class="caption">When data is perfectly separable, larger coefficients can mean more confidence, not necessarily a better real-world model.</p>
+        </div>
+      </div>
+      <div class="activity">
+        <h3>Regularization reason</h3>
+        <p class="prompt">If the data is already perfectly separated, why might coefficient size still keep growing?</p>
+        <p>Larger coefficients make probabilities closer to 0 or 1, increasing likelihood, even if the boundary already classifies all training points correctly.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Multiclass extension</h2>
+      <p>For more than two classes, logistic regression can be extended in two common ways.</p>
+      <table>
+        <thead><tr><th>Approach</th><th>Idea</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>One-vs-rest</td><td>Train one binary classifier per class.</td><td>Cat vs rest, dog vs rest, horse vs rest.</td></tr>
+          <tr><td>Softmax regression</td><td>Predict probabilities across all classes that sum to 1.</td><td>\(P(cat)+P(dog)+P(horse)=1\)</td></tr>
+        </tbody>
+      </table>
+      <div class="note">For a first logistic regression session, keep multiclass brief. The core binary ideas are the foundation.</div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="03-loss-training.html">Previous: Loss</a>
+      <a class="button primary" href="05-metrics-imbalance.html">Next: Metrics</a>
+    </div>
+  </main>
+</body>
+</html>

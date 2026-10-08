@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PCA Covariance and Eigenvectors</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">PCA</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-pca-geometry.html">Geometry</a>
+        <a class="active" href="02-covariance-eigen.html">Covariance</a>
+        <a href="03-projection-variance.html">Projection</a>
+        <a href="04-pca-in-practice.html">Practice</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 2</div>
+    <h1>Covariance describes the cloud. Eigenvectors find its axes.</h1>
+    <p class="lead">This page builds the mathematical heart of PCA slowly: covariance, covariance matrix, eigenvectors, eigenvalues, and why they solve the PCA problem.</p>
+
+    <section class="two-col section">
+      <div>
+        <h2>Covariance intuition</h2>
+        <div class="activity"><h3>Movement question</h3><p class="prompt">If study hours increase and marks also increase, are the two features moving together or against each other?</p><p>They move together, so covariance is positive.</p></div>
+        <p>Covariance measures whether two centered features move together.</p>
+        <div class="formula">\[
+\operatorname{Cov}(X,Y)=\frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})(y_i-\bar{y})
+\]</div>
+        <table><thead><tr><th>Pattern</th><th>Covariance</th><th>Meaning</th></tr></thead><tbody><tr><td>Both increase together</td><td>Positive</td><td>Same direction movement</td></tr><tr><td>One increases, other decreases</td><td>Negative</td><td>Opposite direction movement</td></tr><tr><td>No clear linear relation</td><td>Near zero</td><td>No strong shared direction</td></tr></tbody></table>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Positive negative and zero covariance patterns">
+          <rect x="32" y="50" width="110" height="170" fill="#f8fbff" stroke="#d9e0ea"></rect><rect x="156" y="50" width="110" height="170" fill="#f8fbff" stroke="#d9e0ea"></rect><rect x="280" y="50" width="110" height="170" fill="#f8fbff" stroke="#d9e0ea"></rect>
+          <line x1="48" y1="190" x2="126" y2="84" stroke="#11875d" stroke-width="4"></line>
+          <line x1="172" y1="84" x2="250" y2="190" stroke="#c3342f" stroke-width="4"></line>
+          <circle cx="312" cy="118" r="5" fill="#1f6feb"></circle><circle cx="338" cy="178" r="5" fill="#1f6feb"></circle><circle cx="358" cy="106" r="5" fill="#1f6feb"></circle><circle cx="326" cy="154" r="5" fill="#1f6feb"></circle><circle cx="372" cy="168" r="5" fill="#1f6feb"></circle>
+          <text x="50" y="246" class="axis-label">positive</text><text x="176" y="246" class="axis-label">negative</text><text x="308" y="246" class="axis-label">near zero</text>
+        </svg>
+        <p class="caption">Covariance is about joint movement around the mean.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Covariance matrix</h2>
+      <div class="activity"><h3>Matrix question</h3><p class="prompt">If we have 4 features, how many variance values sit on the diagonal of the covariance matrix?</p><p>Four. Each feature has its own variance on the diagonal.</p></div>
+      <p>For many features, covariance becomes a matrix. If \(X_c\) is centered data:</p>
+      <div class="formula">\[
+\Sigma = \frac{1}{n-1}X_c^TX_c
+\]</div>
+      <p>For three features, the matrix looks like this:</p>
+      <div class="formula">\[
+\Sigma=
+\begin{bmatrix}
+\operatorname{Var}(X_1) & \operatorname{Cov}(X_1,X_2) & \operatorname{Cov}(X_1,X_3)\\
+\operatorname{Cov}(X_2,X_1) & \operatorname{Var}(X_2) & \operatorname{Cov}(X_2,X_3)\\
+\operatorname{Cov}(X_3,X_1) & \operatorname{Cov}(X_3,X_2) & \operatorname{Var}(X_3)
+\end{bmatrix}
+\]</div>
+      <p>The diagonal stores individual feature spread. The off-diagonal entries store how pairs of features move together.</p>
+      <div class="note">The covariance matrix is a compact summary of the shape and orientation of the data cloud.</div>
+    </section>
+
+    <section class="section">
+      <h2>A small covariance calculation</h2>
+      <div class="activity"><h3>Centered data question</h3><p class="prompt">Why is covariance easier to understand after subtracting means?</p><p>Because positive and negative deviations show whether features move together around the center.</p></div>
+      <p>Suppose two centered features have values:</p>
+      <div class="formula">\[
+X_c = [-2,\ 0,\ 2], \qquad Y_c = [-4,\ 0,\ 4]
+\]</div>
+      <p>Then:</p>
+      <div class="formula">\[
+\operatorname{Cov}(X,Y)=\frac{(-2)(-4)+(0)(0)+(2)(4)}{3-1}
+=\frac{8+0+8}{2}=8
+\]</div>
+      <p>Positive covariance means the features increase together.</p>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Eigenvectors and eigenvalues</h2>
+        <div class="activity"><h3>Direction question</h3><p class="prompt">If the covariance matrix describes the data cloud, what directions should we extract from it?</p><p>The natural axes of the cloud: the longest spread direction first, then the next perpendicular direction.</p></div>
+        <p>Eigenvectors and eigenvalues come from this equation:</p>
+        <div class="formula">\[
+\Sigma v = \lambda v
+\]</div>
+        <table><thead><tr><th>Symbol</th><th>Meaning in PCA</th></tr></thead><tbody><tr><td>\(\Sigma\)</td><td>Covariance matrix: describes data spread.</td></tr><tr><td>\(v\)</td><td>Eigenvector: a principal component direction.</td></tr><tr><td>\(\lambda\)</td><td>Eigenvalue: amount of variance along that direction.</td></tr></tbody></table>
+        <p>The equation says: when the covariance matrix acts on \(v\), the direction stays the same. Only its length changes by \(\lambda\).</p>
+        <p>That is exactly what PCA needs. PCA is searching for stable directions of spread in the covariance matrix. Eigenvectors are those stable directions. Eigenvalues tell how much the data stretches along each stable direction.</p>
+        <div class="formula">\[
+\text{eigenvector} = \text{direction of a principal axis}
+\]</div>
+        <div class="formula">\[
+\text{eigenvalue} = \text{variance captured along that axis}
+\]</div>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Eigenvectors as axes of an ellipse">
+          <ellipse cx="210" cy="150" rx="128" ry="42" transform="rotate(-24 210 150)" fill="#f8fbff" stroke="#bfd3ff" stroke-width="2"></ellipse>
+          <line x1="92" y1="204" x2="328" y2="96" stroke="#1f6feb" stroke-width="5"></line>
+          <line x1="186" y1="96" x2="234" y2="204" stroke="#c3342f" stroke-width="4"></line>
+          <text x="330" y="96" class="axis-label">large eigenvalue</text><text x="238" y="210" class="axis-label">small eigenvalue</text>
+        </svg>
+        <p class="caption">Eigenvectors give directions. Eigenvalues say how important those directions are.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Why eigenvectors solve PCA</h2>
+      <div class="activity"><h3>Optimization question</h3><p class="prompt">If PCA wants maximum variance, which eigenvector should become PC1?</p><p>The eigenvector with the largest eigenvalue.</p></div>
+      <p>From the previous page, variance along direction \(w\) is:</p>
+      <div class="formula">\[
+\operatorname{Var}(X_cw)=w^T\Sigma w
+\]</div>
+      <p>PCA maximizes this while keeping \(w\) as a unit vector:</p>
+      <div class="formula">\[
+\max_w\ w^T\Sigma w \quad \text{subject to } w^Tw=1
+\]</div>
+      <p>This optimization leads to:</p>
+      <div class="formula">\[
+\Sigma w = \lambda w
+\]</div>
+      <p>So the best directions are eigenvectors of the covariance matrix. The best first direction is the eigenvector with the largest eigenvalue.</p>
+      <p>Intuition without heavy calculus: the covariance matrix already knows the shape of the data cloud. If the cloud is stretched like an ellipse, the longest axis is a direction where the covariance transformation stretches a vector the most. A direction that only gets stretched, without getting rotated away, is an eigenvector. The amount of stretch is the eigenvalue.</p>
+      <table>
+        <thead><tr><th>PCA need</th><th>Eigen concept that provides it</th></tr></thead>
+        <tbody>
+          <tr><td>Find a direction, not an original feature column.</td><td>Eigenvector gives a new axis.</td></tr>
+          <tr><td>Rank directions by importance.</td><td>Eigenvalue gives variance on that axis.</td></tr>
+          <tr><td>Make components independent/perpendicular.</td><td>Symmetric covariance matrices produce orthogonal eigenvectors.</td></tr>
+          <tr><td>Compress by keeping only the best directions.</td><td>Keep eigenvectors with the largest eigenvalues.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <section class="section">
+      <h2>Principal components are perpendicular</h2>
+      <div class="activity"><h3>Axis question</h3><p class="prompt">After PC1 captures the strongest direction, should PC2 repeat the same direction?</p><p>No. PC2 must capture a new direction, so it is perpendicular to PC1.</p></div>
+      <p>PCA builds a new coordinate system. The component directions are orthogonal:</p>
+      <div class="formula">\[
+v_i^Tv_j=0 \quad \text{when } i\neq j
+\]</div>
+      <p>Each principal component explains the largest remaining variance after the previous components have already taken their share.</p>
+      <div class="note">This is why PCA components are uncorrelated with each other, even when the original features were correlated.</div>
+    </section>
+
+    <section class="section">
+      <h2>Ordering principal components</h2>
+      <div class="activity"><h3>Ranking question</h3><p class="prompt">If one direction explains variance 10 and another explains variance 2, which one should come first?</p><p>The direction explaining variance 10.</p></div>
+      <p>Sort eigenvalues from largest to smallest:</p>
+      <div class="formula">\[
+\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_p
+\]</div>
+      <p>Then arrange eigenvectors in the same order:</p>
+      <div class="formula">\[
+W = [v_1\ v_2\ \cdots\ v_k]
+\]</div>
+      <p>\(v_1\) becomes PC1, \(v_2\) becomes PC2, and so on.</p>
+    </section>
+
+    <div class="pager"><a class="button" href="01-pca-geometry.html">Previous: Geometry</a><a class="button primary" href="03-projection-variance.html">Next: Projection</a></div>
+  </main>
+</body>
+</html>

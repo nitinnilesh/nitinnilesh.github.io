@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classification Metrics and Imbalance</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="nav">
+      <a class="brand" href="index.html">Logistic Regression</a>
+      <div class="navlinks">
+        <a href="index.html">Overview</a>
+        <a href="01-classification-setup.html">Setup</a>
+        <a href="02-sigmoid-boundary.html">Sigmoid</a>
+        <a href="03-loss-training.html">Loss</a>
+        <a href="04-interpretation-regularization.html">Interpretation</a>
+        <a class="active" href="05-metrics-imbalance.html">Metrics</a>
+        <a href="06-handling-imbalance.html">Imbalance</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="page">
+    <div class="eyebrow">Concept 5</div>
+    <h1>Evaluation metrics, thresholds, and imbalanced classes</h1>
+    <p class="lead">Logistic regression outputs probabilities. Evaluation depends on how those probabilities are converted into decisions and what mistakes matter most.</p>
+
+    <section class="section">
+      <h2>Confusion matrix</h2>
+      <p>A confusion matrix compares predicted classes with actual classes.</p>
+      <table>
+        <thead><tr><th></th><th>Predicted 0</th><th>Predicted 1</th></tr></thead>
+        <tbody>
+          <tr><th>Actual 0</th><td>True Negative (TN)</td><td>False Positive (FP)</td></tr>
+          <tr><th>Actual 1</th><td>False Negative (FN)</td><td>True Positive (TP)</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Mistake cost</h3>
+        <p class="prompt">In cancer detection, which error is usually more dangerous: false positive or false negative?</p>
+        <p>False negative is often more dangerous because a real case is missed.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Core metrics</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Accuracy</h3>
+          <div class="formula">\[
+\frac{TP+TN}{TP+TN+FP+FN}
+\]</div>
+          <p>Overall fraction of correct predictions.</p>
+        </div>
+        <div class="card">
+          <h3>Precision</h3>
+          <div class="formula">\[
+\frac{TP}{TP+FP}
+\]</div>
+          <p>Of predicted positives, how many were actually positive?</p>
+        </div>
+        <div class="card">
+          <h3>Recall</h3>
+          <div class="formula">\[
+\frac{TP}{TP+FN}
+\]</div>
+          <p>Of actual positives, how many did we catch?</p>
+        </div>
+      </div>
+      <div class="formula">\[
+F1 = 2\cdot\frac{\text{Precision}\cdot\text{Recall}}{\text{Precision}+\text{Recall}}
+\]</div>
+      <div class="note">Precision asks whether positive predictions are trustworthy. Recall asks whether actual positives are being missed.</div>
+    </section>
+
+    <section class="two-col section">
+      <div>
+        <h2>Threshold tuning</h2>
+        <p>Changing the threshold changes the confusion matrix.</p>
+        <table>
+          <thead><tr><th>Threshold</th><th>Effect</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td>Lower threshold</td><td>Predict more positives, recall usually increases.</td><td>More false positives.</td></tr>
+            <tr><td>Higher threshold</td><td>Predict fewer positives, precision may increase.</td><td>More false negatives.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="visual">
+        <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Threshold tuning changes decisions">
+          <line x1="54" y1="240" x2="370" y2="240" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="54" y1="240" x2="54" y2="48" stroke="#5e6875" stroke-width="2"></line>
+          <rect x="72" y="102" width="34" height="138" fill="#1f6feb"></rect>
+          <rect x="118" y="146" width="34" height="94" fill="#1f6feb"></rect>
+          <rect x="164" y="176" width="34" height="64" fill="#1f6feb"></rect>
+          <rect x="236" y="186" width="34" height="54" fill="#b85c00"></rect>
+          <rect x="282" y="132" width="34" height="108" fill="#b85c00"></rect>
+          <rect x="328" y="86" width="34" height="154" fill="#b85c00"></rect>
+          <line x1="220" y1="58" x2="220" y2="248" stroke="#c3342f" stroke-width="4" stroke-dasharray="7 6"></line>
+          <text x="190" y="54" class="axis-label">threshold</text>
+          <text x="140" y="278" class="axis-label">predicted probability</text>
+        </svg>
+        <p class="caption">Move the threshold left or right depending on which mistakes are costlier.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Threshold as a business decision</h2>
+      <p>The best threshold is not always \(0.5\). It depends on which mistake is more expensive.</p>
+      <table>
+        <thead><tr><th>Problem</th><th>Costlier mistake</th><th>Threshold direction</th><th>Metric to watch</th></tr></thead>
+        <tbody>
+          <tr><td>Cancer screening</td><td>False negative: missing a real case</td><td>Lower threshold</td><td>Recall, sensitivity</td></tr>
+          <tr><td>Fraud detection</td><td>Usually false negative, but false positives also create investigation cost</td><td>Often lower, then tune carefully</td><td>Recall, precision, PR-AUC</td></tr>
+          <tr><td>Spam filtering</td><td>False positive: important email goes to spam</td><td>Higher threshold</td><td>Precision</td></tr>
+          <tr><td>Loan approval risk</td><td>False negative: approving a likely defaulter</td><td>Higher risk cutoff or stricter policy</td><td>Precision for risky class, recall for defaults</td></tr>
+          <tr><td>Customer churn outreach</td><td>False negative: missing a likely churner</td><td>Lower threshold if outreach is cheap</td><td>Recall and campaign ROI</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Decision cost</h3>
+        <p class="prompt">If calling a customer is cheap but missing a churner is expensive, should the threshold be high or low?</p>
+        <p>Lower. The business may accept more false positives to catch more likely churners.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Class imbalance</h2>
+      <p>Accuracy can be misleading when one class is much more common than the other.</p>
+      <div class="formula">\[
+\text{Fraud rate}=1\%
+\]</div>
+      <p>A model that predicts “not fraud” for everyone gets 99% accuracy, but catches no fraud.</p>
+      <table>
+        <thead><tr><th>Metric</th><th>Useful when</th></tr></thead>
+        <tbody>
+          <tr><td>Precision</td><td>False positives are costly.</td></tr>
+          <tr><td>Recall</td><td>False negatives are costly.</td></tr>
+          <tr><td>F1-score</td><td>Need a balance between precision and recall.</td></tr>
+          <tr><td>PR-AUC</td><td>Positive class is rare.</td></tr>
+          <tr><td>ROC-AUC</td><td>Need threshold-independent ranking quality, especially with moderate imbalance.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Metric choice</h3>
+        <p class="prompt">For fraud detection, why might 99% accuracy be a bad sign rather than a good sign?</p>
+        <p>The model may simply be predicting the majority class and missing rare fraud cases.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>ROC curve and PR curve</h2>
+      <p>Both ROC and PR curves are created by sweeping the classification threshold from high to low and recalculating metrics at each threshold.</p>
+      <div class="two-col">
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="ROC curve">
+            <line x1="58" y1="244" x2="364" y2="244" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="58" y1="244" x2="58" y2="54" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="58" y1="244" x2="364" y2="54" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 6"></line>
+            <path d="M58 244 C92 144, 158 84, 364 54" fill="none" stroke="#1f6feb" stroke-width="5"></path>
+            <text x="144" y="278" class="axis-label">false positive rate</text>
+            <text x="16" y="78" class="axis-label">true positive rate</text>
+            <text x="252" y="88" class="axis-label">ROC curve</text>
+          </svg>
+          <p class="caption">ROC curve shows recall/TPR against false positive rate across thresholds.</p>
+        </div>
+        <div class="visual">
+          <svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Precision recall curve">
+            <line x1="58" y1="244" x2="364" y2="244" stroke="#5e6875" stroke-width="2"></line>
+            <line x1="58" y1="244" x2="58" y2="54" stroke="#5e6875" stroke-width="2"></line>
+            <path d="M64 70 C130 78, 198 120, 356 224" fill="none" stroke="#11875d" stroke-width="5"></path>
+            <text x="158" y="278" class="axis-label">recall</text>
+            <text x="18" y="78" class="axis-label">precision</text>
+            <text x="232" y="132" class="axis-label">PR curve</text>
+          </svg>
+          <p class="caption">PR curve is often more informative when the positive class is rare.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>ROC curve in detail</h2>
+      <p>ROC stands for Receiver Operating Characteristic. It asks: as we lower the threshold and catch more positives, how many false alarms do we create?</p>
+      <div class="formula">\[
+\text{True Positive Rate}=\text{Recall}=\frac{TP}{TP+FN}
+\]</div>
+      <div class="formula">\[
+\text{False Positive Rate}=\frac{FP}{FP+TN}
+\]</div>
+      <table>
+        <thead><tr><th>Threshold</th><th>TPR / Recall</th><th>FPR</th><th>Interpretation</th></tr></thead>
+        <tbody>
+          <tr><td>Very high</td><td>Low</td><td>Low</td><td>Model predicts very few positives.</td></tr>
+          <tr><td>Medium</td><td>Higher</td><td>Some false positives</td><td>Model catches more positives but creates more alarms.</td></tr>
+          <tr><td>Very low</td><td>Very high</td><td>High</td><td>Model predicts many positives.</td></tr>
+        </tbody>
+      </table>
+      <p>ROC-AUC summarizes the curve into one number. A higher ROC-AUC means the model tends to rank true positives above true negatives.</p>
+      <div class="note">ROC-AUC is about ranking quality across thresholds. It does not directly tell you which threshold to use in production.</div>
+      <div class="activity">
+        <h3>ROC interpretation</h3>
+        <p class="prompt">If recall increases because we lowered the threshold, what usually happens to the false positive rate?</p>
+        <p>It usually increases, because more negative examples also cross the lower threshold.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>PR curve in detail</h2>
+      <p>PR stands for Precision-Recall. It focuses on the positive class.</p>
+      <div class="formula">\[
+\text{Precision}=\frac{TP}{TP+FP}
+\qquad
+\text{Recall}=\frac{TP}{TP+FN}
+\]</div>
+      <p>PR curves are especially useful when the positive class is rare. In rare-event problems, ROC can sometimes look good even when precision is poor.</p>
+      <table>
+        <thead><tr><th>Threshold</th><th>Precision</th><th>Recall</th><th>Interpretation</th></tr></thead>
+        <tbody>
+          <tr><td>High</td><td>Often high</td><td>Low</td><td>Only the most confident positives are predicted.</td></tr>
+          <tr><td>Medium</td><td>Moderate</td><td>Moderate to high</td><td>More positives are caught, with more false positives.</td></tr>
+          <tr><td>Low</td><td>Can fall</td><td>High</td><td>Most positives are caught, but many predicted positives may be wrong.</td></tr>
+        </tbody>
+      </table>
+      <div class="wide-visual">
+        <svg class="plot-wide" viewBox="0 0 900 300" role="img" aria-label="Threshold effect on precision and recall">
+          <line x1="80" y1="238" x2="810" y2="238" stroke="#5e6875" stroke-width="2"></line>
+          <line x1="80" y1="238" x2="80" y2="52" stroke="#5e6875" stroke-width="2"></line>
+          <path d="M110 74 C250 88, 420 128, 760 212" fill="none" stroke="#1f6feb" stroke-width="5"></path>
+          <path d="M110 218 C270 196, 470 132, 760 72" fill="none" stroke="#11875d" stroke-width="5"></path>
+          <circle cx="620" cy="34" r="6" fill="#1f6feb"></circle>
+          <text x="636" y="38" class="axis-label">precision often decreases</text>
+          <circle cx="620" cy="58" r="6" fill="#11875d"></circle>
+          <text x="636" y="62" class="axis-label">recall increases</text>
+          <text x="332" y="276" class="axis-label">lowering threshold</text>
+          <text x="26" y="66" class="axis-label">metric value</text>
+        </svg>
+        <p class="caption">As threshold decreases, recall usually increases because more positives are captured. Precision may decrease because more false positives are included.</p>
+      </div>
+      <div class="note warning">For fraud, disease detection, rare failure detection, and other rare-positive problems, PR-AUC is often more informative than ROC-AUC.</div>
+    </section>
+
+    <section class="section">
+      <h2>Choosing between ROC and PR</h2>
+      <table>
+        <thead><tr><th>Situation</th><th>Prefer</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Classes are fairly balanced</td><td>ROC-AUC or PR-AUC</td><td>Both can be informative.</td></tr>
+          <tr><td>Positive class is rare</td><td>PR-AUC</td><td>It focuses on how useful positive predictions are.</td></tr>
+          <tr><td>Need ranking quality across all thresholds</td><td>ROC-AUC</td><td>It measures separation between positives and negatives.</td></tr>
+          <tr><td>Business cares about catching positives</td><td>Recall and PR curve</td><td>Missing positives is costly.</td></tr>
+          <tr><td>Business cares about false alarms</td><td>Precision and PR curve</td><td>Predicted positives must be trustworthy.</td></tr>
+        </tbody>
+      </table>
+      <div class="activity">
+        <h3>Curve choice</h3>
+        <p class="prompt">In fraud detection with 1% fraud cases, why might PR curve be more useful than ROC curve?</p>
+        <p>Because PR curve focuses on the rare positive class and directly shows the tradeoff between catching fraud and keeping alerts trustworthy.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Assumptions and limitations</h2>
+      <table>
+        <thead><tr><th>Point</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Linear decision boundary</td><td>In original features, logistic regression separates classes using a line, plane, or hyperplane.</td></tr>
+          <tr><td>Feature engineering matters</td><td>Nonlinear boundaries need transformed features or another model.</td></tr>
+          <tr><td>Probability calibration</td><td>Predicted probabilities may need calibration for high-stakes decisions.</td></tr>
+          <tr><td>Outliers can influence coefficients</td><td>Strong outliers or mislabeled points can affect the fitted boundary.</td></tr>
+          <tr><td>Regularized models need scaling</td><td>Scaling makes the penalty treat features more fairly.</td></tr>
+        </tbody>
+      </table>
+      <div class="note">Logistic regression is a strong baseline because it is simple, interpretable, fast, and often surprisingly competitive.</div>
+    </section>
+
+    <section class="section">
+      <h2>Final mental model</h2>
+      <div class="formula">\[
+\text{linear score}
+\rightarrow
+\text{sigmoid probability}
+\rightarrow
+\text{thresholded class}
+\rightarrow
+\text{classification metrics}
+\]</div>
+      <div class="activity">
+        <h3>End check</h3>
+        <p class="prompt">What is the biggest conceptual difference between linear regression and logistic regression?</p>
+        <p>Linear regression predicts a continuous value. Logistic regression predicts a probability for classification.</p>
+      </div>
+    </section>
+
+    <div class="pager">
+      <a class="button" href="04-interpretation-regularization.html">Previous: Interpretation</a>
+      <a class="button primary" href="06-handling-imbalance.html">Next: Handling Imbalance</a>
+    </div>
+  </main>
+</body>
+</html>

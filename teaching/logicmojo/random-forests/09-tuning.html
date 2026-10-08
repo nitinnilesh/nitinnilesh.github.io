@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tuning and Evaluation</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script defer src="interactions.js"></script>
+</head>
+<body>
+  <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
+    <a class="brand" href="index.html">Random Forests</a>
+    <div class="navlinks"><a class="" href="index.html">Overview</a><a class="" href="01-why-ensemble.html">Why ensemble</a><a class="" href="02-bootstrap.html">Bootstrap</a><a class="" href="03-bagging.html">Bagging</a><a class="" href="04-feature-randomness.html">Features</a><a class="" href="05-classification.html">Classification</a><a class="" href="06-regression.html">Regression</a><a class="" href="07-oob.html">OOB</a><a class="" href="08-variance.html">Variance</a><a class="active" href="09-tuning.html">Tuning</a><a class="" href="10-interpretation.html">Interpretation</a><a class="" href="11-practical-guide.html">Practice</a></div>
+  </nav></header>
+  <main class="page">
+    <div class="eyebrow">Part 9</div>
+    <h1>Tune the forest for the decision you actually need to make.</h1>
+    <p class="lead">A larger forest is not automatically a better forest. Tune tree count, tree size, feature randomness, sample size, and class handling with an evaluation design that matches deployment.</p>
+
+<section class="section"><h2>Hyperparameters as levers</h2><div class="activity"><h3>First tuning question</h3><p class="prompt">Which parameter mainly creates more independent tree opinions, and which parameters control how complex each opinion can be?</p></div><table><thead><tr><th>Parameter</th><th>Controls</th><th>Typical effect</th></tr></thead><tbody><tr><td><code>n_estimators</code></td><td>Number of trees</td><td>More stable aggregation; more compute and memory.</td></tr><tr><td><code>max_features</code></td><td>Features considered per split</td><td>Lower often reduces correlation but may weaken trees.</td></tr><tr><td><code>max_depth</code></td><td>Maximum path length</td><td>Shallower trees usually reduce variance and complexity.</td></tr><tr><td><code>min_samples_leaf</code></td><td>Minimum rows in a leaf</td><td>Larger leaves smooth predictions and resist tiny pockets.</td></tr><tr><td><code>max_samples</code></td><td>Rows drawn per bootstrap</td><td>Changes tree diversity and training cost.</td></tr><tr><td><code>class_weight</code></td><td>Relative class costs</td><td>Can give rare classes more influence during splits.</td></tr></tbody></table></section>
+<section class="section"><h2>What should we tune first?</h2><div class="activity"><h3>Order question</h3><p class="prompt">Would you start with 200 combinations, or establish a simple baseline and inspect learning curves first?</p></div><ol class="equation-steps"><li>Fit one reproducible baseline with a held-out validation design.</li><li>Check whether adding trees still improves validation performance.</li><li>Try a small grid for <code>max_features</code>, depth, and leaf size.</li><li>Use cross-validation or an appropriate grouped/time split.</li><li>Keep the test set untouched until the final choice.</li></ol><div class="visual"><svg class="plot-wide" viewBox="0 0 760 270" role="img" aria-label="Validation score rises then plateaus as the number of trees increases"><line x1="62" y1="222" x2="710" y2="222" stroke="#5e6875"/><line x1="62" y1="38" x2="62" y2="222" stroke="#5e6875"/><path d="M74 190 C150 130 220 100 300 82 C405 60 530 61 690 62" fill="none" stroke="#1f6feb" stroke-width="4"/><path d="M74 95 C180 100 280 116 390 139 C500 158 600 176 690 191" fill="none" stroke="#c3342f" stroke-width="3" stroke-dasharray="7 5"/><text x="575" y="53" class="axis-label">validation score</text><text x="575" y="210" class="axis-label">training cost</text><text x="380" y="254" class="axis-label" text-anchor="middle">number of trees</text></svg><div class="legend"><span><i class="swatch" style="background:#1f6feb"></i> validation performance</span><span><i class="swatch decline"></i> cost / size</span></div></div></section>
+<section class="section"><h2>Metrics must match the business</h2><div class="activity"><h3>Metric question</h3><p class="prompt">For a rare-fraud detector, can accuracy alone reveal whether the model is useful?</p></div><p>For classification, consider precision, recall, F1, ROC-AUC, PR-AUC, calibration, and the cost of false positives versus false negatives. For regression, consider MAE, RMSE, \(R^2\), subgroup error, and tail behavior.</p><p class="note">For imbalanced classification, <code>class_weight="balanced_subsample"</code> adjusts weights from each bootstrap sample. It changes the split objective; it does not replace threshold selection or careful evaluation.</p></section>
+    <div class="pager"><a class="button" href="08-variance.html">Previous: Variance</a><a class="button primary" href="10-interpretation.html">Next: Interpretation</a></div>
+  </main>
+</body>
+</html>

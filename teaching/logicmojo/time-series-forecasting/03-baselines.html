@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Forecasting Baselines</title><link rel="stylesheet" href="styles.css">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script><script defer src="interactions.js"></script>
+</head>
+<body data-prev="02-patterns.html" data-next="04-lags-and-acf.html">
+<header class="topbar"><div class="progress"><span style="width:40%"></span></div><nav class="nav"><a class="brand" href="index.html">Time-Series Forecasting</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-forecasting-contract.html">Contract</a><a href="02-patterns.html">Patterns</a><a class="active" href="03-baselines.html">Baselines</a><a href="04-lags-and-acf.html">Lags</a><a href="05-stationarity.html">Stationarity</a><a href="06-smoothing.html">Smoothing</a><a href="07-arima.html">ARIMA</a><a href="08-validation.html">Validation</a><a href="09-ml-workflow.html">ML workflow</a></div></nav></header>
+<main class="page">
+  <div class="eyebrow">Part 3</div>
+  <h1>A model must beat a sensible guess.</h1>
+  <p class="lead">A baseline is a complete forecasting method, not a decorative score. It encodes the simplest plausible story about persistence, repetition or growth and gives every complex model a fair opponent.</p>
+
+  <section class="section">
+    <div class="activity"><h3>Tomorrow question</h3><p class="prompt">If today is Sunday, which is a better guess for Monday: Sunday's demand or last Monday's demand? What assumption does each choice make?</p></div>
+    <h2>Five useful baselines</h2>
+    <div class="grid">
+      <div class="card"><h3>Mean</h3><div class="formula">\[\widehat y_{t+h\mid t}=\bar y_{\text{train}}\]</div><p>Assumes no useful time structure beyond a stable level.</p></div>
+      <div class="card"><h3>Naive</h3><div class="formula">\[\widehat y_{t+h\mid t}=y_t\]</div><p>Assumes the most recently observed level persists.</p></div>
+      <div class="card"><h3>Seasonal naive</h3><div class="formula">\[\widehat y_{t+h\mid t}=y_{t+h-m(k+1)}\]</div><p>Repeats the matching position from the latest observed season, where \(k=\lfloor(h-1)/m\rfloor\).</p></div>
+      <div class="card"><h3>Drift</h3><div class="formula">\[\widehat y_{t+h\mid t}=y_t+h\frac{y_t-y_1}{t-1}\]</div><p>Extends the average change from the first to latest observation.</p></div>
+      <div class="card"><h3>Recent-window mean</h3><div class="formula">\[\widehat y_{t+1\mid t}=\frac1w\sum_{j=0}^{w-1}y_{t-j}\]</div><p>Uses the average of the latest \(w\) observations as the next level.</p></div>
+    </div>
+    <p class="note"><strong>Terminology:</strong> this recent-window mean is often called a moving-average forecast. It is not the MA(\(q\)) error model inside ARIMA.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Calculate before revealing</h3><p class="prompt">Fourteen daily observations end on Sunday. Forecast the next Monday using naive, seasonal naive, drift and a three-day mean.</p></div>
+    <h2>A worked baseline example</h2>
+    <div class="table-wrap"><table><thead><tr><th>Week</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead><tbody><tr><td>Week 1</td><td>100</td><td>110</td><td>120</td><td>125</td><td>140</td><td>170</td><td>155</td></tr><tr><td>Week 2</td><td>108</td><td>116</td><td>127</td><td>132</td><td>148</td><td>180</td><td>164</td></tr></tbody></table></div>
+    <div class="grid">
+      <div class="card"><h3>Naive</h3><div class="formula">\[\widehat y_{15\mid14}=y_{14}=164\]</div><p>“Monday will look like yesterday.”</p></div>
+      <div class="card"><h3>Seasonal naive</h3><div class="formula">\[\widehat y_{15\mid14}=y_8=108\]</div><p>“Monday will look like last Monday.”</p></div>
+      <div class="card"><h3>Drift</h3><div class="formula">\[\widehat y_{15\mid14}=164+\frac{164-100}{13}=168.92\]</div><p>“The average upward change will continue.”</p></div>
+      <div class="card"><h3>Three-day mean</h3><div class="formula">\[\widehat y_{15\mid14}=\frac{148+180+164}{3}=164\]</div><p>“The recent local level will continue.”</p></div>
+    </div>
+    <button class="reveal-button" data-reveal="worked-result">Reveal Monday and compare</button>
+    <div class="answer" id="worked-result" hidden><p>Suppose the next Monday is \(y_{15}=116\). Absolute errors are:</p><div class="table-wrap"><table><thead><tr><th>Method</th><th>Forecast</th><th>Absolute error</th></tr></thead><tbody><tr><td>Naive</td><td>164</td><td>48</td></tr><tr><td>Seasonal naive</td><td>108</td><td><strong>8</strong></td></tr><tr><td>Drift</td><td>168.92</td><td>52.92</td></tr><tr><td>Three-day mean</td><td>164</td><td>48</td></tr></tbody></table></div><p>Seasonal naive wins this origin because the day-of-week pattern is stronger than yesterday's level or overall drift. One origin is not enough to select it; repeat the comparison across many historical forecast origins.</p></div>
+  </section>
+
+  <section class="section">
+    <h2>Hold out the final two weeks</h2>
+    <div class="visual"><canvas id="baseline-chart" class="chart tall" width="900" height="500" aria-label="Naive and seasonal naive forecasts on a held-out period"></canvas><div class="legend"><span><i class="swatch" style="background:#17202a"></i>Actual</span><span><i class="swatch" style="background:#c43b36"></i>Naive</span><span><i class="swatch" style="background:#087f6b"></i>Seasonal naive</span><span><i class="swatch" style="background:#a96700"></i>Forecast origin</span></div><div class="metrics"><div class="metric"><strong id="naive-mae">—</strong><span>Naive MAE</span></div><div class="metric"><strong id="seasonal-mae">—</strong><span>Seasonal-naive MAE</span></div><div class="metric"><strong>7 days</strong><span>Seasonal period</span></div></div><p class="caption">The shaded region is unseen at the forecast origin. Both methods generate the full 14-day path using only the first 42 days; seasonal naive cycles through the final observed week rather than reading actual values from the holdout.</p></div>
+    <p class="intuition"><strong>Interpretation:</strong> the last value ignores day-of-week structure. Seasonal naive follows the weekly shape and becomes the benchmark a more complex model must improve upon.</p>
+  </section>
+
+  <section class="section">
+    <div class="activity"><h3>Fairness question</h3><p class="prompt">Can we select the best baseline after looking at the final test period and still call it an untouched test set?</p><button class="reveal-button" data-reveal="baseline-select">Reveal answer</button><div class="answer" id="baseline-select" hidden>No. Choosing among baselines is model selection. Compare them across training/validation origins, then use the final test period once for the selected workflow.</div></div>
+    <h2>Match the baseline to the structure</h2>
+    <div class="table-wrap"><table><thead><tr><th>Observed behavior</th><th>First baseline</th><th>Reason</th></tr></thead><tbody><tr><td>Stable level, little dependence</td><td>Training mean</td><td>Tests whether temporal structure adds value.</td></tr><tr><td>Stable local level</td><td>Naive</td><td>The newest observation is informative.</td></tr><tr><td>Strong daily cycle in hourly data</td><td>Seasonal naive with \(m=24\)</td><td>Compare the same hour yesterday.</td></tr><tr><td>Strong weekly cycle in hourly data</td><td>Seasonal naive with \(m=168\)</td><td>Compare the same hour and weekday last week.</td></tr><tr><td>Persistent trend, weak seasonality</td><td>Drift</td><td>Projects average historical change.</td></tr></tbody></table></div>
+  </section>
+  <div class="pager"><a class="button" href="02-patterns.html">Previous: Patterns</a><a class="button primary" href="04-lags-and-acf.html">Next: Lags and ACF</a></div>
+</main>
+</body>
+</html>

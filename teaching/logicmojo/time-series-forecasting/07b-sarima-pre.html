@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SARIMA Pre</title><link rel="stylesheet" href="styles.css">
+  <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script><script defer src="interactions.js"></script>
+</head>
+<body data-prev="07-arima.html" data-next="08-validation.html">
+<header class="topbar"><div class="progress"><span style="width:85%"></span></div><nav class="nav"><a class="brand" href="index.html">Time-Series Forecasting</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-forecasting-contract.html">Contract</a><a href="02-patterns.html">Patterns</a><a href="03-baselines.html">Baselines</a><a href="04-lags-and-acf.html">Lags</a><a href="05-stationarity.html">Stationarity</a><a href="06-smoothing.html">Smoothing</a><a href="06c-arima-pre.html">ARIMA Pre</a><a href="07-arima.html">ARIMA</a><a class="active" href="07b-sarima-pre.html">SARIMA Pre</a><a href="08-validation.html">Validation</a><a href="09-ml-workflow.html">ML workflow</a></div></nav></header>
+<main class="page">
+  <div class="eyebrow">SARIMA Pre</div>
+  <h1>1. Start With the Problem</h1>
+  <p>Suppose we observe monthly ice-cream sales:</p>
+  <div class="formula">\[120,\ 135,\ 160,\ldots\]</div>
+  <p>Sales generally increase, but every summer demand rises and every winter it falls.</p>
+  <p>The series contains:</p>
+  <ol><li>A changing level or trend.</li><li>A repeating 12-month seasonal pattern.</li><li>Relationships between neighboring months.</li><li>Random forecasting errors.</li></ol>
+  <p>ARIMA can handle trend and short-term dependence, but ordinary ARIMA does not explicitly represent repeating seasonal relationships.</p>
+  <p>SARIMA extends ARIMA by adding seasonal differencing, seasonal autoregression, and seasonal moving-average terms.</p>
+  <blockquote><strong>SARIMA models both short-term relationships and relationships between matching positions in different seasonal cycles.</strong></blockquote>
+
+  <section class="section">
+    <h2>2. What Does SARIMA Mean?</h2>
+    <p>SARIMA stands for:</p>
+    <div class="formula">\[\boxed{\operatorname{SARIMA}(p,d,q)(P,D,Q)_m}\]</div>
+    <p>The first group describes nonseasonal behavior:</p>
+    <div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Meaning</th></tr></thead><tbody><tr><td>\(p\)</td><td>Nonseasonal AR order</td></tr><tr><td>\(d\)</td><td>Nonseasonal differencing order</td></tr><tr><td>\(q\)</td><td>Nonseasonal MA order</td></tr></tbody></table></div>
+    <p>The second group describes seasonal behavior:</p>
+    <div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Meaning</th></tr></thead><tbody><tr><td>\(P\)</td><td>Seasonal AR order</td></tr><tr><td>\(D\)</td><td>Seasonal differencing order</td></tr><tr><td>\(Q\)</td><td>Seasonal MA order</td></tr><tr><td>\(m\)</td><td>Number of observations in one seasonal cycle</td></tr></tbody></table></div>
+  </section>
+
+  <section class="section">
+    <h2>3. Meaning of the Seasonal Period \(m\)</h2>
+    <p>The value of \(m\) depends on the frequency of the observations and the repeating pattern.</p>
+    <div class="table-wrap"><table><thead><tr><th>Dataset</th><th>Repeating pattern</th><th>\(m\)</th></tr></thead><tbody><tr><td>Monthly data</td><td>Annual</td><td>12</td></tr><tr><td>Quarterly data</td><td>Annual</td><td>4</td></tr><tr><td>Daily data</td><td>Weekly</td><td>7</td></tr><tr><td>Hourly data</td><td>Daily</td><td>24</td></tr><tr><td>Hourly data</td><td>Weekly</td><td>168</td></tr></tbody></table></div>
+    <p>For monthly data with annual seasonality:</p><div class="formula">\[m=12\]</div>
+    <p>Therefore:</p>
+    <ul><li>\(Y_{t-1}\) is the previous month.</li><li>\(Y_{t-12}\) is the same month last year.</li><li>\(Y_{t-24}\) is the same month two years ago.</li></ul>
+    <p>The seasonal component primarily works with lags such as:</p><div class="formula">\[m,\ 2m,\ 3m,\ldots\]</div>
+  </section>
+
+  <section class="section"><h2>Seasonal Differencing</h2></section>
+
+  <section class="section">
+    <h2>4. Why Ordinary Differencing May Not Remove Seasonality</h2>
+    <p>Suppose quarterly demand is:</p><div class="formula">\[100,\ 130,\ 170,\ 140,\ 105,\ 135,\ 175,\ 145\]</div>
+    <p>Each group of four values has a similar shape.</p>
+    <p>The first differences are:</p><div class="formula">\[30,\ 40,\ -30,\ -35,\ 30,\ 40,\ -30\]</div>
+    <p>The seasonal pattern is still visible. First differencing compares neighboring periods, but the repeating relationship is between matching quarters.</p>
+    <p>We instead compare each value with the same seasonal position in the previous cycle.</p>
+  </section>
+
+  <section class="section">
+    <h2>5. Seasonal Differencing</h2>
+    <p>Seasonal differencing is:</p><div class="formula">\[\Delta_mY_t=Y_t-Y_{t-m}\]</div>
+    <p>For monthly data with annual seasonality:</p><div class="formula">\[\Delta_{12}Y_t=Y_t-Y_{t-12}\]</div>
+    <p>This asks:</p><blockquote>How different is this month from the same month last year?</blockquote>
+    <p>For daily data with weekly seasonality:</p><div class="formula">\[\Delta_7Y_t=Y_t-Y_{t-7}\]</div>
+    <p>This asks:</p><blockquote>How different is today from the same weekday last week?</blockquote>
+  </section>
+
+  <section class="section">
+    <h2>6. Seasonal Differencing Example</h2>
+    <p>Suppose quarterly demand over three years is:</p>
+    <div class="formula">\[\begin{aligned}\text{Year 1: }&100,\ 130,\ 170,\ 140\\\text{Year 2: }&105,\ 135,\ 175,\ 145\\\text{Year 3: }&110,\ 140,\ 180,\ 150\end{aligned}\]</div>
+    <p>Here:</p><div class="formula">\[m=4\]</div>
+    <p>The seasonal differences between years 1 and 2 are:</p>
+    <div class="formula">\[105-100,\quad135-130,\quad175-170,\quad145-140\]</div>
+    <p>Therefore:</p><div class="formula">\[\Delta_4Y_t=[5,\ 5,\ 5,\ 5]\]</div>
+    <p>The large quarterly pattern disappears. What remains is the year-over-year growth.</p>
+  </section>
+
+  <section class="section">
+    <h2>7. Meaning of \(D\)</h2>
+    <p>The seasonal differencing order is \(D\).</p>
+    <ul><li>\(D=0\): no seasonal differencing.</li><li>\(D=1\): subtract the previous seasonal value.</li><li>\(D=2\): seasonally difference twice.</li></ul>
+    <p>With \(D=1\):</p><div class="formula">\[(1-B^m)Y_t=Y_t-Y_{t-m}\]</div>
+    <p>Here, \(B\) is the backshift operator:</p><div class="formula">\[B^mY_t=Y_{t-m}\]</div>
+    <p>Most applications use:</p><div class="formula">\[D=0\quad\text{or}\quad D=1\]</div>
+    <p>Excessive seasonal differencing can amplify noise and create artificial seasonal autocorrelation.</p>
+  </section>
+
+  <section class="section">
+    <h2>8. Using Ordinary and Seasonal Differencing Together</h2>
+    <p>Some series contain both a nonseasonal trend and changing seasonality.</p>
+    <p>We can apply both:</p><div class="formula">\[(1-B)(1-B^m)Y_t\]</div>
+    <p>For monthly data:</p><div class="formula">\[(1-B)(1-B^{12})Y_t\]</div>
+    <p>First apply seasonal differencing:</p><div class="formula">\[W_t=Y_t-Y_{t-12}\]</div>
+    <p>Then apply ordinary differencing:</p><div class="formula">\[Z_t=W_t-W_{t-1}\]</div>
+    <p>Expanding this gives:</p><div class="formula">\[Z_t=Y_t-Y_{t-1}-Y_{t-12}+Y_{t-13}\]</div>
+    <p>This compares the current month-to-month change with the corresponding month-to-month change from last year.</p>
+  </section>
+
+  <section class="section"><h2>Seasonal Autoregression</h2></section>
+
+  <section class="section">
+    <h2>9. Seasonal AR Intuition</h2>
+    <p>A nonseasonal AR(1) model uses:</p><div class="formula">\[Y_{t-1}\]</div>
+    <p>A seasonal AR(1) model uses:</p><div class="formula">\[Y_{t-m}\]</div>
+    <p>For monthly data:</p><div class="formula">\[Y_t=c+\Phi_1Y_{t-12}+\varepsilon_t\]</div>
+    <p>The coefficient \(\Phi_1\) measures how strongly this month depends on the same month last year.</p>
+    <h3>Example</h3>
+    <p>Suppose:</p><div class="formula">\[Y_t=20+0.8Y_{t-12}+\varepsilon_t\]</div>
+    <p>If sales in the same month last year were 200:</p><div class="formula">\[\widehat Y_t=20+0.8(200)=180\]</div>
+    <p>The model carries forward 80% of the previous year’s same-month value and adds an intercept of 20.</p>
+  </section>
+
+  <section class="section">
+    <h2>10. Meaning of \(P\)</h2>
+    <p>The seasonal AR order is \(P\).</p>
+    <p>A seasonal AR(\(P\)) component uses:</p><div class="formula">\[Y_{t-m},\ Y_{t-2m},\ldots,Y_{t-Pm}\]</div>
+    <p>For \(P=2\) and \(m=12\), the model uses:</p><div class="formula">\[Y_{t-12}\quad\text{and}\quad Y_{t-24}\]</div>
+    <p>It asks:</p><blockquote>Do matching months from one or more previous years help predict the current month?</blockquote>
+    <p>A seasonal AR pattern may appear as significant PACF spikes at:</p><div class="formula">\[m,\ 2m,\ 3m,\ldots\]</div>
+  </section>
+
+  <section class="section"><h2>Seasonal Moving Average</h2></section>
+
+  <section class="section">
+    <h2>11. Seasonal MA Intuition</h2>
+    <p>A nonseasonal MA(1) component uses the previous error:</p><div class="formula">\[\varepsilon_{t-1}\]</div>
+    <p>A seasonal MA(1) component uses the error from one complete seasonal cycle ago:</p><div class="formula">\[\varepsilon_{t-m}\]</div>
+    <p>For monthly data:</p><div class="formula">\[Y_t=c+\varepsilon_t+\Theta_1\varepsilon_{t-12}\]</div>
+    <p>The model asks:</p><blockquote>Did an unexpected event in the same month last year contain information that helps correct this month’s forecast?</blockquote>
+  </section>
+
+  <section class="section">
+    <h2>12. Seasonal MA Example</h2>
+    <p>Suppose:</p><div class="formula">\[Y_t=100+0.6\varepsilon_{t-12}+\varepsilon_t\]</div>
+    <p>Last year’s forecast for the same month was 180, but actual sales were 200.</p>
+    <p>Therefore:</p><div class="formula">\[\varepsilon_{t-12}=200-180=20\]</div>
+    <p>The seasonal error correction is:</p><div class="formula">\[0.6(20)=12\]</div>
+    <p>Ignoring the unknown current error:</p><div class="formula">\[\widehat Y_t=100+12=112\]</div>
+    <p>The model adjusts the forecast because a similar seasonal position was previously underpredicted.</p>
+  </section>
+
+  <section class="section">
+    <h2>13. Meaning of \(Q\)</h2>
+    <p>The seasonal MA order is \(Q\).</p>
+    <p>A seasonal MA(\(Q\)) component uses:</p><div class="formula">\[\varepsilon_{t-m},\varepsilon_{t-2m},\ldots,\varepsilon_{t-Qm}\]</div>
+    <p>For \(Q=1\) and \(m=7\), the current forecast can use the unexpected error from the same weekday last week.</p>
+    <p>A seasonal MA pattern may appear as ACF spikes at:</p><div class="formula">\[m,\ 2m,\ 3m,\ldots\]</div>
+  </section>
+
+  <section class="section"><h2>Putting Everything Together</h2></section>
+
+  <section class="section">
+    <h2>14. Complete SARIMA Structure</h2>
+    <p>The complete model is:</p><div class="formula">\[\operatorname{SARIMA}(p,d,q)(P,D,Q)_m\]</div>
+    <p>Using the backshift operator, it can be written as:</p>
+    <div class="formula">\[\phi(B)\Phi(B^m)(1-B)^d(1-B^m)^D Y_t=c+\theta(B)\Theta(B^m)\varepsilon_t\]</div>
+    <p>where:</p>
+    <ul><li>\(\phi(B)\): nonseasonal AR polynomial</li><li>\(\theta(B)\): nonseasonal MA polynomial</li><li>\(\Phi(B^m)\): seasonal AR polynomial</li><li>\(\Theta(B^m)\): seasonal MA polynomial</li><li>\((1-B)^d\): ordinary differencing</li><li>\((1-B^m)^D\): seasonal differencing</li></ul>
+    <p>In plain language:</p>
+    <div class="formula">\[\boxed{\begin{aligned}\text{Current behavior}={}&\text{recent values}\\&+\text{recent errors}\\&+\text{matching seasonal values}\\&+\text{matching seasonal errors}\\&+\text{new random error}\end{aligned}}\]</div>
+  </section>
+
+  <section class="section">
+    <h2>15. Understanding a Model Name</h2>
+    <p>Consider:</p><div class="formula">\[\operatorname{SARIMA}(1,1,1)(1,1,1)_{12}\]</div>
+    <p>This means:</p>
+    <h3>Nonseasonal part</h3>
+    <ul><li>\(p=1\): use the previous differenced value.</li><li>\(d=1\): take one ordinary difference.</li><li>\(q=1\): use the previous forecast error.</li></ul>
+    <h3>Seasonal part</h3>
+    <ul><li>\(P=1\): use the corresponding value from the previous year.</li><li>\(D=1\): take one annual seasonal difference.</li><li>\(Q=1\): use the forecast error from the same month last year.</li><li>\(m=12\): twelve observations form one cycle.</li></ul>
+    <p>This is a fairly complex model. Simpler models should also be tested.</p>
+  </section>
+
+  <section class="section">
+    <h2>16. Multiplicative Does Not Mean Multiplicative Seasonality</h2>
+    <p>SARIMA is sometimes called a <strong>multiplicative seasonal ARIMA model</strong> because the seasonal and nonseasonal polynomials are multiplied:</p><div class="formula">\[\phi(B)\Phi(B^m)\]</div>
+    <p>This multiplication creates interaction lags.</p>
+    <p>For example:</p><div class="formula">\[(1-\phi B)(1-\Phi B^{12})\]</div>
+    <p>Expanding gives:</p><div class="formula">\[1-\phi B-\Phi B^{12}+\phi\Phi B^{13}\]</div>
+    <p>Therefore, a model with:</p>
+    <ul><li>a nonseasonal AR lag at \(1\),</li><li>a seasonal AR lag at \(12\),</li></ul>
+    <p>also produces an interaction at:</p><div class="formula">\[1+12=13\]</div>
+    <p>This use of “multiplicative” is different from multiplicative seasonality in Holt-Winters.</p>
+  </section>
+
+  <section class="section">
+    <h2>17. Small SARIMA Example</h2>
+    <p>Consider:</p><div class="formula">\[\operatorname{SARIMA}(1,0,0)(1,0,0)_{12}\]</div>
+    <p>The AR polynomials are:</p><div class="formula">\[(1-\phi B)(1-\Phi B^{12})Y_t=\varepsilon_t\]</div>
+    <p>Expanding:</p><div class="formula">\[Y_t-\phi Y_{t-1}-\Phi Y_{t-12}+\phi\Phi Y_{t-13}=\varepsilon_t\]</div>
+    <p>Therefore:</p><div class="formula">\[Y_t=\phi Y_{t-1}+\Phi Y_{t-12}-\phi\Phi Y_{t-13}+\varepsilon_t\]</div>
+    <p>Suppose:</p><div class="formula">\[\phi=0.5,\qquad\Phi=0.8\]</div>
+    <p>and:</p><div class="formula">\[Y_{t-1}=120,\quad Y_{t-12}=150,\quad Y_{t-13}=140\]</div>
+    <p>Ignoring the unknown current error:</p><div class="formula">\[\widehat Y_t=0.5(120)+0.8(150)-0.5(0.8)(140)\]</div>
+    <div class="formula">\[\widehat Y_t=60+120-56=124\]</div>
+    <p>The forecast combines:</p><ul><li>the latest observation,</li><li>the matching month last year,</li><li>the interaction between the two lag structures.</li></ul>
+  </section>
+
+  <section class="section"><h2>Choosing the Seasonal Orders</h2></section>
+
+  <section class="section">
+    <h2>18. Choose \(m\) From Domain Knowledge</h2>
+    <p>The seasonal period should usually come from how the data is generated.</p>
+    <p>Examples:</p><ul><li>Seven-day work cycles suggest \(m=7\) for daily data.</li><li>Annual climate patterns suggest \(m=12\) for monthly data.</li><li>Daily activity suggests \(m=24\) for hourly data.</li></ul>
+    <p>Do not automatically use a peak in a periodogram without checking whether the period makes operational sense.</p>
+    <p>Also remember:</p><blockquote>Observation frequency does not uniquely determine seasonality.</blockquote>
+    <p>Hourly data may contain both:</p><div class="formula">\[m=24\]</div><p>and:</p><div class="formula">\[m=168\]</div>
+    <p>Standard SARIMA handles one seasonal period directly.</p>
+  </section>
+
+  <section class="section">
+    <h2>19. Choose \(D\) Before \(P\) and \(Q\)</h2>
+    <p>Ask whether the seasonal pattern is stable after accounting for trend.</p>
+    <p>Evidence for seasonal differencing may include:</p>
+    <ul><li>similar patterns repeating across cycles,</li><li>a strong ACF spike at lag \(m\),</li><li>slowly decaying correlations at \(m,2m,3m,\ldots\),</li><li>improved stability after plotting \(Y_t-Y_{t-m}\),</li><li>better rolling-validation performance.</li></ul>
+    <p>Choose the smallest useful value of \(D\), usually 0 or 1.</p>
+  </section>
+
+  <section class="section">
+    <h2>20. Use Seasonal ACF and PACF as Hints</h2>
+    <p>After applying the required differencing:</p>
+    <div class="table-wrap"><table><thead><tr><th>Pattern</th><th>Possible component</th></tr></thead><tbody><tr><td>PACF spike at \(m\), seasonal ACF decays</td><td>Seasonal AR(1)</td></tr><tr><td>ACF spike at \(m\), seasonal PACF decays</td><td>Seasonal MA(1)</td></tr><tr><td>Both decay at seasonal lags</td><td>Mixed seasonal ARMA structure</td></tr></tbody></table></div>
+    <p>These are only starting points.</p>
+    <p>Finite samples, nonseasonal dependence, multiple seasonalities and outliers can blur textbook patterns.</p>
+  </section>
+
+  <section class="section">
+    <h2>21. Practical Model-Selection Workflow</h2>
+    <ol><li>Determine the seasonal period \(m\) from domain knowledge.</li><li>Plot the series and compare multiple seasonal cycles.</li><li>Decide whether a transformation is required.</li><li>Choose ordinary differencing order \(d\).</li><li>Choose seasonal differencing order \(D\).</li><li>Inspect the ACF and PACF of the transformed series.</li><li>Propose a small collection of \(p,q,P,Q\) values.</li><li>Compare AIC or BIC among fitted candidates.</li><li>Compare rolling-origin forecast accuracy.</li><li>Inspect residual diagnostics.</li><li>Prefer the simplest model that forecasts reliably.</li></ol>
+    <p>Do not choose the model using AIC alone. A model can fit historical data well but forecast poorly.</p>
+  </section>
+
+  <section class="section"><h2>Diagnostics</h2></section>
+
+  <section class="section">
+    <h2>22. What Should Good SARIMA Residuals Look Like?</h2>
+    <p>After fitting SARIMA, residuals should contain no remaining predictable structure.</p>
+    <p>Check that they have:</p><ul><li>mean close to zero,</li><li>stable variance,</li><li>no remaining trend,</li><li>no remaining seasonal pattern,</li><li>no important nonseasonal autocorrelation,</li><li>no important spikes at \(m,2m,\ldots\).</li></ul>
+    <p>Use:</p><ul><li>residual time plot,</li><li>residual ACF,</li><li>Ljung–Box test,</li><li>histogram,</li><li>Q–Q plot when interval assumptions matter.</li></ul>
+    <p>A residual ACF spike at lag \(m\) suggests that seasonal information remains unmodeled.</p>
+  </section>
+
+  <section class="section">
+    <h2>23. Reconstructing Forecasts After Seasonal Differencing</h2>
+    <p>Suppose:</p><div class="formula">\[W_t=Y_t-Y_{t-12}\]</div>
+    <p>The model predicts:</p><div class="formula">\[\widehat W_{t+1}=8\]</div>
+    <p>To recover the level forecast, add the corresponding observation from last year:</p><div class="formula">\[\widehat Y_{t+1}=Y_{t+1-12}+\widehat W_{t+1}\]</div>
+    <p>If the matching month last year had sales of 150:</p><div class="formula">\[\widehat Y_{t+1}=150+8=158\]</div>
+    <p>The forecast says:</p><blockquote>Use the same seasonal position last year as the baseline, then add the predicted year-over-year change.</blockquote>
+    <p>Software normally reverses the differencing automatically.</p>
+  </section>
+
+  <section class="section"><h2>Practical Boundaries</h2></section>
+
+  <section class="section">
+    <h2>24. When Is SARIMA Useful?</h2>
+    <p>SARIMA works well when:</p><ul><li>observations are regularly spaced,</li><li>one dominant seasonal period exists,</li><li>seasonal relationships remain reasonably stable,</li><li>lag relationships are informative,</li><li>the series can be made approximately stationary,</li><li>interpretability matters,</li><li>the dataset is small or moderately sized.</li></ul>
+    <p>SARIMA may struggle when:</p><ul><li>multiple seasonalities are important,</li><li>the seasonal period is extremely long,</li><li>behavior changes frequently,</li><li>external drivers dominate the target,</li><li>relationships are highly nonlinear,</li><li>the series contains many missing periods,</li><li>demand is highly intermittent.</li></ul>
+    <p>For multiple seasonalities, alternatives may include:</p><ul><li>dynamic harmonic regression with Fourier features,</li><li>TBATS,</li><li>Prophet,</li><li>machine-learning models with calendar and lag features.</li></ul>
+  </section>
+
+  <section class="section">
+    <h2>25. SARIMA Versus Holt-Winters</h2>
+    <div class="table-wrap"><table><thead><tr><th>Holt-Winters</th><th>SARIMA</th></tr></thead><tbody><tr><td>Stores evolving level, trend and seasonal states</td><td>Models ordinary and seasonal lag relationships</td></tr><tr><td>Seasonality is represented as a changing seasonal effect</td><td>Seasonality is represented through seasonal differencing, AR and MA terms</td></tr><tr><td>Strong state-based intuition</td><td>Strong correlation-based intuition</td></tr><tr><td>Adapts naturally to a changing local level</td><td>Captures structured dependence among observations and errors</td></tr><tr><td>Additive or multiplicative seasonal form</td><td>Seasonal and nonseasonal lag polynomials</td></tr></tbody></table></div>
+    <p>Neither method is universally better.</p>
+    <p>Compare them using:</p><ul><li>identical training periods,</li><li>identical forecast horizons,</li><li>identical rolling origins,</li><li>the same business-relevant metrics.</li></ul>
+  </section>
+
+  <section class="section">
+    <h2>Final Intuition</h2>
+    <p>SARIMA extends the ARIMA story across seasonal cycles.</p>
+    <p>It asks five questions:</p>
+    <ol><li>Should the series be differenced from the previous observation?</li><li>Should it be differenced from the matching seasonal observation?</li><li>Do recent values help predict the next value?</li><li>Do matching values from previous seasons help?</li><li>Do recent or seasonal forecast errors require correction?</li></ol>
+    <p>The complete mental model is:</p>
+    <div class="formula">\[\boxed{\text{Stabilize locally}\rightarrow\text{stabilize seasonally}\rightarrow\text{learn recent memory}\rightarrow\text{learn seasonal memory}\rightarrow\text{correct past surprises}}\]</div>
+    <blockquote><strong>ARIMA remembers nearby history. SARIMA remembers nearby history and matching seasonal history.</strong></blockquote>
+  </section>
+
+  <div class="pager"><a class="button" href="07-arima.html">Previous: ARIMA</a><a class="button primary" href="08-validation.html">Next: Validation</a></div>
+</main>
+</body>
+</html>
