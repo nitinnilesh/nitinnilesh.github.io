@@ -65,6 +65,9 @@
     const root = document.createElement("div");
     root.id = "lm-course-navigation";
     root.innerHTML = `
+      <button class="lm-course-nav__sidebar-toggle" type="button" aria-label="Collapse course sidebar" aria-expanded="true" aria-controls="lm-course-nav-panel">
+        <span aria-hidden="true">›</span>
+      </button>
       <section class="lm-course-nav__panel" id="lm-course-nav-panel" aria-label="LogicMojo lecture menu" hidden>
         <nav class="lm-course-nav__breadcrumbs" aria-label="Breadcrumb">
           <a href="/teaching/">Teaching</a>
@@ -113,22 +116,61 @@
     const panel = root.querySelector(".lm-course-nav__panel");
     const menuButton = root.querySelector(".lm-course-nav__menu-button");
     const closeButton = root.querySelector(".lm-course-nav__close");
+    const sidebarToggle = root.querySelector(".lm-course-nav__sidebar-toggle");
+    const desktopQuery = window.matchMedia("(min-width: 1180px)");
+    let sidebarCollapsed = false;
 
-    function setOpen(open) {
+    function setMobileOpen(open, moveFocus = true) {
       panel.hidden = !open;
       menuButton.setAttribute("aria-expanded", String(open));
-      if (open) closeButton.focus();
-      else menuButton.focus();
+      if (moveFocus) {
+        if (open) closeButton.focus();
+        else menuButton.focus();
+      }
     }
 
-    menuButton.addEventListener("click", () => setOpen(panel.hidden));
-    closeButton.addEventListener("click", () => setOpen(false));
+    function syncLayout(moveFocus = false) {
+      const isDesktop = desktopQuery.matches;
+      root.classList.toggle("is-desktop", isDesktop);
+      root.classList.toggle("is-sidebar-collapsed", isDesktop && sidebarCollapsed);
+      document.body.classList.toggle("lm-course-nav-sidebar", isDesktop && !sidebarCollapsed);
+
+      if (isDesktop) {
+        panel.hidden = sidebarCollapsed;
+        menuButton.setAttribute("aria-expanded", String(!sidebarCollapsed));
+        sidebarToggle.setAttribute("aria-expanded", String(!sidebarCollapsed));
+        sidebarToggle.setAttribute(
+          "aria-label",
+          sidebarCollapsed ? "Expand course sidebar" : "Collapse course sidebar"
+        );
+        sidebarToggle.querySelector("span").textContent = sidebarCollapsed ? "‹" : "›";
+        if (moveFocus) sidebarToggle.focus();
+      } else {
+        sidebarCollapsed = false;
+        document.body.classList.remove("lm-course-nav-sidebar");
+        sidebarToggle.setAttribute("aria-expanded", "false");
+        setMobileOpen(false, false);
+      }
+    }
+
+    menuButton.addEventListener("click", () => setMobileOpen(panel.hidden));
+    closeButton.addEventListener("click", () => setMobileOpen(false));
+    sidebarToggle.addEventListener("click", () => {
+      sidebarCollapsed = !sidebarCollapsed;
+      syncLayout(true);
+    });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !panel.hidden) setOpen(false);
+      if (event.key === "Escape" && !desktopQuery.matches && !panel.hidden) {
+        setMobileOpen(false);
+      }
     });
     document.addEventListener("click", (event) => {
-      if (!panel.hidden && !root.contains(event.target)) setOpen(false);
+      if (!desktopQuery.matches && !panel.hidden && !root.contains(event.target)) {
+        setMobileOpen(false);
+      }
     });
+    desktopQuery.addEventListener("change", () => syncLayout(false));
+    syncLayout(false);
   }
 
   if (document.readyState === "loading") {
