@@ -10,6 +10,7 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script defer src="interactions.js"></script>
+  <link rel="stylesheet" href="/teaching/logicmojo/course-navigation.css">
 </head>
 <body>
   <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
@@ -29,5 +30,6 @@
 <section class="section"><h2>Using SHAP with a Random Forest</h2><div class="activity"><h3>Reading question</h3><p class="prompt">In a SHAP summary plot, what does a red point on the right side usually indicate?</p></div><p>With a fitted forest, <code>shap.TreeExplainer(forest)</code> computes tree-aware contributions. A summary plot shows global patterns across rows; a waterfall plot shows the contributions for one row. For binary classification, select and label the positive-class output explicitly, because SHAP values may be returned separately for each class.</p><pre><code>explainer = shap.TreeExplainer(forest); shap_values = explainer.shap_values(X_valid); shap.summary_plot(shap_values[:, :, 1], X_valid, feature_names=feature_names)</code></pre><p>In a summary plot, points farther right push the explained output higher; points farther left push it lower. Color commonly represents feature value, so a red point on the right means high values of that feature tend to increase the explained output for those rows.</p><div class="note warning">SHAP explanations depend on the background data and feature-dependence assumptions. With strongly correlated features, credit may be shared across them in a way that is useful for explanation but not a unique causal decomposition.</div></section>
     <div class="pager"><a class="button" href="09-tuning.html">Previous: Tuning</a><a class="button primary" href="11-practical-guide.html">Next: Practice</a></div>
   </main>
+  <script defer src="/teaching/logicmojo/course-navigation.js"></script>
 </body>
 </html>

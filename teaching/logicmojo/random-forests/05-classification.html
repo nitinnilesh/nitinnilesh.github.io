@@ -10,6 +10,7 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script defer src="interactions.js"></script>
+  <link rel="stylesheet" href="/teaching/logicmojo/course-navigation.css">
 </head>
 <body>
   <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
@@ -26,5 +27,6 @@
 <section class="section"><h2>Classification workflow</h2><ol class="equation-steps"><li>Split data before fitting the forest; stratify when class proportions matter.</li><li>Fit the forest on training rows only.</li><li>Inspect validation metrics beyond accuracy when costs are unequal.</li><li>Choose the operating threshold using validation data.</li><li>Evaluate once on the untouched test set.</li></ol><div class="note warning">A forest probability is not automatically perfectly calibrated. Check calibration if probabilities drive decisions, prices, or interventions.</div></section>
     <div class="pager"><a class="button" href="04-feature-randomness.html">Previous: Features</a><a class="button primary" href="06-regression.html">Next: Regression</a></div>
   </main>
+  <script defer src="/teaching/logicmojo/course-navigation.js"></script>
 </body>
 </html>

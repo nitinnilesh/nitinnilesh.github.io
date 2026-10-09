@@ -10,6 +10,7 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script defer src="interactions.js"></script>
+  <link rel="stylesheet" href="/teaching/logicmojo/course-navigation.css">
 </head>
 <body>
   <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
@@ -26,5 +27,6 @@
 <section class="section"><h2>Worked regression average</h2><div class="activity"><h3>Average question</h3><p class="prompt">Five trees predict 48, 55, 72, 50, and 65. What single number should bagging report?</p></div><div class="formula">\[\hat y=\frac{48+55+72+50+65}{5}=58\]</div><p>The 72 is not allowed to dominate the answer by itself. It contributes one vote among five numeric opinions.</p><div class="two-col"><div class="visual"><svg class="plot" viewBox="0 0 420 300" role="img" aria-label="Individual predictions and their average"><line x1="52" y1="245" x2="385" y2="245" stroke="#5e6875"/><line x1="52" y1="44" x2="52" y2="245" stroke="#5e6875"/><g stroke="#6741d9" stroke-width="8"><line x1="94" y1="150" x2="94" y2="245"/><line x1="150" y1="122" x2="150" y2="245"/><line x1="206" y1="74" x2="206" y2="245"/><line x1="262" y1="140" x2="262" y2="245"/><line x1="318" y1="98" x2="318" y2="245"/></g><line x1="66" y1="122" x2="350" y2="122" stroke="#e76f51" stroke-width="3" stroke-dasharray="7 5"/><text x="360" y="126" class="axis-label">mean = 58</text><text x="200" y="282" class="axis-label" text-anchor="middle">tree predictions</text></svg></div><div><p>Individual trees can be jagged and variable. Their average is usually more stable, though it is still made from tree-shaped regions.</p><p class="note">Bagging can reduce variance, but averaging cannot repair a shared systematic mistake.</p></div></div></section>
     <div class="pager"><a class="button" href="02-bootstrap.html">Previous: Bootstrap</a><a class="button primary" href="04-feature-randomness.html">Next: Features</a></div>
   </main>
+  <script defer src="/teaching/logicmojo/course-navigation.js"></script>
 </body>
 </html>
