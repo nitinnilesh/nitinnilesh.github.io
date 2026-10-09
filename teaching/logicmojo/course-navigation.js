@@ -2,6 +2,7 @@
   "use strict";
 
   const courseBase = "/teaching/logicmojo/";
+  const sidebarPreferenceKey = "logicmojo-course-sidebar-collapsed";
   const topics = [
     { slug: "linear-regression", path: "linear-regression", label: "Linear Regression" },
     { slug: "polynomial-regression", path: "polynomial-regression", label: "Polynomial Regression" },
@@ -29,6 +30,22 @@
 
   function topicUrl(topic) {
     return `${courseBase}${topic.path}/`;
+  }
+
+  function readSidebarPreference() {
+    try {
+      return window.localStorage.getItem(sidebarPreferenceKey) === "true";
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function saveSidebarPreference(collapsed) {
+    try {
+      window.localStorage.setItem(sidebarPreferenceKey, String(collapsed));
+    } catch (_error) {
+      // Keep navigation usable when browser storage is unavailable.
+    }
   }
 
   function linkFor(topic, direction) {
@@ -118,7 +135,7 @@
     const closeButton = root.querySelector(".lm-course-nav__close");
     const sidebarToggle = root.querySelector(".lm-course-nav__sidebar-toggle");
     const desktopQuery = window.matchMedia("(min-width: 1180px)");
-    let sidebarCollapsed = false;
+    let sidebarCollapsed = readSidebarPreference();
 
     function setMobileOpen(open, moveFocus = true) {
       panel.hidden = !open;
@@ -146,7 +163,6 @@
         sidebarToggle.querySelector("span").textContent = sidebarCollapsed ? "‹" : "›";
         if (moveFocus) sidebarToggle.focus();
       } else {
-        sidebarCollapsed = false;
         document.body.classList.remove("lm-course-nav-sidebar");
         sidebarToggle.setAttribute("aria-expanded", "false");
         setMobileOpen(false, false);
@@ -157,6 +173,7 @@
     closeButton.addEventListener("click", () => setMobileOpen(false));
     sidebarToggle.addEventListener("click", () => {
       sidebarCollapsed = !sidebarCollapsed;
+      saveSidebarPreference(sidebarCollapsed);
       syncLayout(true);
     });
     document.addEventListener("keydown", (event) => {
