@@ -129,6 +129,32 @@ code { background: #f0f2f6; border: 1px solid var(--line); border-radius: 4px; p
 .rubric strong { display: block; margin-bottom: 5px; }
 .caption, .small { color: var(--muted); font-size: 13px; }
 .pager { border-top: 1px solid var(--line); margin-top: 38px; padding-top: 18px; display: flex; justify-content: space-between; gap: 12px; }
+.discussion-section { margin-top: 44px; padding-top: 30px; border-top: 1px solid var(--line); }
+.discussion-section .lead { max-width: 760px; font-size: 16px; }
+.giscus { margin-top: 22px; }
+.discussion-link { white-space: nowrap; }
+
+.lm-consent {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2147483001;
+  display: grid;
+  width: min(520px, calc(100vw - 36px));
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(16, 24, 40, .2);
+  color: var(--ink);
+}
+.lm-consent strong { display: block; margin-bottom: 5px; font-size: 16px; }
+.lm-consent p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.lm-consent p a { color: var(--violet); font-weight: 700; }
+.lm-consent__actions { display: flex; justify-content: flex-end; gap: 8px; }
+.lm-consent button { min-height: 38px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.lm-consent button.is-primary { border-color: var(--violet); background: var(--violet); color: #fff; }
 
 @media (max-width: 920px) {
   .two-col, .grid, .grid.two, .grid.four, .comparison { grid-template-columns: 1fr; }
@@ -147,9 +173,12 @@ code { background: #f0f2f6; border: 1px solid var(--line); border-radius: 4px; p
   .grind-path { grid-template-columns: 1fr; }
   .pager { flex-direction: column; }
   .button { width: 100%; }
+  .lm-consent { right: 10px; bottom: 84px; width: calc(100vw - 20px); }
+  .lm-consent__actions { flex-direction: column-reverse; }
+  .lm-consent button { width: 100%; }
 }
 @media print {
-  .topbar, .pager, .reveal-button { display: none; }
+  .topbar, .pager, .reveal-button, .lm-consent, .discussion-section { display: none; }
   .page { max-width: none; padding: 16px; }
   .section { break-inside: avoid; }
   .answer[hidden] { display: block; }
