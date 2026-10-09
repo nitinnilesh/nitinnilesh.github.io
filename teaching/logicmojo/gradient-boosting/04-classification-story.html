@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles.css?v=2">
   <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <link rel="stylesheet" href="/teaching/logicmojo/course-navigation.css">
 </head>
 <body>
 <header class="topbar"><nav class="nav" aria-label="Boosting foundations"><a class="brand" href="index.html">Boosting Foundations</a><div class="navlinks"><a href="index.html">Overview</a><a href="01-idea-of-boosting.html">From bagging</a><a href="02-gradient-boosting-story.html">Regression</a><a href="03-why-gradient.html">Why gradient?</a><a class="active" href="04-classification-story.html">Classification</a><a href="04-complete-algorithm.html">Algorithm</a></div></nav></header>
@@ -109,5 +110,6 @@
   <section class="section"><h2>What this example establishes</h2><ol><li>Classification Gradient Boosting builds scores before it produces classes.</li><li>The initial score represents the class prior.</li><li>For binary log loss, the negative-gradient target is \(y-p\).</li><li>A regression tree groups observations needing similar score corrections.</li><li>Leaf values update raw scores, and the sigmoid converts them to probabilities.</li><li>A weak tree need not classify every row correctly to reduce the ensemble's loss.</li></ol></section>
   <div class="pager"><a class="button" href="03-why-gradient.html">Previous: Why gradient?</a><a class="button primary" href="04-complete-algorithm.html">Next: Algorithm</a></div>
 </main>
+  <script defer src="/teaching/logicmojo/course-navigation.js"></script>
 </body>
 </html>

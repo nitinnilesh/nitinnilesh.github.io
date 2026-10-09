@@ -10,6 +10,7 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script defer src="interactions.js"></script>
+  <link rel="stylesheet" href="/teaching/logicmojo/course-navigation.css">
 </head>
 <body>
   <header class="topbar"><nav class="nav" aria-label="Random Forest lecture pages">
@@ -26,5 +27,6 @@
 <section class="section"><h2>Metrics must match the business</h2><div class="activity"><h3>Metric question</h3><p class="prompt">For a rare-fraud detector, can accuracy alone reveal whether the model is useful?</p></div><p>For classification, consider precision, recall, F1, ROC-AUC, PR-AUC, calibration, and the cost of false positives versus false negatives. For regression, consider MAE, RMSE, \(R^2\), subgroup error, and tail behavior.</p><p class="note">For imbalanced classification, <code>class_weight="balanced_subsample"</code> adjusts weights from each bootstrap sample. It changes the split objective; it does not replace threshold selection or careful evaluation.</p></section>
     <div class="pager"><a class="button" href="08-variance.html">Previous: Variance</a><a class="button primary" href="10-interpretation.html">Next: Interpretation</a></div>
   </main>
+  <script defer src="/teaching/logicmojo/course-navigation.js"></script>
 </body>
 </html>
